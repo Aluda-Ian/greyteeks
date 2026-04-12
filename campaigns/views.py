@@ -57,7 +57,7 @@ def dashboard(request):
     context = {
         'total_campaigns': total_campaigns,
         'total_contacts': total_contacts,
-        'total_groups': total_groups if request.user.is_staff else total_groups.count(),
+        'total_groups': total_groups,
         'total_users': total_users if request.user.is_staff else None,
         'recent_campaigns': recent_campaigns,
         'total_sms_sent': total_sms_sent,
