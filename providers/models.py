@@ -29,10 +29,10 @@ class WhatsAppProvider(models.Model):
 
 class EmailProvider(models.Model):
     name = models.CharField(max_length=50, default="SMTP")
-    host = models.CharField(max_length=255, help_text="SMTP host, for example smtp.gmail.com")
-    port = models.PositiveIntegerField(default=587)
-    username = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
+    smtp_host = models.CharField(max_length=255, help_text="SMTP host, for example smtp.gmail.com")
+    smtp_port = models.PositiveIntegerField(default=587)
+    smtp_username = models.CharField(max_length=255)
+    smtp_password = models.CharField(max_length=255)
     use_tls = models.BooleanField(default=True)
     use_ssl = models.BooleanField(default=False)
     from_email = models.EmailField(default='no-reply@greyteeks.com')
