@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from .models import Campaign
 from providers.models import EmailProvider, EmailTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
@@ -35,8 +36,14 @@ class CampaignForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['email_server'].queryset = EmailProvider.objects.filter(is_active=True)
+        email_queryset = EmailProvider.objects.filter(is_active=True)
+        if user is not None:
+            email_queryset = EmailProvider.objects.filter(
+                Q(owner=user) | Q(owner__isnull=True, is_active=True)
+            )
+        self.fields['email_server'].queryset = email_queryset
         self.fields['email_template'].queryset = EmailTemplate.objects.filter(is_active=True)
         self.fields['sms_server'].queryset = SMSProvider.objects.filter(is_active=True)
         self.fields['whatsapp_server'].queryset = WhatsAppProvider.objects.filter(is_active=True)

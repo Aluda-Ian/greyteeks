@@ -46,6 +46,16 @@
                             <i class="bi bi-envelope-paper me-2"></i> Mailing Management
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_sms' %}">
+                            <i class="bi bi-chat-left-dots me-2"></i> SMS Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_whatsapp' %}">
+                            <i class="bi bi-whatsapp me-2"></i> WhatsApp Management
+                        </a>
+                    </li>
                     <li class="nav-item mt-5">
                         <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}

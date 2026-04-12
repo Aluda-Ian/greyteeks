@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 class SMSProvider(models.Model):
@@ -37,6 +38,13 @@ class EmailProvider(models.Model):
     use_ssl = models.BooleanField(default=False)
     from_email = models.EmailField(default='no-reply@greyteeks.com')
     is_active = models.BooleanField(default=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='email_providers',
+    )
 
     def __str__(self):
         return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"

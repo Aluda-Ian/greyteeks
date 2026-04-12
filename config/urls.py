@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 # Add ai_suggest_view to this line
-from campaigns.views import about_view, contact_view, dashboard, create_campaign, home_view, manage_groups, register_view, ai_suggest_view, manage_users, manage_mailing
+from campaigns.views import about_view, contact_view, dashboard, create_campaign, home_view, manage_groups, register_view, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp
 from contacts_app.views import upload_contacts
 
 admin.site.site_header = 'Greyteeks Admin'
@@ -17,6 +17,9 @@ urlpatterns = [
     path('groups/manage/', manage_groups, name='manage_groups'),
     path('users/manage/', manage_users, name='manage_users'),
     path('mailing/manage/', manage_mailing, name='manage_mailing'),
+    path('sms/manage/', manage_sms, name='manage_sms'),
+    path('whatsapp/manage/', manage_whatsapp, name='manage_whatsapp'),
+    path('my/email-providers/', my_email_providers, name='my_email_providers'),
     path('about/', about_view, name='about'),
     path('contact/', contact_view, name='contact'),
     path('contacts/upload/', upload_contacts, name='upload_contacts'),

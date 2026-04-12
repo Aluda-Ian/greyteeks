@@ -11,7 +11,7 @@ from accounts.models import UserQuota
 from .models import Campaign
 from .forms import CampaignForm
 from .utils import get_ai_campaign_suggestion
-from providers.models import EmailProvider
+from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 from providers.services import send_bulk_at_sms, send_whatsapp_meta_message, send_custom_email
 
 def home_view(request):
@@ -199,10 +199,188 @@ def manage_mailing(request):
     return render(request, 'campaigns/manage_mailing.html', {'providers': providers})
 
 @login_required
+def manage_sms(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_provider':
+            name = request.POST.get('name', '').strip()
+            api_key = request.POST.get('api_key', '').strip()
+            username = request.POST.get('username', '').strip()
+            sender_id = request.POST.get('sender_id', '').strip()
+
+            if not (name and api_key and username):
+                messages.error(request, 'Please complete all required SMS provider fields.')
+            else:
+                SMSProvider.objects.create(
+                    name=name,
+                    api_key=api_key,
+                    username=username,
+                    sender_id=sender_id,
+                    is_active=False,
+                )
+                messages.success(request, f'SMS provider "{name}" created successfully.')
+
+        elif action == 'toggle_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = SMSProvider.objects.filter(id=provider_id).first()
+            if provider:
+                provider.is_active = not provider.is_active
+                provider.save()
+                state = 'activated' if provider.is_active else 'deactivated'
+                messages.success(request, f'SMS provider "{provider.name}" has been {state}.')
+
+        elif action == 'delete_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = SMSProvider.objects.filter(id=provider_id).first()
+            if provider:
+                provider.delete()
+                messages.success(request, f'SMS provider "{provider.name}" has been deleted.')
+
+        return redirect('manage_sms')
+
+    providers = SMSProvider.objects.order_by('-id')
+    return render(request, 'campaigns/manage_sms.html', {'providers': providers})
+
+@login_required
+def manage_whatsapp(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_provider':
+            name = request.POST.get('name', '').strip()
+            access_token = request.POST.get('access_token', '').strip()
+            phone_number_id = request.POST.get('phone_number_id', '').strip()
+            waba_id = request.POST.get('waba_id', '').strip()
+
+            if not (access_token and phone_number_id and waba_id):
+                messages.error(request, 'Please complete all required WhatsApp provider fields.')
+            else:
+                WhatsAppProvider.objects.create(
+                    name=name or 'Meta Cloud API',
+                    access_token=access_token,
+                    phone_number_id=phone_number_id,
+                    waba_id=waba_id,
+                    is_active=False,
+                )
+                messages.success(request, 'WhatsApp provider created successfully.')
+
+        elif action == 'toggle_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = WhatsAppProvider.objects.filter(id=provider_id).first()
+            if provider:
+                provider.is_active = not provider.is_active
+                provider.save()
+                state = 'activated' if provider.is_active else 'deactivated'
+                messages.success(request, f'WhatsApp provider "{provider.name}" has been {state}.')
+
+        elif action == 'delete_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = WhatsAppProvider.objects.filter(id=provider_id).first()
+            if provider:
+                provider.delete()
+                messages.success(request, f'WhatsApp provider "{provider.name}" has been deleted.')
+
+        elif action == 'create_template':
+            provider_id = request.POST.get('provider_id')
+            name = request.POST.get('name', '').strip()
+            category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
+            language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
+            body_text = request.POST.get('body_text', '').strip()
+
+            provider = WhatsAppProvider.objects.filter(id=provider_id).first()
+            if not (provider and name and body_text):
+                messages.error(request, 'Please select a provider and provide all required template details.')
+            else:
+                WhatsAppTemplate.objects.create(
+                    provider=provider,
+                    name=name,
+                    category=category,
+                    language_code=language_code,
+                    body_text=body_text,
+                )
+                messages.success(request, f'WhatsApp template "{name}" created successfully.')
+
+        elif action == 'delete_template':
+            template_id = request.POST.get('template_id')
+            template = WhatsAppTemplate.objects.filter(id=template_id).first()
+            if template:
+                template.delete()
+                messages.success(request, f'WhatsApp template "{template.name}" has been deleted.')
+
+        return redirect('manage_whatsapp')
+
+    providers = WhatsAppProvider.objects.order_by('-id')
+    templates = WhatsAppTemplate.objects.select_related('provider').order_by('-id')
+    return render(request, 'campaigns/manage_whatsapp.html', {'providers': providers, 'templates': templates})
+
+@login_required
+def my_email_providers(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_provider':
+            name = request.POST.get('name', '').strip()
+            smtp_host = request.POST.get('smtp_host', '').strip()
+            smtp_port = request.POST.get('smtp_port', '').strip()
+            smtp_username = request.POST.get('smtp_username', '').strip()
+            smtp_password = request.POST.get('smtp_password', '').strip()
+            use_tls = request.POST.get('use_tls') == 'on'
+            use_ssl = request.POST.get('use_ssl') == 'on'
+            from_email = request.POST.get('from_email', '').strip()
+
+            if not (name and smtp_host and smtp_port and smtp_username and smtp_password and from_email):
+                messages.error(request, 'Please complete all required SMTP fields.')
+            else:
+                try:
+                    EmailProvider.objects.create(
+                        name=name,
+                        smtp_host=smtp_host,
+                        smtp_port=int(smtp_port),
+                        smtp_username=smtp_username,
+                        smtp_password=smtp_password,
+                        use_tls=use_tls,
+                        use_ssl=use_ssl,
+                        from_email=from_email,
+                        is_active=False,
+                        owner=request.user,
+                    )
+                    messages.success(request, f'Email provider "{name}" created successfully.')
+                except ValueError:
+                    messages.error(request, 'SMTP port must be a valid number.')
+
+        elif action == 'toggle_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = EmailProvider.objects.filter(id=provider_id, owner=request.user).first()
+            if provider:
+                provider.is_active = not provider.is_active
+                provider.save()
+                state = 'activated' if provider.is_active else 'deactivated'
+                messages.success(request, f'Provider "{provider.name}" has been {state}.')
+
+        elif action == 'delete_provider':
+            provider_id = request.POST.get('provider_id')
+            provider = EmailProvider.objects.filter(id=provider_id, owner=request.user).first()
+            if provider:
+                provider.delete()
+                messages.success(request, f'Provider "{provider.name}" has been deleted.')
+
+        return redirect('my_email_providers')
+
+    providers = EmailProvider.objects.filter(owner=request.user).order_by('-id')
+    return render(request, 'campaigns/my_email_providers.html', {'providers': providers})
+
+@login_required
 def create_campaign(request):
     """Handles logic for creating and launching unified multi-channel campaigns."""
     if request.method == 'POST':
-        form = CampaignForm(request.POST)
+        form = CampaignForm(request.POST, user=request.user)
         if form.is_valid():
             campaign = form.save(commit=False)
             campaign.user = request.user
@@ -245,7 +423,9 @@ def create_campaign(request):
                 return render(request, 'campaigns/create_campaign.html', {'form': form})
 
             if campaign.send_email and not campaign.email_server:
-                default_email_provider = EmailProvider.objects.filter(is_active=True).order_by('-id').first()
+                default_email_provider = EmailProvider.objects.filter(owner=request.user, is_active=True).order_by('-id').first()
+                if not default_email_provider:
+                    default_email_provider = EmailProvider.objects.filter(owner__isnull=True, is_active=True).order_by('-id').first()
                 if default_email_provider:
                     campaign.email_server = default_email_provider
                 else:
@@ -310,7 +490,7 @@ def create_campaign(request):
 
             return redirect('dashboard')
     else:
-        form = CampaignForm()
+        form = CampaignForm(user=request.user)
 
     return render(request, 'campaigns/create_campaign.html', {'form': form})
 

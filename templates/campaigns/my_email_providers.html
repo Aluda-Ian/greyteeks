@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailing Management — Greyteeks</title>
+    <title>My Email Providers — Greyteeks</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -13,7 +13,9 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-2 d-none d-md-block sidebar p-3">
-                <h3 class="text-center py-3 fw-bold">Dashboard</h3>
+                <div class="text-center mb-3">
+                    <img src="{% static 'img/light logo.svg' %}" class="sidebar-logo mx-auto" alt="Greyteeks logo">
+                </div>
                 <hr class="text-secondary">
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -32,28 +34,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_groups' %}">
-                            <i class="bi bi-list-task me-2"></i> Manage Groups
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_users' %}">
-                            <i class="bi bi-gear me-2"></i> Manage Users
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center active" href="{% url 'manage_mailing' %}">
-                            <i class="bi bi-envelope-paper me-2"></i> Mailing Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_sms' %}">
-                            <i class="bi bi-chat-left-dots me-2"></i> SMS Management
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_whatsapp' %}">
-                            <i class="bi bi-whatsapp me-2"></i> WhatsApp Management
+                        <a class="nav-link text-white d-flex align-items-center active" href="{% url 'my_email_providers' %}">
+                            <i class="bi bi-envelope-gear me-2"></i> Email Providers
                         </a>
                     </li>
                     <li class="nav-item mt-5">
@@ -80,8 +62,8 @@
 
                     <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                         <div>
-                            <h2 class="fw-bold m-0">Mailing Management</h2>
-                            <p class="text-muted mb-0">Configure SMTP providers for email campaigns directly in the dashboard.</p>
+                            <h2 class="fw-bold m-0">My Email Providers</h2>
+                            <p class="text-muted mb-0">Add and manage your own SMTP providers for email campaigns.</p>
                         </div>
                         <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
                             <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
@@ -135,7 +117,7 @@
                         </div>
                         <div class="col-lg-6">
                             <div class="card border-0 shadow-sm p-4 rounded-4">
-                                <h5 class="fw-bold mb-3">Configured Providers</h5>
+                                <h5 class="fw-bold mb-3">Your Providers</h5>
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle">
                                         <thead class="table-light">

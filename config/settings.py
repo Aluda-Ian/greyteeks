@@ -16,15 +16,34 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env when present
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    with env_path.open() as env_file:
+        for line in env_file:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip().strip('"\'')
+            if key and key not in os.environ:
+                os.environ[key] = value
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5d1pu#p25c3n1+t$!wr)2w!c))dnyq*mvgei0wia+^9_z@=#e4'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-5d1pu#p25c3n1+t$!wr)2w!c))dnyq*mvgei0wia+^9_z@=#e4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
+
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+AT_USERNAME = os.environ.get('AT_USERNAME', '')
+AT_API_KEY = os.environ.get('AT_API_KEY', '')
 
 ALLOWED_HOSTS = []
 
