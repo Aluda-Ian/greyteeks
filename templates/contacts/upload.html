@@ -1,0 +1,42 @@
+{% extends "campaigns/dashboard.html" %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 p-4">
+                <h3 class="fw-bold mb-3">Bulk Import Contacts</h3>
+                <p class="text-muted">Upload an Excel or CSV file to populate your marketing groups.</p>
+                <hr>
+                
+                <form action="" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label">Select Target Group</label>
+                        <select name="group" class="form-select">
+                            {% for group in groups %}
+                                <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose which group these contacts belong to (e.g., VIPs).</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Choose File (CSV or XLSX)</label>
+                        <input type="file" name="contact_file" class="form-control" accept=".csv, .xlsx">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2">Start Import</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
