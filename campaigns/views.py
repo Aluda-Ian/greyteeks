@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -11,7 +11,7 @@ from accounts.models import UserQuota
 from .models import Campaign
 from .forms import CampaignForm
 from .utils import get_ai_campaign_suggestion
-from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, WhatsAppTemplate
+from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 from providers.services import send_bulk_at_sms, send_whatsapp_meta_message, send_custom_email
 
 def home_view(request):
@@ -63,6 +63,10 @@ def dashboard(request):
         'total_sms_sent': total_sms_sent,
         'total_whatsapp_sent': total_whatsapp_sent,
         'total_email_sent': total_email_sent,
+        'user_quota': user_quota,
+        'quota_progress': quota_progress,
+        'has_groups': Group.objects.filter(user=request.user).exists() if not request.user.is_staff else None,
+        'has_contacts': Contact.objects.filter(group__user=request.user).exists() if not request.user.is_staff else None,
     }
     return render(request, 'campaigns/dashboard.html', context)
 
@@ -197,6 +201,226 @@ def manage_mailing(request):
 
     providers = EmailProvider.objects.order_by('-id')
     return render(request, 'campaigns/manage_mailing.html', {'providers': providers})
+
+@login_required
+def manage_templates(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_email_template':
+            name = request.POST.get('name', '').strip()
+            subject = request.POST.get('subject', '').strip()
+            body_text = request.POST.get('body_text', '').strip()
+            provider_id = request.POST.get('provider_id') if request.user.is_staff else None
+            provider = None
+            if provider_id:
+                provider = EmailProvider.objects.filter(id=provider_id, is_active=True).first()
+
+            if not (name and body_text):
+                messages.error(request, 'Please provide a template name and body text.')
+            else:
+                EmailTemplate.objects.create(
+                    provider=provider,
+                    owner=None if request.user.is_staff else request.user,
+                    name=name,
+                    subject=subject,
+                    body_text=body_text,
+                    is_active=True,
+                )
+                messages.success(request, f'Email template "{name}" created successfully.')
+
+        elif action == 'delete_email_template':
+            template_id = request.POST.get('template_id')
+            email_template = EmailTemplate.objects.filter(id=template_id).first()
+            if email_template and (email_template.owner == request.user or request.user.is_staff):
+                email_template.delete()
+                messages.success(request, 'Email template deleted successfully.')
+            else:
+                messages.error(request, 'You do not have permission to delete this email template.')
+
+        elif action == 'create_whatsapp_template':
+            if not request.user.is_staff:
+                messages.error(request, 'Only administrators can manage WhatsApp templates.')
+            else:
+                provider_id = request.POST.get('provider_id')
+                name = request.POST.get('name', '').strip()
+                category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
+                language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
+                body_text = request.POST.get('body_text', '').strip()
+                provider = WhatsAppProvider.objects.filter(id=provider_id, is_active=True).first()
+
+                if not (provider and name and body_text):
+                    messages.error(request, 'Please select a provider and provide a name and body for the WhatsApp template.')
+                else:
+                    WhatsAppTemplate.objects.create(
+                        provider=provider,
+                        name=name,
+                        category=category,
+                        language_code=language_code,
+                        body_text=body_text,
+                    )
+                    messages.success(request, f'WhatsApp template "{name}" created successfully.')
+
+        elif action == 'delete_whatsapp_template':
+            if not request.user.is_staff:
+                messages.error(request, 'Only administrators can delete WhatsApp templates.')
+            else:
+                template_id = request.POST.get('template_id')
+                whatsapp_template = WhatsAppTemplate.objects.filter(id=template_id).first()
+                if whatsapp_template:
+                    whatsapp_template.delete()
+                    messages.success(request, 'WhatsApp template deleted successfully.')
+
+        elif action == 'create_message_template':
+            name = request.POST.get('name', '').strip()
+            body = request.POST.get('body', '').strip()
+            if not (name and body):
+                messages.error(request, 'Please provide a message template name and body.')
+            else:
+                MessageTemplate.objects.create(
+                    owner=request.user,
+                    name=name,
+                    body=body,
+                )
+                messages.success(request, f'Message template "{name}" created successfully.')
+
+        elif action == 'delete_message_template':
+            template_id = request.POST.get('template_id')
+            message_template = MessageTemplate.objects.filter(id=template_id).first()
+            if message_template and (message_template.owner == request.user or request.user.is_staff):
+                message_template.delete()
+                messages.success(request, 'Message template deleted successfully.')
+            else:
+                messages.error(request, 'You do not have permission to delete this message template.')
+
+        return redirect('manage_templates')
+
+    email_templates = EmailTemplate.objects.filter(
+        models.Q(owner=request.user) | models.Q(owner=None)
+    ).order_by('-created_at')
+    whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').order_by('-id')
+    message_templates = MessageTemplate.objects.filter(owner=request.user).order_by('-created_at')
+    whatsapp_providers = WhatsAppProvider.objects.filter(is_active=True)
+    email_providers = EmailProvider.objects.filter(is_active=True) if request.user.is_staff else None
+
+    context = {
+        'email_templates': email_templates,
+        'whatsapp_templates': whatsapp_templates,
+        'message_templates': message_templates,
+        'whatsapp_providers': whatsapp_providers,
+        'email_providers': email_providers,
+    }
+    return render(request, 'campaigns/manage_templates.html', context)
+
+@login_required
+def manage_templates(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'create_email_template':
+            name = request.POST.get('name', '').strip()
+            subject = request.POST.get('subject', '').strip()
+            body_text = request.POST.get('body_text', '').strip()
+            provider_id = request.POST.get('provider_id') if request.user.is_staff else None
+            provider = None
+            if provider_id:
+                provider = EmailProvider.objects.filter(id=provider_id, is_active=True).first()
+
+            if not (name and body_text):
+                messages.error(request, 'Please provide a template name and body text.')
+            else:
+                EmailTemplate.objects.create(
+                    provider=provider,
+                    owner=None if request.user.is_staff else request.user,
+                    name=name,
+                    subject=subject,
+                    body_text=body_text,
+                    is_active=True,
+                )
+                messages.success(request, f'Email template "{name}" created successfully.')
+
+        elif action == 'delete_email_template':
+            template_id = request.POST.get('template_id')
+            email_template = EmailTemplate.objects.filter(id=template_id).first()
+            if email_template and (email_template.owner == request.user or request.user.is_staff):
+                email_template.delete()
+                messages.success(request, 'Email template deleted successfully.')
+            else:
+                messages.error(request, 'You do not have permission to delete this email template.')
+
+        elif action == 'create_whatsapp_template':
+            if not request.user.is_staff:
+                messages.error(request, 'Only administrators can manage WhatsApp templates.')
+            else:
+                provider_id = request.POST.get('provider_id')
+                name = request.POST.get('name', '').strip()
+                category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
+                language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
+                body_text = request.POST.get('body_text', '').strip()
+                provider = WhatsAppProvider.objects.filter(id=provider_id, is_active=True).first()
+
+                if not (provider and name and body_text):
+                    messages.error(request, 'Please select a provider and provide a name and body for the WhatsApp template.')
+                else:
+                    WhatsAppTemplate.objects.create(
+                        provider=provider,
+                        name=name,
+                        category=category,
+                        language_code=language_code,
+                        body_text=body_text,
+                    )
+                    messages.success(request, f'WhatsApp template "{name}" created successfully.')
+
+        elif action == 'delete_whatsapp_template':
+            if not request.user.is_staff:
+                messages.error(request, 'Only administrators can delete WhatsApp templates.')
+            else:
+                template_id = request.POST.get('template_id')
+                whatsapp_template = WhatsAppTemplate.objects.filter(id=template_id).first()
+                if whatsapp_template:
+                    whatsapp_template.delete()
+                    messages.success(request, 'WhatsApp template deleted successfully.')
+
+        elif action == 'create_message_template':
+            name = request.POST.get('name', '').strip()
+            body = request.POST.get('body', '').strip()
+            if not (name and body):
+                messages.error(request, 'Please provide a message template name and body.')
+            else:
+                MessageTemplate.objects.create(
+                    owner=request.user,
+                    name=name,
+                    body=body,
+                )
+                messages.success(request, f'Message template "{name}" created successfully.')
+
+        elif action == 'delete_message_template':
+            template_id = request.POST.get('template_id')
+            message_template = MessageTemplate.objects.filter(id=template_id).first()
+            if message_template and (message_template.owner == request.user or request.user.is_staff):
+                message_template.delete()
+                messages.success(request, 'Message template deleted successfully.')
+            else:
+                messages.error(request, 'You do not have permission to delete this message template.')
+
+        return redirect('manage_templates')
+
+    email_templates = EmailTemplate.objects.filter(
+        models.Q(owner=request.user) | models.Q(owner=None)
+    ).order_by('-created_at')
+    whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').order_by('-id')
+    message_templates = MessageTemplate.objects.filter(owner=request.user).order_by('-created_at')
+    whatsapp_providers = WhatsAppProvider.objects.filter(is_active=True)
+    email_providers = EmailProvider.objects.filter(is_active=True) if request.user.is_staff else None
+
+    context = {
+        'email_templates': email_templates,
+        'whatsapp_templates': whatsapp_templates,
+        'message_templates': message_templates,
+        'whatsapp_providers': whatsapp_providers,
+        'email_providers': email_providers,
+    }
+    return render(request, 'campaigns/manage_templates.html', context)
 
 @login_required
 def manage_sms(request):
@@ -377,6 +601,24 @@ def my_email_providers(request):
     return render(request, 'campaigns/my_email_providers.html', {'providers': providers})
 
 @login_required
+def customer_create_group(request):
+    groups = Group.objects.filter(user=request.user).order_by('-created_at')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if not name:
+            messages.error(request, 'Please provide a group name.')
+            return redirect('customer_create_group')
+
+        Group.objects.create(user=request.user, name=name, description=description)
+        messages.success(request, f'Group "{name}" created. Import contacts next.')
+        return redirect('upload_contacts')
+
+    return render(request, 'campaigns/customer_groups.html', {'groups': groups})
+
+@login_required
 def create_campaign(request):
     """Handles logic for creating and launching unified multi-channel campaigns."""
     if request.method == 'POST':
@@ -384,6 +626,9 @@ def create_campaign(request):
         if form.is_valid():
             campaign = form.save(commit=False)
             campaign.user = request.user
+            selected_template = form.cleaned_data.get('message_template')
+            if selected_template and not campaign.message_body.strip():
+                campaign.message_body = selected_template.body
 
             if not campaign.target_group:
                 messages.error(request, 'Please select a target group to launch the campaign.')
@@ -404,6 +649,14 @@ def create_campaign(request):
 
             if not selected_channels:
                 messages.error(request, 'Select at least one channel for this campaign.')
+                return render(request, 'campaigns/create_campaign.html', {'form': form})
+
+            if campaign.send_sms and not campaign.sms_server:
+                messages.error(request, 'No SMS provider selected. Please contact support to activate an SMS provider.')
+                return render(request, 'campaigns/create_campaign.html', {'form': form})
+
+            if campaign.send_whatsapp and not campaign.whatsapp_server:
+                messages.error(request, 'No WhatsApp provider selected. Please contact support to activate a WhatsApp provider.')
                 return render(request, 'campaigns/create_campaign.html', {'form': form})
 
             unit_count = 0

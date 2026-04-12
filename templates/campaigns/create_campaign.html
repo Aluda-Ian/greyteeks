@@ -5,9 +5,88 @@
     <h3>Create New Campaign</h3>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        
-        <div class="mb-3">
+        {% if not form.target_group.field.queryset %}
+            <div class="alert alert-warning">
+                You have no contact groups yet. <a href="{% url 'customer_create_group' %}">Create one first</a>.
+            </div>
+        {% endif %}
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Campaign Title</label>
+                {{ form.title }}
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Target Group</label>
+                {{ form.target_group }}
+            </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+            <div class="col-md-4">
+                <div class="form-check card p-3 h-100">
+                    {{ form.send_sms }}
+                    <label class="form-check-label ms-2" for="id_send_sms">SMS Channel</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check card p-3 h-100">
+                    {{ form.send_whatsapp }}
+                    <label class="form-check-label ms-2" for="id_send_whatsapp">WhatsApp Channel</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check card p-3 h-100">
+                    {{ form.send_email }}
+                    <label class="form-check-label ms-2" for="id_send_email">Email Channel</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="sms-section" class="mt-4" style="display:none;">
+            <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h5 class="fw-bold mb-3">SMS Provider</h5>
+                <div class="mb-3">
+                    <label class="form-label">SMS Provider</label>
+                    {{ form.sms_server }}
+                </div>
+            </div>
+        </div>
+
+        <div id="whatsapp-section" class="mt-4" style="display:none;">
+            <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h5 class="fw-bold mb-3">WhatsApp Provider</h5>
+                <div class="mb-3">
+                    <label class="form-label">WhatsApp Provider</label>
+                    {{ form.whatsapp_server }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">WhatsApp Template</label>
+                    {{ form.whatsapp_template }}
+                </div>
+            </div>
+        </div>
+
+        <div id="email-section" class="mt-4" style="display:none;">
+            <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h5 class="fw-bold mb-3">Email Provider</h5>
+                <div class="mb-3">
+                    <label class="form-label">Email Provider</label>
+                    {{ form.email_server }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email Template</label>
+                    {{ form.email_template }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label class="form-label fw-semibold">Message Body</label>
+            {{ form.message_body }}
+        </div>
+
+        <div class="mb-3 mt-3">
             <button type="button" class="btn btn-info text-white" onclick="generateAI()">
                 ✨ Generate with AI
             </button>
@@ -18,13 +97,30 @@
 </div>
 
 <script>
+function toggleSection(checkboxId, sectionId) {
+    const checkbox = document.getElementById(checkboxId);
+    const section = document.getElementById(sectionId);
+    if (!checkbox || !section) return;
+    section.style.display = checkbox.checked ? 'block' : 'none';
+    checkbox.addEventListener('change', function() {
+        section.style.display = this.checked ? 'block' : 'none';
+    });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    toggleSection('id_send_sms', 'sms-section');
+    toggleSection('id_send_whatsapp', 'whatsapp-section');
+    toggleSection('id_send_email', 'email-section');
+});
+
 function generateAI() {
     const topic = prompt("What is this campaign about? (e.g., Flash Sale, Welcome Message)");
     if (topic) {
         fetch(`/api/ai-suggest/?topic=${topic}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('messageBody').value = data.suggestion;
+                const textarea = document.getElementById('messageBody');
+                if (textarea) textarea.value = data.suggestion;
             });
     }
 }

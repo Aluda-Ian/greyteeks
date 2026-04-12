@@ -50,7 +50,14 @@ class EmailProvider(models.Model):
         return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"
 
 class EmailTemplate(models.Model):
-    provider = models.ForeignKey(EmailProvider, on_delete=models.CASCADE, related_name='templates')
+    provider = models.ForeignKey(EmailProvider, on_delete=models.CASCADE, related_name='templates', null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='email_templates'
+    )
     name = models.CharField(max_length=100, help_text="Internal template name")
     subject = models.CharField(max_length=200)
     body_text = models.TextField(help_text="Email body text or HTML")
@@ -58,7 +65,21 @@ class EmailTemplate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} ({self.provider.name})"
+        provider_name = self.provider.name if self.provider else 'No Provider'
+        return f"{self.name} ({provider_name})"
+
+class MessageTemplate(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='message_templates'
+    )
+    name = models.CharField(max_length=100)
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.owner.username})"
 
 class WhatsAppTemplate(models.Model):
     provider = models.ForeignKey(WhatsAppProvider, on_delete=models.CASCADE, related_name='templates')

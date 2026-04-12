@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'campaigns',
     'providers',
     'contacts_app',
+    'billing',
     
     # Third-party
     'rest_framework',
@@ -153,6 +154,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Auth Redirects
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
+
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
 # Auth Settings
 AUTH_USER_MODEL = 'auth.User'

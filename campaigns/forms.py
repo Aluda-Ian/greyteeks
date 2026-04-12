@@ -1,7 +1,8 @@
 from django import forms
 from django.db.models import Q
 from .models import Campaign
-from providers.models import EmailProvider, EmailTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
+from contacts_app.models import Group
+from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
 class CampaignForm(forms.ModelForm):
     class Meta:
@@ -35,22 +36,54 @@ class CampaignForm(forms.ModelForm):
             'target_group': forms.Select(attrs={'class': 'form-select'}),
         }
 
+    message_template = forms.ModelChoiceField(
+        queryset=MessageTemplate.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_message_template'})
+    )
+
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['target_group'].queryset = Group.objects.filter(user=self.user)
+
         email_queryset = EmailProvider.objects.filter(is_active=True)
-        if user is not None:
+        if self.user is not None:
             email_queryset = EmailProvider.objects.filter(
-                Q(owner=user) | Q(owner__isnull=True, is_active=True)
+                Q(owner=self.user) | Q(owner__isnull=True, is_active=True)
             )
         self.fields['email_server'].queryset = email_queryset
-        self.fields['email_template'].queryset = EmailTemplate.objects.filter(is_active=True)
+        self.fields['email_template'].queryset = EmailTemplate.objects.filter(
+            Q(owner=self.user) | Q(owner__isnull=True, is_active=True)
+        )
         self.fields['sms_server'].queryset = SMSProvider.objects.filter(is_active=True)
         self.fields['whatsapp_server'].queryset = WhatsAppProvider.objects.filter(is_active=True)
         self.fields['whatsapp_template'].queryset = WhatsAppTemplate.objects.all()
+        if self.user is not None:
+            self.fields['message_template'].queryset = MessageTemplate.objects.filter(owner=self.user)
         if 'email_server' in self.data:
             try:
                 provider_id = int(self.data.get('email_server'))
-                self.fields['email_template'].queryset = EmailTemplate.objects.filter(provider_id=provider_id, is_active=True)
+                self.fields['email_template'].queryset = (
+                    EmailTemplate.objects.filter(
+                        Q(owner=self.user) |
+                        Q(owner__isnull=True, is_active=True, provider_id=provider_id)
+                    )
+                )
             except (TypeError, ValueError):
                 pass
+        self.order_fields([
+            'title',
+            'target_group',
+            'send_sms',
+            'sms_server',
+            'send_whatsapp',
+            'whatsapp_server',
+            'whatsapp_template',
+            'send_email',
+            'email_server',
+            'email_template',
+            'message_template',
+            'message_body',
+        ])
