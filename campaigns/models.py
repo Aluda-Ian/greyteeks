@@ -1,8 +1,12 @@
 from django.db import models
+from config import settings
+
 from providers.models import SMSProvider, WhatsAppProvider
 from contacts.models import Group 
 
 class Campaign(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaigns')
+    title = models.CharField(max_length=200)
     CHANNEL_CHOICES = [
         ('sms', 'SMS'),
         ('whatsapp', 'WhatsApp'),
