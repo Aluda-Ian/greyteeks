@@ -1,11 +1,16 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.contrib import messages
+from django.db import IntegrityError
+from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from contacts_app.models import Contact, Group # Update this import
 from .models import Campaign
 from .forms import CampaignForm
-from providers.services import send_bulk_at_sms, send_whatsapp_meta_message
 from .utils import get_ai_campaign_suggestion
 from contacts.models import Contact, Group
+from providers.services import send_bulk_at_sms, send_whatsapp_meta_message
 
 def home_view(request):
     """Public landing page. Redirects authenticated users to their dashboard."""
@@ -48,7 +53,6 @@ def create_campaign(request):
     if request.method == 'POST':
         form = CampaignForm(request.POST)
         if form.is_valid():
-            # commit=False allows us to set the user before saving
             campaign = form.save(commit=False)
             campaign.user = request.user
             campaign.save()
@@ -75,7 +79,6 @@ def create_campaign(request):
                             campaign.message_body
                         )
                 
-                # Update status based on provider response
                 campaign.status = 'sent' if success else 'failed'
                 campaign.save()
                 
@@ -91,3 +94,33 @@ def ai_suggest_view(request):
     topic = request.GET.get('topic', 'marketing')
     suggestion = get_ai_campaign_suggestion(topic)
     return JsonResponse({'suggestion': suggestion})
+
+def register_view(request):
+    """Handles new user registration from the home page modal."""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        full_name = request.POST.get('full_name', '')
+        
+        if not username or not password:
+            messages.error(request, "Username and Password are required.")
+            return redirect('home')
+            
+        try:
+            # Create user and assign full name to first_name field
+            user = User.objects.create_user(
+                username=username, 
+                email=email, 
+                password=password,
+                first_name=full_name
+            )
+            login(request, user)
+            messages.success(request, f"Welcome to Greyteeks, {username}!")
+            return redirect('dashboard')
+        
+        except IntegrityError:
+            messages.error(request, "That username is already taken. Please try another.")
+            return redirect('home')
+    
+    return redirect('home')
