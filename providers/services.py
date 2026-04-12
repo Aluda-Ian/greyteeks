@@ -1,4 +1,4 @@
-import africastalking
+import africastalking, requests
 from django.conf import settings
 
 def send_at_sms(provider_instance, destination_phone, message):
@@ -23,4 +23,26 @@ def send_bulk_at_sms(provider_instance, phone_numbers, message):
         return True
     except Exception as e:
         print(f"Bulk Send Error: {e}")
+        return False
+    
+
+def send_whatsapp_meta_message(provider_instance, destination_phone, message_text):
+    """Sends a WhatsApp message via Meta Cloud API"""
+    url = f"https://graph.facebook.com/v17.0/{provider_instance.phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {provider_instance.access_token}",
+        "Content-Type": "application/json",
+    }
+    data = {
+        "messaging_product": "whatsapp",
+        "to": destination_phone,
+        "type": "text",
+        "text": {"body": message_text},
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        return response.status_code == 200
+    except Exception as e:
+        print(f"WhatsApp Error: {e}")
         return False

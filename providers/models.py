@@ -25,3 +25,14 @@ class WhatsAppProvider(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class WhatsAppTemplate(models.Model):
+    provider = models.ForeignKey(WhatsAppProvider, on_delete=models.CASCADE, related_name='templates')
+    name = models.CharField(max_length=100, help_text="The template name from Meta Dashboard")
+    category = models.CharField(max_length=50, default="MARKETING")
+    language_code = models.CharField(max_length=10, default="en_US")
+    body_text = models.TextField(help_text="Copy of the template text for reference")
+
+    def __str__(self):
+        return f"{self.name} ({self.provider.name})"

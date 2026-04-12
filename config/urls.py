@@ -1,13 +1,21 @@
 from django.contrib import admin
-from django.urls import path
-from campaigns.views import dashboard, create_campaign, ai_suggest_view
-# 1. Add this import (make sure you created this view in contacts/views.py earlier)
+from django.urls import path, include
+from campaigns.views import dashboard, create_campaign, ai_suggest_view, home_view
 from contacts.views import upload_contacts 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', dashboard, name='dashboard'),
+    # General Access & Auth
+    path('', home_view, name='home'), 
+    path('accounts/', include('django.contrib.auth.urls')), 
+    
+    # Dashboard & Features (Protected by @login_required in views)
+    path('dashboard/', dashboard, name='dashboard'),
     path('campaign/new/', create_campaign, name='create_campaign'),
     path('contacts/upload/', upload_contacts, name='upload_contacts'),
+    
+    # System Admin (Database)
+    path('system-admin/', admin.site.urls), # Renamed to avoid confusion with dashboard
+    
+    # APIs
     path('api/ai-suggest/', ai_suggest_view, name='ai_suggest'),
 ]

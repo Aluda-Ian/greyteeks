@@ -1,169 +1,49 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greyteeks Dashboard</title>
+    <title>Greyteeks | Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
-        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
-        .sidebar { 
-            height: 100vh; 
-            background: #1a202c; 
-            color: white; 
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 100;
-        }
-        .sidebar .nav-link {
-            transition: all 0.3s;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-        .sidebar .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #3182ce !important;
-        }
-        .card-stat { border-radius: 12px; border: none; transition: transform 0.2s; }
-        .card-stat:hover { transform: translateY(-5px); }
-        main { margin-left: 16.666667%; } /* Offsets the content for the fixed sidebar */
-        .badge { font-weight: 500; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <nav class="col-md-2 d-none d-md-block sidebar p-3">
-                <h3 class="text-center py-3 fw-bold">Greyteeks</h3>
-                <hr class="text-secondary">
+            <nav class="col-md-2 bg-dark vh-100 p-3 text-white position-fixed">
+                <h3 class="fw-bold mb-4">Greyteeks</h3>
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'create_campaign' %}">
-                            <i class="bi bi-megaphone me-2"></i> Create Campaign
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'upload_contacts' %}">
-                            <i class="bi bi-people me-2"></i> Import Contacts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="/admin">
-                            <i class="bi bi-gear me-2"></i> Settings
-                        </a>
-                    </li>
+                    <li><a class="nav-link text-white" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                    <li><a class="nav-link text-white" href="{% url 'create_campaign' %}"><i class="bi bi-megaphone me-2"></i> Campaigns</a></li>
+                    
+                    {% if user.is_staff %}
+                    <li class="mt-4 small text-muted text-uppercase">Admin Config</li>
+                    <li><a class="nav-link text-warning" href="/admin"><i class="bi bi-cpu me-2"></i> API Connectors</a></li>
+                    <li><a class="nav-link text-warning" href="#"><i class="bi bi-credit-card me-2"></i> Payments</a></li>
+                    {% endif %}
                 </ul>
             </nav>
 
-            <main class="col-md-10 p-4">
-                
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
+            <main class="col-md-10 offset-md-2 p-4">
+                <h2 class="fw-bold mb-4">{% if user.is_staff %}System Overview{% else %}My Performance{% endif %}</h2>
 
-                {% block content %}
-                
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h2 class="fw-bold">General Report</h2>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="{% url 'upload_contacts' %}" class="btn btn-sm btn-outline-primary mx-2">
-                            <i class="bi bi-cloud-upload me-1"></i> Import Contacts
-                        </a>
-                        <a href="{% url 'create_campaign' %}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-plus-lg me-1"></i> New Campaign
-                        </a>
-                    </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3"><div class="card p-3 shadow-sm border-0 text-center"><h6>Campaigns</h6><h3>{{ total_campaigns|default:0 }}</h3></div></div>
+                    <div class="col-md-3"><div class="card p-3 shadow-sm border-0 text-center"><h6>Contacts</h6><h3>{{ total_contacts|default:0 }}</h3></div></div>
+                    {% if user.is_staff %}
+                    <div class="col-md-3"><div class="card p-3 shadow-sm border-0 text-center text-primary"><h6>Total Revenue</h6><h3>Ksh. 0</h3></div></div>
+                    {% endif %}
                 </div>
 
-                <div class="row mt-4">
-                    <div class="col-md-4">
-                        <div class="card card-stat p-4 shadow-sm">
-                            <h6 class="text-muted text-uppercase small fw-bold">Total Campaigns</h6>
-                            <h2 class="fw-bold mb-0 text-primary">{{ total_campaigns }}</h2>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="card card-stat p-4 shadow-sm">
-                            <h6 class="text-muted text-uppercase small fw-bold">Total Contacts</h6>
-                            <h2 class="fw-bold mb-0 text-success">{{ total_contacts }}</h2>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="card card-stat p-4 shadow-sm">
-                            <h6 class="text-muted text-uppercase small fw-bold">Contact Groups</h6>
-                            <h2 class="fw-bold mb-0 text-dark">{{ total_groups }}</h2>
-                        </div>
+                <div class="card border-0 shadow-sm p-4 rounded-4">
+                    <h5 class="fw-bold mb-3">Activity Report</h5>
+                    <div style="height: 300px;">
+                        <canvas id="campaignChart" data-campaigns="{{ total_campaigns|default:0 }}"></canvas>
                     </div>
                 </div>
-
-                <div class="mt-5">
-                    <h4 class="fw-bold mb-3">Recent Activity</h4>
-                    <div class="table-responsive bg-white p-3 shadow-sm rounded-4">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Campaign Title</th>
-                                    <th>Channel</th>
-                                    <th>Target Group</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for campaign in recent_campaigns %}
-                                <tr>
-                                    <td><span class="fw-semibold">{{ campaign.title }}</span></td>
-                                    <td>
-                                        {% if campaign.channel == 'sms' %}
-                                            <span class="text-primary"><i class="bi bi-chat-dots me-1"></i> SMS</span>
-                                        {% else %}
-                                            <span class="text-success"><i class="bi bi-whatsapp me-1"></i> WhatsApp</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ campaign.target_group.name|default:"General" }}</td>
-                                    <td>
-                                        <span class="badge rounded-pill 
-                                            {% if campaign.status == 'sent' %}bg-success-subtle text-success
-                                            {% elif campaign.status == 'failed' %}bg-danger-subtle text-danger
-                                            {% else %}bg-warning-subtle text-warning{% endif %}">
-                                            {{ campaign.status|title }}
-                                        </span>
-                                    </td>
-                                    <td class="text-muted small">{{ campaign.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center text-muted py-5">
-                                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                        No campaigns launched yet.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {% endblock %}
             </main>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard.js' %}" defer></script>
 </body>
 </html>
