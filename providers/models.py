@@ -27,6 +27,31 @@ class WhatsAppProvider(models.Model):
         return self.name
     
 
+class EmailProvider(models.Model):
+    name = models.CharField(max_length=50, default="SMTP")
+    host = models.CharField(max_length=255, help_text="SMTP host, for example smtp.gmail.com")
+    port = models.PositiveIntegerField(default=587)
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    use_tls = models.BooleanField(default=True)
+    use_ssl = models.BooleanField(default=False)
+    from_email = models.EmailField(default='no-reply@greyteeks.com')
+    is_active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"
+
+class EmailTemplate(models.Model):
+    provider = models.ForeignKey(EmailProvider, on_delete=models.CASCADE, related_name='templates')
+    name = models.CharField(max_length=100, help_text="Internal template name")
+    subject = models.CharField(max_length=200)
+    body_text = models.TextField(help_text="Email body text or HTML")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.provider.name})"
+
 class WhatsAppTemplate(models.Model):
     provider = models.ForeignKey(WhatsAppProvider, on_delete=models.CASCADE, related_name='templates')
     name = models.CharField(max_length=100, help_text="The template name from Meta Dashboard")

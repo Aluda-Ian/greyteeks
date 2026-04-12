@@ -1,0 +1,139 @@
+:root {
+    --charcoal: #1a202c;
+    --venda-blue: #3182ce;
+    --accent-grey: #374151;
+    --soft-bg: #f8fafc;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--charcoal);
+    overflow-x: hidden;
+}
+
+.alert-floating {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    min-width: 300px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.site-header .navbar {
+    padding: 0;
+    min-height: 80px;
+    background: white;
+    transition: all 0.3s;
+}
+
+.site-header .navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--charcoal) !important;
+}
+
+.site-header .navbar-brand .logo {
+    height: 48px;
+    max-height: 48px;
+    width: auto;
+}
+
+.site-header .nav-link {
+    font-weight: 500;
+    color: var(--accent-grey) !important;
+    margin: 0 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+}
+
+.site-header .nav-link:hover {
+    color: var(--venda-blue) !important;
+    background: rgba(49, 130, 206, 0.08);
+}
+
+.site-header .btn-outline-primary,
+.site-header .btn-primary {
+    min-width: 110px;
+    border-radius: 999px;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--charcoal) 0%, #2d3748 100%);
+    color: white;
+    padding: 140px 0 100px;
+    position: relative;
+}
+
+.hero-tagline {
+    color: var(--venda-blue);
+    font-weight: 700;
+}
+
+.hero-copy {
+    max-width: 700px;
+}
+
+.btn-venda {
+    background: var(--venda-blue);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-venda:hover {
+    background: #2b6cb0;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.service-card {
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 20px;
+    padding: 40px;
+    transition: all 0.4s;
+    background: white;
+    height: 100%;
+}
+
+.service-card:hover {
+    border-color: var(--venda-blue);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    transform: translateY(-10px);
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    background: rgba(49, 130, 206, 0.1);
+    color: var(--venda-blue);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+}
+
+.modal-content {
+    border-radius: 24px;
+    border: none;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.form-control:focus {
+    border-color: var(--venda-blue);
+    box-shadow: none;
+}

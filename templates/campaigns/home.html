@@ -8,91 +8,8 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
-        :root {
-            --charcoal: #1a202c;
-            --venda-blue: #3182ce;
-            --accent-grey: #374151;
-            --soft-bg: #f8fafc;
-        }
-
-        body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: var(--charcoal);
-            overflow-x: hidden;
-        }
-
-        /* Message Styling */
-        .alert-floating {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2000;
-            min-width: 300px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Nav Styling */
-        .navbar {
-            padding: 1.2rem 0;
-            background: white;
-            transition: all 0.3s;
-        }
-        .navbar-brand { font-weight: 800; font-size: 1.6rem; color: var(--charcoal) !important; }
-        .nav-link { font-weight: 500; color: var(--accent-grey) !important; margin: 0 10px; }
-        .nav-link:hover { color: var(--venda-blue) !important; }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, var(--charcoal) 0%, #2d3748 100%);
-            color: white;
-            padding: 140px 0 100px;
-            position: relative;
-        }
-        .hero-tagline { color: var(--venda-blue); font-weight: 700; }
-        
-        /* Buttons */
-        .btn-venda { 
-            background: var(--venda-blue); 
-            color: white; 
-            border: none; 
-            padding: 14px 32px; 
-            border-radius: 10px; 
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .btn-venda:hover { background: #2b6cb0; color: white; transform: translateY(-2px); }
-
-        /* Service Cards */
-        .service-card {
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 20px;
-            padding: 40px;
-            transition: all 0.4s;
-            background: white;
-            height: 100%;
-        }
-        .service-card:hover {
-            border-color: var(--venda-blue);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-            transform: translateY(-10px);
-        }
-        .icon-box {
-            width: 60px; height: 60px;
-            background: rgba(49, 130, 206, 0.1);
-            color: var(--venda-blue);
-            border-radius: 15px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; margin-bottom: 25px;
-        }
-
-        /* Modal Customization */
-        .modal-content { border-radius: 24px; border: none; }
-        .form-control { border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0; }
-        .form-control:focus { border-color: var(--venda-blue); box-shadow: none; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=2">
 </head>
 <body>
 
@@ -108,21 +25,7 @@
         </div>
     {% endif %}
 
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="#">Greyteeks</a>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="#services">Our Channels</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contact">Contact Us</a></li>
-                </ul>
-                <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-link text-decoration-none text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-                    <button class="btn btn-venda shadow-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started</button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'campaigns/_header.html' %}
 
     <header class="hero">
         <div class="container text-center">
@@ -130,7 +33,7 @@
                 Design that works. <br>
                 <span class="hero-tagline">Tech that listens.</span>
             </h1>
-            <p class="lead mb-5 opacity-75 mx-auto" style="max-width: 700px;">
+            <p class="lead mb-5 opacity-75 mx-auto hero-copy">
                 Greyteeks is your unified engine for Bulk SMS, WhatsApp Business, and Email automation. 
                 Powerful enough for developers, simple enough for everyone.
             </p>

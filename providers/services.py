@@ -1,4 +1,7 @@
-import africastalking, requests
+import africastalking
+import requests
+import smtplib
+from email.message import EmailMessage
 from django.conf import settings
 
 def send_at_sms(provider_instance, destination_phone, message):
@@ -45,4 +48,34 @@ def send_whatsapp_meta_message(provider_instance, destination_phone, message_tex
         return response.status_code == 200
     except Exception as e:
         print(f"WhatsApp Error: {e}")
+        return False
+
+
+def send_bulk_email(provider_instance, subject, body, recipients, from_email=None):
+    """Sends bulk email using the configured SMTP provider."""
+    if not recipients:
+        print("Email Error: no recipients provided")
+        return False
+
+    msg = EmailMessage()
+    msg['Subject'] = subject
+    msg['From'] = from_email or provider_instance.from_email
+    msg['To'] = ', '.join(recipients)
+    msg.set_content(body)
+
+    try:
+        if provider_instance.use_ssl:
+            server = smtplib.SMTP_SSL(provider_instance.host, provider_instance.port, timeout=20)
+        else:
+            server = smtplib.SMTP(provider_instance.host, provider_instance.port, timeout=20)
+            if provider_instance.use_tls:
+                server.starttls()
+
+        server.login(provider_instance.username, provider_instance.password)
+        server.send_message(msg)
+        server.quit()
+        print(f"Bulk email sent to {len(recipients)} recipients")
+        return True
+    except Exception as e:
+        print(f"Email Error: {e}")
         return False

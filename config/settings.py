@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'campaigns',
     'providers',
-    'contacts',
+    'contacts_app',
     
     # Third-party
     'rest_framework',

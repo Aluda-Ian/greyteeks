@@ -15,7 +15,9 @@
     <div class="container-fluid">
         <div class="row">
             <nav class="col-md-2 d-none d-md-block sidebar p-3">
-                <h3 class="text-center py-3 fw-bold">Greyteeks</h3>
+                <div class="text-center mb-3">
+                    <img src="{% static 'img/light logo.svg' %}" class="sidebar-logo mx-auto" alt="Greyteeks logo">
+                </div>
                 <hr class="text-secondary">
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -33,6 +35,18 @@
                             <i class="bi bi-people me-2"></i> Import Contacts
                         </a>
                     </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_groups' %}">
+                            <i class="bi bi-list-task me-2"></i> Manage Groups
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_users' %}">
+                            <i class="bi bi-gear me-2"></i> Manage Users
+                        </a>
+                    </li>
+                    {% endif %}
                     
                     <li class="nav-item mt-5">
                         <form action="{% url 'logout' %}" method="post">
@@ -46,25 +60,16 @@
             </nav>
 
             <main class="col-md-10 p-0">
-                
-                <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom px-4 py-3 mb-4 shadow-sm">
-                    <div class="container-fluid p-0">
-                        <div class="d-flex align-items-center">
-                            <span class="text-muted fw-medium">
-                                Welcome back, <span class="text-dark fw-bold">{{ user.username|title }}</span>
-                            </span>
-                        </div>
-                        
-                        <div class="ms-auto d-flex align-items-center">
-                            {% if user.is_staff %}
-                            <div class="bg-warning-subtle border border-warning-subtle text-warning-emphasis px-3 py-1 rounded-pill small fw-bold text-uppercase">
-                                <i class="bi bi-shield-lock-fill me-1"></i> System Admin Mode
-                            </div>
-                            {% endif %}
-                        </div>
+                <div class="dashboard-top-bar d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom">
+                    <div>
+                        <div class="text-muted small">Welcome back,</div>
+                        <div class="fs-5 fw-semibold">{{ user.first_name|default:user.username|title }}</div>
                     </div>
-                </nav>
-
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width:42px; height:42px;">{{ user.username|first|upper }}</span>
+                        <span class="fw-semibold text-dark">{{ user.username|title }}</span>
+                    </div>
+                </div>
                 <div class="px-4">
                     
                     {% if messages %}
@@ -84,6 +89,17 @@
                             <a href="{% url 'upload_contacts' %}" class="btn btn-sm btn-outline-primary mx-2 px-3 py-2 rounded-3 fw-semibold">
                                 <i class="bi bi-cloud-upload me-1"></i> Import Contacts
                             </a>
+                            {% if user.is_staff %}
+                            <a href="{% url 'admin:contacts_app_group_changelist' %}" class="btn btn-sm btn-outline-secondary mx-2 px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-folder2-open me-1"></i> Manage Groups
+                            </a>
+                            <a href="{% url 'manage_users' %}" class="btn btn-sm btn-outline-secondary mx-2 px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-people-fill me-1"></i> Manage Users
+                            </a>
+                            <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-dark mx-2 px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-hdd-stack me-1"></i> Admin Site
+                            </a>
+                            {% endif %}
                             <a href="{% url 'create_campaign' %}" class="btn btn-sm btn-primary px-3 py-2 rounded-3 shadow-sm fw-semibold">
                                 <i class="bi bi-plus-lg me-1"></i> New Campaign
                             </a>
@@ -109,6 +125,14 @@
                                 <h2 class="fw-bold mb-0 text-dark">{{ total_groups|default:0 }}</h2>
                             </div>
                         </div>
+                        {% if user.is_staff %}
+                        <div class="col-md-4 mt-4 mt-md-0">
+                            <div class="card card-stat p-4 shadow-sm">
+                                <h6 class="text-muted text-uppercase small fw-bold">Total Users</h6>
+                                <h2 class="fw-bold mb-0 text-info">{{ total_users|default:0 }}</h2>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="row mt-4">

@@ -1,8 +1,8 @@
 from django.db import models
 from config import settings
 
-from providers.models import SMSProvider, WhatsAppProvider
-from contacts.models import Group 
+from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, EmailTemplate, WhatsAppTemplate
+from contacts_app.models import Group
 
 class Campaign(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaigns')
@@ -34,6 +34,9 @@ class Campaign(models.Model):
     # Linking to the specific "Server" (Provider)
     sms_server = models.ForeignKey(SMSProvider, on_delete=models.SET_NULL, null=True, blank=True)
     whatsapp_server = models.ForeignKey(WhatsAppProvider, on_delete=models.SET_NULL, null=True, blank=True)
+    email_server = models.ForeignKey(EmailProvider, on_delete=models.SET_NULL, null=True, blank=True)
+    whatsapp_template = models.ForeignKey(WhatsAppTemplate, on_delete=models.SET_NULL, null=True, blank=True)
+    email_template = models.ForeignKey(EmailTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
 
