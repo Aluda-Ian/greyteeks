@@ -59,7 +59,9 @@ class CampaignForm(forms.ModelForm):
         )
         self.fields['sms_server'].queryset = SMSProvider.objects.filter(is_active=True)
         self.fields['whatsapp_server'].queryset = WhatsAppProvider.objects.filter(is_active=True)
-        self.fields['whatsapp_template'].queryset = WhatsAppTemplate.objects.all()
+        self.fields['whatsapp_template'].queryset = WhatsAppTemplate.objects.filter(
+            Q(owner=self.user) | Q(owner__isnull=True)
+        )
         if self.user is not None:
             self.fields['sms_template'].queryset = MessageTemplate.objects.filter(owner=self.user)
         if 'email_server' in self.data:

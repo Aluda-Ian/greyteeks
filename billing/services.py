@@ -93,8 +93,13 @@ def initiate_paystack_payment(transaction, config):
         'Authorization': f'Bearer {config.paystack_secret_key}',
         'Content-Type': 'application/json',
     }
+    customer_email = transaction.user.email
+    if not customer_email:
+        customer_email = f"{transaction.user.username}@greyteeks.local"
+        print(f"[Paystack] Warning: user {transaction.user.username} has no email, using fallback {customer_email}")
+
     payload = {
-        'email': transaction.user.email,
+        'email': customer_email,
         'amount': int(transaction.amount * 100),
         'currency': transaction.currency,
         'reference': transaction.paystack_reference,
@@ -108,10 +113,15 @@ def initiate_paystack_payment(transaction, config):
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=30)
         data = response.json()
+        print(f"[Paystack Init] Status: {response.status_code}")
+        print(f"[Paystack Init] Response: {data}")
         if data.get('status'):
             return True, data['data']['authorization_url']
-        return False, data.get('message', 'Paystack initialization failed')
+        error_msg = data.get('message', 'Paystack initialization failed')
+        print(f"[Paystack Init] FAILED: {error_msg}")
+        return False, error_msg
     except Exception as e:
+        print(f"[Paystack Init] EXCEPTION: {e}")
         return False, str(e)
 
 
@@ -121,10 +131,15 @@ def verify_paystack_payment(reference, config):
     try:
         response = requests.get(url, headers=headers, timeout=30)
         data = response.json()
+        print(f"[Paystack Verify] Status: {response.status_code}")
+        print(f"[Paystack Verify] Response: {data}")
         if data.get('status') and data['data']['status'] == 'success':
             return True, data['data']
-        return False, data.get('message', 'Payment verification failed')
+        error_msg = data.get('message', 'Payment verification failed')
+        print(f"[Paystack Verify] FAILED: {error_msg}")
+        return False, error_msg
     except Exception as e:
+        print(f"[Paystack Verify] EXCEPTION: {e}")
         return False, str(e)
 
 

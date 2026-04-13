@@ -18,14 +18,34 @@ class SMSProvider(models.Model):
         return f"{self.get_name_display()} - {'Active' if self.is_active else 'Inactive'}"
 
 class WhatsAppProvider(models.Model):
+    PROVIDER_CHOICES = [
+        ('meta', 'Meta Cloud API'),
+        ('infobip', 'Infobip WhatsApp'),
+    ]
+    provider_type = models.CharField(
+        max_length=20,
+        choices=PROVIDER_CHOICES,
+        default='meta',
+        help_text='Select the WhatsApp gateway provider'
+    )
     name = models.CharField(max_length=50, default="Meta Cloud API")
     access_token = models.CharField(max_length=500)
-    phone_number_id = models.CharField(max_length=100)
-    waba_id = models.CharField(max_length=100, verbose_name="WhatsApp Business Account ID")
+    phone_number_id = models.CharField(max_length=100, blank=True)
+    waba_id = models.CharField(max_length=100, verbose_name="WhatsApp Business Account ID", blank=True)
+    infobip_base_url = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Infobip base URL e.g. xyz.api.infobip.com'
+    )
+    infobip_sender = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text='Infobip WhatsApp sender number'
+    )
     is_active = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_provider_type_display()})"
     
 
 class EmailProvider(models.Model):
@@ -83,10 +103,18 @@ class MessageTemplate(models.Model):
 
 class WhatsAppTemplate(models.Model):
     provider = models.ForeignKey(WhatsAppProvider, on_delete=models.CASCADE, related_name='templates')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='whatsapp_templates'
+    )
     name = models.CharField(max_length=100, help_text="The template name from Meta Dashboard")
     category = models.CharField(max_length=50, default="MARKETING")
     language_code = models.CharField(max_length=10, default="en_US")
     body_text = models.TextField(help_text="Copy of the template text for reference")
 
     def __str__(self):
-        return f"{self.name} ({self.provider.name})"
+        provider_name = self.provider.name if self.provider else 'No Provider'
+        return f"{self.name} ({provider_name})"

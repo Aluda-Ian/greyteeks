@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, models
+from django.db.models import Sum
 from django.conf import settings as django_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -16,17 +17,18 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from contacts_app.models import Contact, Group
 from accounts.models import UserQuota
+from billing.models import PaymentTransaction
 from .models import Campaign
 from .forms import CampaignForm
 from .utils import get_ai_campaign_suggestion
 from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
-from providers.services import send_bulk_at_sms, send_whatsapp_meta_message, send_custom_email
+from providers.services import route_sms, route_whatsapp, send_custom_email
 
 def home_view(request):
     """Public landing page. Redirects authenticated users to their dashboard."""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'campaigns/home.html')
+    return render(request, 'home/home.html')
 
 @login_required
 def dashboard(request):
@@ -46,6 +48,7 @@ def dashboard(request):
         total_sms_sent = Campaign.objects.filter(send_sms=True, status='sent').count()
         total_whatsapp_sent = Campaign.objects.filter(send_whatsapp=True, status='sent').count()
         total_email_sent = Campaign.objects.filter(send_email=True, status='sent').count()
+        transaction_qs = PaymentTransaction.objects.filter(status='success')
         user_quota = None
         quota_progress = None
     else:
@@ -59,10 +62,15 @@ def dashboard(request):
         total_sms_sent = user_campaigns.filter(send_sms=True, status='sent').count()
         total_whatsapp_sent = user_campaigns.filter(send_whatsapp=True, status='sent').count()
         total_email_sent = user_campaigns.filter(send_email=True, status='sent').count()
+        transaction_qs = PaymentTransaction.objects.filter(user=request.user, status='success')
         user_quota = getattr(request.user, 'quota', None)
         quota_progress = None
         if user_quota and user_quota.max_units:
             quota_progress = int((user_quota.units_used / user_quota.max_units) * 100)
+
+    total_successful_payments = transaction_qs.count()
+    total_revenue_kes = transaction_qs.filter(currency='KES').aggregate(total=Sum('amount'))['total'] or 0
+    total_revenue_usd = transaction_qs.filter(currency='USD').aggregate(total=Sum('amount'))['total'] or 0
 
     context = {
         'total_campaigns': total_campaigns,
@@ -74,6 +82,9 @@ def dashboard(request):
         'total_sms_sent': total_sms_sent,
         'total_whatsapp_sent': total_whatsapp_sent,
         'total_email_sent': total_email_sent,
+        'total_successful_payments': total_successful_payments,
+        'total_revenue_kes': total_revenue_kes,
+        'total_revenue_usd': total_revenue_usd,
         'user_quota': user_quota,
         'quota_progress': quota_progress,
         'has_groups': Group.objects.filter(user=request.user).exists() if not request.user.is_staff else None,
@@ -125,7 +136,7 @@ def delete_campaign(request, campaign_id):
     return redirect('campaigns_overview')
 
 def about_view(request):
-    return render(request, 'campaigns/about.html')
+    return render(request, 'home/about.html')
 
 
 def contact_view(request):
@@ -141,7 +152,7 @@ def contact_view(request):
             messages.success(request, f'Thanks {name}, we will respond to {email} shortly.')
             return redirect('contact')
 
-    return render(request, 'campaigns/contact_us.html')
+    return render(request, 'home/contact_us.html')
 
 @login_required
 def manage_users(request):
@@ -303,6 +314,7 @@ def manage_templates(request):
             else:
                 WhatsAppTemplate.objects.create(
                     provider=provider,
+                    owner=request.user,
                     name=name,
                     category=category,
                     language_code=language_code,
@@ -344,7 +356,9 @@ def manage_templates(request):
     email_templates = EmailTemplate.objects.filter(
         models.Q(owner=request.user) | models.Q(owner=None)
     ).order_by('-created_at')
-    whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').order_by('-id')
+    whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').filter(
+        models.Q(owner=request.user) | models.Q(owner=None)
+    ).order_by('-id')
     message_templates = MessageTemplate.objects.filter(owner=request.user).order_by('-created_at')
     whatsapp_providers = WhatsAppProvider.objects.filter(is_active=True)
     email_providers = EmailProvider.objects.filter(is_active=True) if request.user.is_staff else None
@@ -516,22 +530,40 @@ def manage_whatsapp(request):
         action = request.POST.get('action')
 
         if action == 'create_provider':
-            name = request.POST.get('name', '').strip()
+            provider_type = request.POST.get('provider_type', 'meta').strip()
+            name = request.POST.get('name', '').strip() or ('Meta Cloud API' if provider_type == 'meta' else 'Infobip WhatsApp')
             access_token = request.POST.get('access_token', '').strip()
             phone_number_id = request.POST.get('phone_number_id', '').strip()
             waba_id = request.POST.get('waba_id', '').strip()
+            infobip_base_url = request.POST.get('infobip_base_url', '').strip()
+            infobip_sender = request.POST.get('infobip_sender', '').strip()
 
-            if not (access_token and phone_number_id and waba_id):
-                messages.error(request, 'Please complete all required WhatsApp provider fields.')
+            if provider_type == 'infobip':
+                if not (access_token and infobip_base_url and infobip_sender):
+                    messages.error(request, 'Please complete all required Infobip WhatsApp provider fields.')
+                else:
+                    WhatsAppProvider.objects.create(
+                        provider_type=provider_type,
+                        name=name,
+                        access_token=access_token,
+                        infobip_base_url=infobip_base_url,
+                        infobip_sender=infobip_sender,
+                        is_active=False,
+                    )
+                    messages.success(request, 'Infobip WhatsApp provider created successfully.')
             else:
-                WhatsAppProvider.objects.create(
-                    name=name or 'Meta Cloud API',
-                    access_token=access_token,
-                    phone_number_id=phone_number_id,
-                    waba_id=waba_id,
-                    is_active=False,
-                )
-                messages.success(request, 'WhatsApp provider created successfully.')
+                if not (access_token and phone_number_id and waba_id):
+                    messages.error(request, 'Please complete all required WhatsApp provider fields.')
+                else:
+                    WhatsAppProvider.objects.create(
+                        provider_type=provider_type,
+                        name=name,
+                        access_token=access_token,
+                        phone_number_id=phone_number_id,
+                        waba_id=waba_id,
+                        is_active=False,
+                    )
+                    messages.success(request, 'WhatsApp provider created successfully.')
 
         elif action == 'toggle_provider':
             provider_id = request.POST.get('provider_id')
@@ -562,6 +594,7 @@ def manage_whatsapp(request):
             else:
                 WhatsAppTemplate.objects.create(
                     provider=provider,
+                    owner=request.user,
                     name=name,
                     category=category,
                     language_code=language_code,
@@ -804,7 +837,7 @@ def create_campaign(request, campaign_id=None):
 
             if campaign.send_sms:
                 if campaign.sms_server and sms_recipients and campaign.sms_template:
-                    sms_sent = send_bulk_at_sms(campaign.sms_server, sms_recipients, campaign.message_body)
+                    sms_sent = route_sms(campaign.sms_server, sms_recipients, campaign.message_body)
                     channel_success = channel_success and sms_sent
                 else:
                     channel_success = False
@@ -813,7 +846,7 @@ def create_campaign(request, campaign_id=None):
                 if campaign.whatsapp_server and whatsapp_recipients:
                     outbound_text = campaign.whatsapp_template.body_text if campaign.whatsapp_template else campaign.message_body
                     for number in whatsapp_recipients:
-                        whatsapp_sent = send_whatsapp_meta_message(campaign.whatsapp_server, number, outbound_text)
+                        whatsapp_sent = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
                         if not whatsapp_sent:
                             channel_success = False
                             break

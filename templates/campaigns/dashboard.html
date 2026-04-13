@@ -380,6 +380,37 @@
                     </div>
                     <!-- End Channel Stats Row -->
 
+                    <!-- Payments Summary Row -->
+                    <div class="row mt-3 g-3">
+                        <div class="col-md-4">
+                            <div class="card card-stat p-4 shadow-sm">
+                                <h6 class="text-muted text-uppercase small fw-bold">
+                                    {% if user.is_staff %}
+                                        Total Successful Payments
+                                    {% else %}
+                                        My Successful Payments
+                                    {% endif %}
+                                </h6>
+                                <h2 class="fw-bold mb-0 text-primary">{{ total_successful_payments|default:0 }}</h2>
+                            </div>
+                        </div>
+                        {% if user.is_staff %}
+                        <div class="col-md-4">
+                            <div class="card card-stat p-4 shadow-sm">
+                                <h6 class="text-muted text-uppercase small fw-bold">Revenue (KES)</h6>
+                                <h2 class="fw-bold mb-0 text-success">KES {{ total_revenue_kes|default:"0.00" }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card card-stat p-4 shadow-sm">
+                                <h6 class="text-muted text-uppercase small fw-bold">Revenue (USD)</h6>
+                                <h2 class="fw-bold mb-0 text-info">USD {{ total_revenue_usd|default:"0.00" }}</h2>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- End Payments Summary Row -->
+
                     <!-- Chart -->
                     <div class="row mt-4">
                         <div class="col-12">

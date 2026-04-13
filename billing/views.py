@@ -66,8 +66,15 @@ def initiate_payment(request):
     if gateway == 'mpesa' and not phone_number:
         return JsonResponse({'status': 'failed', 'message': 'Phone number is required for M-Pesa.'}, status=400)
 
-    amount = plan.price_kes if gateway == 'mpesa' else plan.price_usd
-    currency = 'KES' if gateway == 'mpesa' else 'USD'
+    if gateway == 'mpesa':
+        amount = plan.price_kes
+        currency = 'KES'
+    elif gateway == 'paystack':
+        amount = plan.price_kes
+        currency = 'KES'
+    else:
+        amount = plan.price_usd
+        currency = 'USD'
 
     transaction = PaymentTransaction.objects.create(
         user=request.user,
@@ -105,7 +112,8 @@ def initiate_payment(request):
             return redirect(result)
         transaction.status = 'failed'
         transaction.save()
-        messages.error(request, result)
+        print(f"[Paystack] Payment initiation failed for transaction {transaction.id}: {result}")
+        messages.error(request, f'Paystack error: {result}. Please check your Paystack sandbox keys and try again.')
         return redirect('billing_home')
 
     if gateway == 'paypal':

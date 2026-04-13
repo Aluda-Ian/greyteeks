@@ -141,7 +141,8 @@
                                     </div>
                                     <div class="py-4">
                                         <div class="fs-3 fw-bold">KES {{ plan.price_kes }}</div>
-                                        <div class="text-muted">USD {{ plan.price_usd }}</div>
+                                        <div class="text-muted small">Pay via M-Pesa or Paystack</div>
+                                        <div class="text-muted small mt-1">USD {{ plan.price_usd }} via PayPal</div>
                                     </div>
                                     <button type="button" class="btn btn-primary w-100 select-plan-btn" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" data-plan-kes="{{ plan.price_kes }}" data-plan-usd="{{ plan.price_usd }}">
                                         Buy Now

@@ -206,12 +206,14 @@
                                         <input type="text" name="api_key" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">Username</label>
+                                        <label class="form-label">Username / Base URL</label>
                                         <input type="text" name="username" class="form-control" required>
+                                        <div class="form-text">For Africa's Talking this is your username; for Twilio it is your Account SID; for Infobip it should be your base URL.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Sender ID</label>
                                         <input type="text" name="sender_id" class="form-control">
+                                        <div class="form-text">Optional sender ID or phone number used by the gateway.</div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100">Add Provider</button>
                                 </form>

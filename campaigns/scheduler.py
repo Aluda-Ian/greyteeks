@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def send_scheduled_campaigns():
     """Job that runs every minute and sends due scheduled campaigns."""
     from campaigns.models import Campaign
-    from providers.services import send_bulk_at_sms, send_whatsapp_meta_message, send_custom_email
+    from providers.services import route_sms, route_whatsapp, send_custom_email
     from accounts.models import UserQuota
 
     now = timezone.now()
@@ -35,7 +35,7 @@ def send_scheduled_campaigns():
 
             if campaign.send_sms:
                 if campaign.sms_server and sms_recipients:
-                    sent = send_bulk_at_sms(campaign.sms_server, sms_recipients, campaign.message_body)
+                    sent = route_sms(campaign.sms_server, sms_recipients, campaign.message_body)
                     channel_success = channel_success and sent
                 else:
                     channel_success = False
@@ -44,7 +44,7 @@ def send_scheduled_campaigns():
                 if campaign.whatsapp_server and whatsapp_recipients:
                     outbound_text = campaign.whatsapp_template.body_text if campaign.whatsapp_template else campaign.message_body
                     for number in whatsapp_recipients:
-                        sent = send_whatsapp_meta_message(campaign.whatsapp_server, number, outbound_text)
+                        sent = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
                         if not sent:
                             channel_success = False
                             break

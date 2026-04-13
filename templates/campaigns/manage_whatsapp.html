@@ -193,6 +193,14 @@
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="create_provider">
                                     <div class="mb-3">
+                                        <label class="form-label">Provider Type</label>
+                                        <select name="provider_type" class="form-select">
+                                            <option value="meta">Meta Cloud API</option>
+                                            <option value="infobip">Infobip WhatsApp</option>
+                                        </select>
+                                        <div class="form-text">Choose Meta for Meta Cloud API or Infobip for Infobip WhatsApp.</div>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="form-label">Provider Name</label>
                                         <input type="text" name="name" class="form-control" placeholder="Meta Cloud API" value="Meta Cloud API">
                                     </div>
@@ -202,11 +210,23 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Phone Number ID</label>
-                                        <input type="text" name="phone_number_id" class="form-control" required>
+                                        <input type="text" name="phone_number_id" class="form-control">
+                                        <div class="form-text">Required when using Meta Cloud API.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">WhatsApp Business Account ID</label>
-                                        <input type="text" name="waba_id" class="form-control" required>
+                                        <input type="text" name="waba_id" class="form-control">
+                                        <div class="form-text">Required when using Meta Cloud API.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Infobip Base URL</label>
+                                        <input type="text" name="infobip_base_url" class="form-control" placeholder="xyz.api.infobip.com">
+                                        <div class="form-text">Required when provider type is Infobip.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Infobip Sender</label>
+                                        <input type="text" name="infobip_sender" class="form-control" placeholder="WhatsApp Sender ID">
+                                        <div class="form-text">Required when provider type is Infobip.</div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100">Add Provider</button>
                                 </form>
@@ -257,8 +277,8 @@
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Type</th>
-                                                <th>Name</th>
-                                                <th>Linked Provider</th>
+                                                <th>Provider Name</th>
+                                                <th>Details</th>
                                                 <th>Status</th>
                                                 <th class="text-end">Action</th>
                                             </tr>
@@ -267,8 +287,8 @@
                                             {% for provider in providers %}
                                             <tr>
                                                 <td>Provider</td>
+                                                <td>{{ provider.get_provider_type_display }}</td>
                                                 <td>{{ provider.name }}</td>
-                                                <td>{{ provider.phone_number_id }}</td>
                                                 <td>
                                                     {% if provider.is_active %}
                                                         <span class="badge bg-success">Active</span>
