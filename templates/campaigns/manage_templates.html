@@ -105,6 +105,11 @@
                                 <i class="bi bi-file-earmark-text me-2"></i> Templates
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'email_builder' %}">
+                                <i class="bi bi-magic me-2"></i> Email Builder
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
@@ -175,9 +180,14 @@
                             <h2 class="fw-bold m-0">Manage Templates</h2>
                             <p class="text-muted mb-0">Create, review, and delete email, WhatsApp, and SMS message templates.</p>
                         </div>
-                        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
-                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'email_builder' %}" class="btn btn-sm btn-dark px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-magic me-1"></i> Open Email Builder
+                            </a>
+                            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
                     </div>
 
                     <div class="row gy-4">
@@ -230,6 +240,9 @@
                                                     <td>{{ template.subject }}</td>
                                                     <td>{% if template.provider %}{{ template.provider.name }}{% else %}Default{% endif %}</td>
                                                     <td>
+                                                        <a href="{% url 'email_builder_edit' template.id %}" class="btn btn-sm btn-outline-dark rounded-3 me-1">
+                                                            <i class="bi bi-pencil-square me-1"></i> Edit in Builder
+                                                        </a>
                                                         <form method="post" class="d-inline">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="action" value="delete_email_template">
@@ -250,7 +263,6 @@
                         <div class="col-lg-6">
                             <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
                                 <h5 class="fw-bold mb-3">WhatsApp Templates</h5>
-                                {% if user.is_staff %}
                                 <form method="post" class="mb-4">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="create_whatsapp_template">
@@ -281,11 +293,6 @@
                                     </div>
                                     <button class="btn btn-primary w-100" type="submit">Save WhatsApp Template</button>
                                 </form>
-                                {% else %}
-                                <div class="alert alert-info">
-                                    WhatsApp templates can only be managed by administrators.
-                                </div>
-                                {% endif %}
 
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
@@ -304,14 +311,12 @@
                                                     <td>{{ template.provider.name }}</td>
                                                     <td>{{ template.language_code }}</td>
                                                     <td>
-                                                        {% if user.is_staff %}
                                                         <form method="post" class="d-inline">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="action" value="delete_whatsapp_template">
                                                             <input type="hidden" name="template_id" value="{{ template.id }}">
                                                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                                         </form>
-                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                             {% empty %}

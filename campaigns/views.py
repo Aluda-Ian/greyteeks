@@ -3,6 +3,9 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, models
+from django.conf import settings as django_settings
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -33,6 +36,7 @@ def dashboard(request):
         total_contacts = Contact.objects.count()
         total_groups = Group.objects.count()
         total_users = User.objects.count()
+        total_scheduled = Campaign.objects.filter(status='scheduled').count()
         recent_campaigns = Campaign.objects.order_by('-created_at')[:10]
         total_sms_sent = Campaign.objects.filter(send_sms=True, status='sent').count()
         total_whatsapp_sent = Campaign.objects.filter(send_whatsapp=True, status='sent').count()
@@ -45,6 +49,7 @@ def dashboard(request):
         total_campaigns = user_campaigns.count()
         total_groups = Group.objects.filter(user=request.user).count()
         total_contacts = Contact.objects.filter(group__user=request.user).count()
+        total_scheduled = user_campaigns.filter(status='scheduled').count()
         recent_campaigns = user_campaigns.order_by('-created_at')[:5]
         total_sms_sent = user_campaigns.filter(send_sms=True, status='sent').count()
         total_whatsapp_sent = user_campaigns.filter(send_whatsapp=True, status='sent').count()
@@ -59,6 +64,7 @@ def dashboard(request):
         'total_contacts': total_contacts,
         'total_groups': total_groups,
         'total_users': total_users if request.user.is_staff else None,
+        'total_scheduled': total_scheduled,
         'recent_campaigns': recent_campaigns,
         'total_sms_sent': total_sms_sent,
         'total_whatsapp_sent': total_whatsapp_sent,
@@ -80,13 +86,11 @@ def contact_view(request):
         email = request.POST.get('email', '').strip()
         subject = request.POST.get('subject', '').strip()
         message = request.POST.get('message', '').strip()
-        preferred_date = request.POST.get('preferred_date', '').strip()
-        preferred_time = request.POST.get('preferred_time', '').strip()
 
         if not name or not email or not subject or not message:
             messages.error(request, 'Please complete all required fields.')
         else:
-            messages.success(request, f'Thanks {name}, your demo request is booked for {preferred_date} at {preferred_time}.')
+            messages.success(request, f'Thanks {name}, we will respond to {email} shortly.')
             return redirect('contact')
 
     return render(request, 'campaigns/contact_us.html')
@@ -202,7 +206,6 @@ def manage_mailing(request):
     providers = EmailProvider.objects.order_by('-id')
     return render(request, 'campaigns/manage_mailing.html', {'providers': providers})
 
-@login_required
 def manage_templates(request):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -239,37 +242,31 @@ def manage_templates(request):
                 messages.error(request, 'You do not have permission to delete this email template.')
 
         elif action == 'create_whatsapp_template':
-            if not request.user.is_staff:
-                messages.error(request, 'Only administrators can manage WhatsApp templates.')
-            else:
-                provider_id = request.POST.get('provider_id')
-                name = request.POST.get('name', '').strip()
-                category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
-                language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
-                body_text = request.POST.get('body_text', '').strip()
-                provider = WhatsAppProvider.objects.filter(id=provider_id, is_active=True).first()
+            provider_id = request.POST.get('provider_id')
+            name = request.POST.get('name', '').strip()
+            category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
+            language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
+            body_text = request.POST.get('body_text', '').strip()
+            provider = WhatsAppProvider.objects.filter(id=provider_id, is_active=True).first()
 
-                if not (provider and name and body_text):
-                    messages.error(request, 'Please select a provider and provide a name and body for the WhatsApp template.')
-                else:
-                    WhatsAppTemplate.objects.create(
-                        provider=provider,
-                        name=name,
-                        category=category,
-                        language_code=language_code,
-                        body_text=body_text,
-                    )
-                    messages.success(request, f'WhatsApp template "{name}" created successfully.')
+            if not (provider and name and body_text):
+                messages.error(request, 'Please select a provider and provide a name and body for the WhatsApp template.')
+            else:
+                WhatsAppTemplate.objects.create(
+                    provider=provider,
+                    name=name,
+                    category=category,
+                    language_code=language_code,
+                    body_text=body_text,
+                )
+                messages.success(request, f'WhatsApp template "{name}" created successfully.')
 
         elif action == 'delete_whatsapp_template':
-            if not request.user.is_staff:
-                messages.error(request, 'Only administrators can delete WhatsApp templates.')
-            else:
-                template_id = request.POST.get('template_id')
-                whatsapp_template = WhatsAppTemplate.objects.filter(id=template_id).first()
-                if whatsapp_template:
-                    whatsapp_template.delete()
-                    messages.success(request, 'WhatsApp template deleted successfully.')
+            template_id = request.POST.get('template_id')
+            whatsapp_template = WhatsAppTemplate.objects.filter(id=template_id).first()
+            if whatsapp_template:
+                whatsapp_template.delete()
+                messages.success(request, 'WhatsApp template deleted successfully.')
 
         elif action == 'create_message_template':
             name = request.POST.get('name', '').strip()
@@ -313,114 +310,106 @@ def manage_templates(request):
     return render(request, 'campaigns/manage_templates.html', context)
 
 @login_required
-def manage_templates(request):
-    if request.method == 'POST':
-        action = request.POST.get('action')
+def email_builder(request, template_id=None):
+    """
+    Render the visual email builder.
+    If template_id is provided load existing template data for editing.
+    """
+    existing = None
+    if template_id:
+        if request.user.is_staff:
+            existing = EmailTemplate.objects.filter(id=template_id).first()
+        else:
+            existing = EmailTemplate.objects.filter(id=template_id, owner=request.user).first()
+        if not existing:
+            messages.error(request, 'Template not found.')
+            return redirect('manage_templates')
 
-        if action == 'create_email_template':
-            name = request.POST.get('name', '').strip()
-            subject = request.POST.get('subject', '').strip()
-            body_text = request.POST.get('body_text', '').strip()
-            provider_id = request.POST.get('provider_id') if request.user.is_staff else None
-            provider = None
-            if provider_id:
-                provider = EmailProvider.objects.filter(id=provider_id, is_active=True).first()
-
-            if not (name and body_text):
-                messages.error(request, 'Please provide a template name and body text.')
-            else:
-                EmailTemplate.objects.create(
-                    provider=provider,
-                    owner=None if request.user.is_staff else request.user,
-                    name=name,
-                    subject=subject,
-                    body_text=body_text,
-                    is_active=True,
-                )
-                messages.success(request, f'Email template "{name}" created successfully.')
-
-        elif action == 'delete_email_template':
-            template_id = request.POST.get('template_id')
-            email_template = EmailTemplate.objects.filter(id=template_id).first()
-            if email_template and (email_template.owner == request.user or request.user.is_staff):
-                email_template.delete()
-                messages.success(request, 'Email template deleted successfully.')
-            else:
-                messages.error(request, 'You do not have permission to delete this email template.')
-
-        elif action == 'create_whatsapp_template':
-            if not request.user.is_staff:
-                messages.error(request, 'Only administrators can manage WhatsApp templates.')
-            else:
-                provider_id = request.POST.get('provider_id')
-                name = request.POST.get('name', '').strip()
-                category = request.POST.get('category', 'MARKETING').strip() or 'MARKETING'
-                language_code = request.POST.get('language_code', 'en_US').strip() or 'en_US'
-                body_text = request.POST.get('body_text', '').strip()
-                provider = WhatsAppProvider.objects.filter(id=provider_id, is_active=True).first()
-
-                if not (provider and name and body_text):
-                    messages.error(request, 'Please select a provider and provide a name and body for the WhatsApp template.')
-                else:
-                    WhatsAppTemplate.objects.create(
-                        provider=provider,
-                        name=name,
-                        category=category,
-                        language_code=language_code,
-                        body_text=body_text,
-                    )
-                    messages.success(request, f'WhatsApp template "{name}" created successfully.')
-
-        elif action == 'delete_whatsapp_template':
-            if not request.user.is_staff:
-                messages.error(request, 'Only administrators can delete WhatsApp templates.')
-            else:
-                template_id = request.POST.get('template_id')
-                whatsapp_template = WhatsAppTemplate.objects.filter(id=template_id).first()
-                if whatsapp_template:
-                    whatsapp_template.delete()
-                    messages.success(request, 'WhatsApp template deleted successfully.')
-
-        elif action == 'create_message_template':
-            name = request.POST.get('name', '').strip()
-            body = request.POST.get('body', '').strip()
-            if not (name and body):
-                messages.error(request, 'Please provide a message template name and body.')
-            else:
-                MessageTemplate.objects.create(
-                    owner=request.user,
-                    name=name,
-                    body=body,
-                )
-                messages.success(request, f'Message template "{name}" created successfully.')
-
-        elif action == 'delete_message_template':
-            template_id = request.POST.get('template_id')
-            message_template = MessageTemplate.objects.filter(id=template_id).first()
-            if message_template and (message_template.owner == request.user or request.user.is_staff):
-                message_template.delete()
-                messages.success(request, 'Message template deleted successfully.')
-            else:
-                messages.error(request, 'You do not have permission to delete this message template.')
-
-        return redirect('manage_templates')
-
+    providers = EmailProvider.objects.filter(is_active=True)
     email_templates = EmailTemplate.objects.filter(
         models.Q(owner=request.user) | models.Q(owner=None)
     ).order_by('-created_at')
-    whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').order_by('-id')
-    message_templates = MessageTemplate.objects.filter(owner=request.user).order_by('-created_at')
-    whatsapp_providers = WhatsAppProvider.objects.filter(is_active=True)
-    email_providers = EmailProvider.objects.filter(is_active=True) if request.user.is_staff else None
-
-    context = {
+    return render(request, 'campaigns/email_builder.html', {
+        'existing': existing,
+        'providers': providers,
         'email_templates': email_templates,
-        'whatsapp_templates': whatsapp_templates,
-        'message_templates': message_templates,
-        'whatsapp_providers': whatsapp_providers,
-        'email_providers': email_providers,
-    }
-    return render(request, 'campaigns/manage_templates.html', context)
+    })
+
+@login_required
+def email_builder_delete(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    template_id = request.POST.get('template_id')
+    if request.user.is_staff:
+        tmpl = EmailTemplate.objects.filter(id=template_id).first()
+    else:
+        tmpl = EmailTemplate.objects.filter(id=template_id, owner=request.user).first()
+
+    if not tmpl:
+        return JsonResponse({'error': 'Template not found.'}, status=404)
+
+    tmpl.delete()
+    return JsonResponse({'success': True})
+
+@login_required
+def email_builder_save(request):
+    """
+    AJAX POST endpoint. Receives JSON with template data,
+    generates HTML, saves EmailTemplate record.
+    Returns JSON with template_id on success.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    import json
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    name = data.get('name', '').strip()
+    subject = data.get('subject', '').strip()
+    html_content = data.get('html_content', '').strip()
+    template_id = data.get('template_id')
+    provider_id = data.get('provider_id')
+
+    if not name or not subject or not html_content:
+        return JsonResponse({'error': 'Name, subject and content are required.'}, status=400)
+
+    provider = None
+    if provider_id:
+        provider = EmailProvider.objects.filter(id=provider_id).first()
+
+    if template_id:
+        if request.user.is_staff:
+            tmpl = EmailTemplate.objects.filter(id=template_id).first()
+        else:
+            tmpl = EmailTemplate.objects.filter(id=template_id, owner=request.user).first()
+        if not tmpl:
+            return JsonResponse({'error': 'Template not found.'}, status=404)
+        tmpl.name = name
+        tmpl.subject = subject
+        tmpl.body_text = html_content
+        if provider:
+            tmpl.provider = provider
+        tmpl.save()
+    else:
+        if not provider:
+            provider = EmailProvider.objects.filter(is_active=True).first()
+        if not provider:
+            return JsonResponse({'error': 'No active email provider found. Ask your admin to activate one.'}, status=400)
+        tmpl = EmailTemplate.objects.create(
+            name=name,
+            subject=subject,
+            body_text=html_content,
+            provider=provider,
+            owner=request.user if not request.user.is_staff else None,
+            is_active=True,
+        )
+
+    return JsonResponse({'success': True, 'template_id': tmpl.id, 'message': f'Template "{tmpl.name}" saved successfully.'})
 
 @login_required
 def manage_sms(request):
@@ -623,16 +612,30 @@ def create_campaign(request):
     """Handles logic for creating and launching unified multi-channel campaigns."""
     if request.method == 'POST':
         form = CampaignForm(request.POST, user=request.user)
+        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE}
         if form.is_valid():
             campaign = form.save(commit=False)
             campaign.user = request.user
-            selected_template = form.cleaned_data.get('message_template')
-            if selected_template and not campaign.message_body.strip():
-                campaign.message_body = selected_template.body
+            selected_sms_template = form.cleaned_data.get('sms_template')
+
+            if campaign.send_sms and not selected_sms_template:
+                messages.error(request, 'Select an SMS template before launching a campaign with SMS enabled.')
+                return render(request, 'campaigns/create_campaign.html', context)
+            if campaign.send_whatsapp and not campaign.whatsapp_template:
+                messages.error(request, 'Select a WhatsApp template before launching a campaign with WhatsApp enabled.')
+                return render(request, 'campaigns/create_campaign.html', context)
+            if campaign.send_email and not campaign.email_template:
+                messages.error(request, 'Select an email template before launching a campaign with email enabled.')
+                return render(request, 'campaigns/create_campaign.html', context)
+
+            if selected_sms_template:
+                campaign.message_body = selected_sms_template.body
+            else:
+                campaign.message_body = ''
 
             if not campaign.target_group:
                 messages.error(request, 'Please select a target group to launch the campaign.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             contacts = campaign.target_group.contacts.all()
             sms_recipients = [c.phone_number for c in contacts if c.phone_number]
@@ -649,15 +652,15 @@ def create_campaign(request):
 
             if not selected_channels:
                 messages.error(request, 'Select at least one channel for this campaign.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             if campaign.send_sms and not campaign.sms_server:
                 messages.error(request, 'No SMS provider selected. Please contact support to activate an SMS provider.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             if campaign.send_whatsapp and not campaign.whatsapp_server:
                 messages.error(request, 'No WhatsApp provider selected. Please contact support to activate a WhatsApp provider.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             unit_count = 0
             if campaign.send_sms:
@@ -673,7 +676,7 @@ def create_campaign(request):
 
             if unit_count > (quota.max_units - quota.units_used):
                 messages.error(request, 'Your campaign exceeds the remaining free-tier quota. Please reduce recipients or channels.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             if campaign.send_email and not campaign.email_server:
                 default_email_provider = EmailProvider.objects.filter(owner=request.user, is_active=True).order_by('-id').first()
@@ -683,15 +686,40 @@ def create_campaign(request):
                     campaign.email_server = default_email_provider
                 else:
                     messages.error(request, 'No active email provider is configured. Activate an SMTP provider first.')
-                    return render(request, 'campaigns/create_campaign.html', {'form': form})
+                    return render(request, 'campaigns/create_campaign.html', context)
 
             if campaign.send_email and campaign.email_server and not campaign.email_server.is_active:
                 messages.error(request, 'The selected email provider is inactive. Please choose an active provider.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
 
             if campaign.send_email and not email_recipients:
                 messages.error(request, 'Email sending requires at least one valid recipient email address.')
-                return render(request, 'campaigns/create_campaign.html', {'form': form})
+                return render(request, 'campaigns/create_campaign.html', context)
+
+            send_mode = request.POST.get('send_mode', 'now')
+            scheduled_time_str = request.POST.get('scheduled_time', '').strip()
+            if send_mode == 'schedule':
+                if not scheduled_time_str:
+                    messages.error(request, 'Please select a scheduled date and time.')
+                    return render(request, 'campaigns/create_campaign.html', context)
+
+                scheduled_dt = parse_datetime(scheduled_time_str)
+                if not scheduled_dt:
+                    messages.error(request, 'Invalid date/time format. Please use the date picker.')
+                    return render(request, 'campaigns/create_campaign.html', context)
+
+                if timezone.is_naive(scheduled_dt):
+                    scheduled_dt = timezone.make_aware(scheduled_dt)
+
+                if scheduled_dt <= timezone.now():
+                    messages.error(request, 'Scheduled time must be in the future.')
+                    return render(request, 'campaigns/create_campaign.html', context)
+
+                campaign.scheduled_time = scheduled_dt
+                campaign.status = 'scheduled'
+                campaign.save()
+                messages.success(request, f'Campaign scheduled for {scheduled_dt.strftime("%b %d, %Y at %I:%M %p")}.' )
+                return redirect('dashboard')
 
             campaign.status = 'draft'
             campaign.save()
@@ -699,7 +727,7 @@ def create_campaign(request):
             channel_success = True
 
             if campaign.send_sms:
-                if campaign.sms_server and sms_recipients:
+                if campaign.sms_server and sms_recipients and campaign.sms_template:
                     sms_sent = send_bulk_at_sms(campaign.sms_server, sms_recipients, campaign.message_body)
                     channel_success = channel_success and sms_sent
                 else:
@@ -744,8 +772,73 @@ def create_campaign(request):
             return redirect('dashboard')
     else:
         form = CampaignForm(user=request.user)
+        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE}
 
-    return render(request, 'campaigns/create_campaign.html', {'form': form})
+    return render(request, 'campaigns/create_campaign.html', context)
+
+@login_required
+def scheduled_campaigns(request):
+    """View and manage scheduled campaigns."""
+    if request.user.is_staff:
+        campaigns = Campaign.objects.filter(status='scheduled').select_related('user', 'target_group').order_by('scheduled_time')
+    else:
+        campaigns = Campaign.objects.filter(user=request.user, status='scheduled').select_related('target_group').order_by('scheduled_time')
+
+    return render(request, 'campaigns/scheduled_campaigns.html', {
+        'campaigns': campaigns,
+    })
+
+@login_required
+def cancel_campaign(request, campaign_id):
+    """Cancel a scheduled campaign."""
+    if request.user.is_staff:
+        campaign = Campaign.objects.filter(id=campaign_id, status='scheduled').first()
+    else:
+        campaign = Campaign.objects.filter(id=campaign_id, user=request.user, status='scheduled').first()
+
+    if not campaign:
+        messages.error(request, 'Campaign not found or already sent.')
+        return redirect('scheduled_campaigns')
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        campaign.status = 'cancelled'
+        campaign.cancel_reason = reason
+        campaign.save()
+        messages.success(request, f'Campaign "{campaign.title}" has been cancelled.')
+        return redirect('scheduled_campaigns')
+
+    return render(request, 'campaigns/cancel_campaign_confirm.html', {'campaign': campaign})
+
+@login_required
+def reschedule_campaign(request, campaign_id):
+    """Reschedule a scheduled campaign to a new time."""
+    if request.user.is_staff:
+        campaign = Campaign.objects.filter(id=campaign_id, status='scheduled').first()
+    else:
+        campaign = Campaign.objects.filter(id=campaign_id, user=request.user, status='scheduled').first()
+
+    if not campaign:
+        messages.error(request, 'Campaign not found or cannot be rescheduled.')
+        return redirect('scheduled_campaigns')
+
+    if request.method == 'POST':
+        new_time_str = request.POST.get('scheduled_time', '').strip()
+        new_dt = parse_datetime(new_time_str)
+        if not new_dt:
+            messages.error(request, 'Invalid date/time.')
+            return render(request, 'campaigns/reschedule_campaign.html', {'campaign': campaign})
+        if timezone.is_naive(new_dt):
+            new_dt = timezone.make_aware(new_dt)
+        if new_dt <= timezone.now():
+            messages.error(request, 'New scheduled time must be in the future.')
+            return render(request, 'campaigns/reschedule_campaign.html', {'campaign': campaign})
+        campaign.scheduled_time = new_dt
+        campaign.save()
+        messages.success(request, f'Campaign rescheduled to {new_dt.strftime("%b %d, %Y at %I:%M %p")}.')
+        return redirect('scheduled_campaigns')
+
+    return render(request, 'campaigns/reschedule_campaign.html', {'campaign': campaign})
 
 @login_required
 def ai_suggest_view(request):

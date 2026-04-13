@@ -1,0 +1,65 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom mt-3">
+    <div>
+        <h2 class="fw-bold m-0">Scheduled Campaigns</h2>
+        <p class="text-muted mb-0">Manage campaigns that are set to send automatically.</p>
+    </div>
+    <span class="badge bg-primary py-2 px-3 fs-6">{{ campaigns|length }} scheduled</span>
+</div>
+
+<div class="alert alert-info rounded-4">
+    Scheduled campaigns are processed automatically every minute.
+</div>
+
+<div class="table-responsive bg-white p-3 shadow-sm rounded-4">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Campaign Title</th>
+                <th>Channels</th>
+                <th>Target Group</th>
+                {% if user.is_staff %}<th>Created By</th>{% endif %}
+                <th>Scheduled Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for campaign in campaigns %}
+                <tr>
+                    <td><strong>{{ campaign.title }}</strong></td>
+                    <td>{{ campaign.active_channel_labels }}</td>
+                    <td>{{ campaign.target_group.name|default:"General" }}</td>
+                    {% if user.is_staff %}<td>{{ campaign.user.username }}</td>{% endif %}
+                    <td>
+                        {% if campaign.scheduled_time %}
+                            <div>{{ campaign.scheduled_time|date:"M d, Y" }}</div>
+                            <span class="badge bg-warning text-dark small">
+                                {{ campaign.scheduled_time|time:"g:i A" }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">Not set</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'reschedule_campaign' campaign.id %}" class="btn btn-sm btn-outline-secondary me-2 mb-2">
+                            Reschedule
+                        </a>
+                        <a href="{% url 'cancel_campaign' campaign.id %}" class="btn btn-sm btn-danger mb-2">
+                            Cancel
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{% if user.is_staff %}5{% else %}4{% endif %}" class="text-center text-muted py-5">
+                        <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                        No campaigns scheduled.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

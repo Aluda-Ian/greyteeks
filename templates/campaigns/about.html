@@ -8,73 +8,94 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=2">
-    <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #1a202c; background: #f8fafc; }
-        .hero { padding: 120px 0 80px; }
-        .feature-card { border-radius: 24px; background: white; border: 1px solid rgba(15, 23, 42, 0.06); box-shadow: 0 20px 60px rgba(15,23,42,0.05); }
-        .feature-card h4 { font-weight: 700; }
-        .btn-venda { background: #3182ce; color: white; border-radius: 12px; padding: 14px 28px; }
-        .btn-venda:hover { background: #2b6cb0; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=2">
 </head>
 <body>
     {% include 'campaigns/_header.html' %}
 
-    <section class="hero">
-        <div class="container">
-            <div class="row align-items-center gy-5">
-                <div class="col-lg-6">
-                    <span class="text-primary fw-bold text-uppercase small">About Greyteeks</span>
-                    <h1 class="display-5 fw-bold mt-3">Built for agile teams that need fast, measurable outreach.</h1>
-                    <p class="lead text-muted mt-4">Greyteeks brings together SMS, WhatsApp and email marketing in one seamless dashboard. Launch campaigns, manage contacts, and book live demos with team-ready automation.</p>
-                    <a href="{% url 'contact' %}" class="btn btn-venda mt-4">Book a Demo</a>
+    <main>
+        <section class="hero hero--soft">
+            <div class="container hero-inner text-center">
+                <span class="hero-eyebrow">About Greyteeks</span>
+                <h1 class="hero-title">Built for modern teams that need fast, measurable outreach.</h1>
+                <p class="hero-copy">Greyteeks brings SMS, WhatsApp, and email together in a premium, cohesive system — so campaigns launch quickly and results are easy to read.</p>
+                <div class="hero-actions">
+                    <a href="{% url 'contact' %}" class="btn btn-hero-primary">Book a demo</a>
+                    <a href="{% url 'home' %}#services" class="btn btn-hero-ghost">See solutions</a>
                 </div>
-                <div class="col-lg-6">
-                    <div class="p-5 feature-card">
-                        <h4>What makes us different</h4>
-                        <p class="text-muted mt-3">From audience segmentation to campaign analytics, Greyteeks was designed to help marketers move faster with fewer tools.</p>
-                        <ul class="list-unstyled mt-4">
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i>Unified campaign creation for SMS and WhatsApp</li>
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i>Live booking calendar for demo requests</li>
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i>Fast onboarding with built-in user management</li>
-                        </ul>
+            </div>
+        </section>
+
+        <section class="main-section">
+            <div class="container">
+                <div class="section-headline">
+                    <span class="section-prelabel">What makes Greyteeks different</span>
+                    <h2 class="section-title">Simple workflows, powerful delivery, and focused support.</h2>
+                    <p class="section-copy">We built Greyteeks to remove confusion from multi-channel outreach while keeping every experience consistent and professional.</p>
+                </div>
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                        <h3>Fast campaign setup</h3>
+                        <p>Quickly launch SMS, WhatsApp, and email campaigns with a guided setup that stays out of your way.</p>
+                    </article>
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+                        <h3>Clear performance metrics</h3>
+                        <p>See opens, replies, deliveries, and campaign outcomes in one place with subtle, data-driven visuals.</p>
+                    </article>
+                    <article class="feature-card">
+                        <div class="feature-icon"><i class="bi bi-person-check-fill"></i></div>
+                        <h3>Support designed for teams</h3>
+                        <p>Access responsive help, onboarding guidance, and expert campaign advice without the noise.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="main-section bg-surface">
+            <div class="container">
+                <div class="section-headline">
+                    <span class="section-prelabel">Our approach</span>
+                    <h2 class="section-title">A premium experience from setup to launch.</h2>
+                </div>
+                <div class="how-flow">
+                    <article class="step-card">
+                        <div class="step-marker">1</div>
+                        <h4>Learn your goals</h4>
+                        <p>We help you identify the right channels, audience, and campaign style for your business.</p>
+                    </article>
+                    <article class="step-card">
+                        <div class="step-marker">2</div>
+                        <h4>Launch with confidence</h4>
+                        <p>Custom campaigns are built to scale without needing multiple tools or manual handoffs.</p>
+                    </article>
+                    <article class="step-card">
+                        <div class="step-marker">3</div>
+                        <h4>Measure what matters</h4>
+                        <p>Actionable insights and campaign summaries help your team learn and improve every send.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-card">
+                    <h2 class="cta-title">Your next campaign should feel effortless.</h2>
+                    <p class="cta-copy">Book a one-on-one demo, ask about onboarding, or start a trial with our support team ready to help.</p>
+                    <div class="cta-actions">
+                        <a href="{% url 'contact' %}" class="btn btn-hero-primary">Request a demo</a>
+                        <a href="{% url 'home' %}" class="btn btn-secondary-ghost">Return home</a>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <section class="py-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="feature-card p-4 h-100">
-                        <span class="text-primary mb-3 d-inline-block"><i class="bi bi-people-fill fs-3"></i></span>
-                        <h5 class="fw-bold">Customer-first UX</h5>
-                        <p class="text-muted mt-3">Built to guide growing teams from first campaign to full automation with intuitive workflows.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card p-4 h-100">
-                        <span class="text-primary mb-3 d-inline-block"><i class="bi bi-graph-up-arrow fs-3"></i></span>
-                        <h5 class="fw-bold">Analytics built in</h5>
-                        <p class="text-muted mt-3">Quickly see performance summaries, contact growth, and campaign delivery outcomes across channels.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card p-4 h-100">
-                        <span class="text-primary mb-3 d-inline-block"><i class="bi bi-shield-lock-fill fs-3"></i></span>
-                        <h5 class="fw-bold">Security & control</h5>
-                        <p class="text-muted mt-3">Admin-level user controls keep every account secure while giving teams access to the right tools.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-4 bg-white border-top">
+    <footer class="site-footer">
         <div class="container text-center">
-            <p class="text-muted mb-0">© 2026 Greyteeks. Live demo ready.</p>
+            <p class="footer-copy">© 2026 Greyteeks. Live demo ready.</p>
         </div>
     </footer>
 

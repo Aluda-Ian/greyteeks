@@ -1,0 +1,26 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4 rounded-4 mx-auto" style="max-width: 560px;">
+    <div class="text-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
+        <h4 class="fw-bold mt-3">Cancel Scheduled Campaign?</h4>
+        <p class="text-muted">
+            "<strong>{{ campaign.title }}</strong>" is scheduled for
+            <strong>{{ campaign.scheduled_time|date:"M d, Y" }} at {{ campaign.scheduled_time|time:"g:i A" }}</strong>.
+            This action cannot be undone.
+        </p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Reason for cancellation (optional)</label>
+            <textarea name="reason" class="form-control" rows="2" placeholder="e.g. Wrong audience selected"></textarea>
+        </div>
+        <div class="d-flex gap-3">
+            <a href="{% url 'scheduled_campaigns' %}" class="btn btn-outline-secondary w-50">Keep Campaign</a>
+            <button type="submit" class="btn btn-danger w-50">Yes, Cancel It</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

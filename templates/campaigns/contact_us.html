@@ -4,123 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us — Greyteeks</title>
+    <title>Contact — Greyteeks</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=2">
-    <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1a202c; }
-        .hero { padding: 100px 0 60px; }
-        .card-light { background: white; border-radius: 24px; border: 1px solid rgba(15,23,42,0.08); }
-        .btn-venda { background: #3182ce; color: white; border-radius: 12px; padding: 14px 28px; }
-        .btn-venda:hover { background: #2b6cb0; }
-        .calendar-day {
-            cursor: pointer;
-            border-radius: 16px;
-            border: 1px solid rgba(49,130,206,0.15);
-            min-height: 100px;
-            transition: all 0.25s ease;
-            padding: 0.9rem 0.75rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 0.25rem;
-            background: white;
-        }
-        .calendar-day:hover {
-            background: rgba(49,130,206,0.08);
-            border-color: rgba(49,130,206,0.25);
-        }
-        .calendar-day.active {
-            background: #3182ce;
-            color: white;
-            border-color: #3182ce;
-        }
-        .calendar-day .day-name {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-        .calendar-day .day-number {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-        .calendar-day .month-name {
-            font-size: 0.85rem;
-            color: rgba(0, 0, 0, 0.55);
-        }
-        .calendar-container {
-            background: #fff;
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            border-radius: 24px;
-            padding: 1rem;
-        }
-        .calendar-nav {
-            gap: 0.75rem;
-        }
-        .calendar-nav .btn {
-            min-width: 44px;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .calendar-weekday,
-        .calendar-day {
-            text-align: center;
-            padding: 0.75rem 0.5rem;
-            border-radius: 16px;
-        }
-        .calendar-weekday {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #64748b;
-            background: #f8fafc;
-        }
-        .calendar-day {
-            cursor: pointer;
-            background: #f8fafc;
-            color: #0f172a;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 0.25rem;
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-        .calendar-day:hover {
-            background: rgba(49, 130, 206, 0.08);
-            border-color: rgba(49, 130, 206, 0.25);
-        }
-        .calendar-day.active {
-            background: #3182ce;
-            color: white;
-            border-color: #3182ce;
-        }
-        .calendar-day.inactive {
-            cursor: default;
-            color: rgba(15, 23, 42, 0.35);
-            background: transparent;
-        }
-        .calendar-day.inactive:hover {
-            background: transparent;
-            border-color: transparent;
-        }
-        .calendar-container.d-none {
-            display: none !important;
-        }
-        .slot-button { border-radius: 10px; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=2">
 </head>
 <body>
     {% if messages %}
         <div class="container mt-4">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -130,191 +23,217 @@
 
     {% include 'campaigns/_header.html' %}
 
-    <section class="hero">
-        <div class="container">
-            <div class="row align-items-center gy-5">
-                <div class="col-lg-6">
-                    <span class="text-primary fw-bold small text-uppercase">Schedule a live demo</span>
-                    <h1 class="display-5 fw-bold mt-3">Book a time to see Greyteeks in action.</h1>
-                    <p class="text-muted mt-4">Choose a date, reserve a slot, and we’ll walk you through how Greyteeks can accelerate your marketing campaigns.</p>
-                </div>
+    <main>
+        <section class="hero hero--soft">
+            <div class="container hero-inner text-center">
+                <span class="hero-eyebrow">Contact Greyteeks</span>
+                <h1 class="hero-title">Start your next campaign with a direct line to our team.</h1>
+                <p class="hero-copy">Whether you're launching a new automation or need help with integration, share your details and preferred booking time.</p>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="pb-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-8">
-                    <div class="card card-light p-4 shadow-sm">
-                        <h4 class="fw-bold mb-3">Live Demo Booking</h4>
-                        <p class="text-muted mb-4">Select a date, choose a time, and submit your demo request in one place.</p>
-                        <form method="post" class="row g-3">
+        <section class="main-section">
+            <div class="container">
+                <div class="contact-grid">
+                    <aside class="contact-info-card">
+                        <span class="section-prelabel">Reach out</span>
+                        <h2>Personalised support for every brand.</h2>
+                        <p class="contact-copy">Talk to our product specialists, request help with onboarding, or schedule a campaign review in minutes.</p>
+
+                        <div class="contact-details">
+                            <div class="detail-row">
+                                <span class="detail-icon"><i class="bi bi-envelope-fill"></i></span>
+                                <div>
+                                    <p class="detail-label">Email</p>
+                                    <p class="detail-value">support@greyteeks.com</p>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-icon"><i class="bi bi-telephone-fill"></i></span>
+                                <div>
+                                    <p class="detail-label">Phone</p>
+                                    <p class="detail-value">+254 700 000 000</p>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                                <div>
+                                    <p class="detail-label">Office</p>
+                                    <p class="detail-value">Nairobi, Kenya</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="note-card">
+                            <p>Need help deciding? Use the form to share your timeline, channel preference, and campaign goals.</p>
+                        </div>
+                    </aside>
+
+                    <section class="contact-form-panel">
+                        <div class="panel-header">
+                            <h2>Send us a request</h2>
+                            <p>Complete your details and select a preferred date and time for our response.</p>
+                        </div>
+                        <form method="post" action="{% url 'contact' %}" class="row g-4">
                             {% csrf_token %}
                             <div class="col-md-6">
-                                <label class="form-label">Name <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" required aria-required="true">
+                                <label class="form-label" for="name">Full name</label>
+                                <input type="text" id="name" name="name" class="form-input" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" name="email" class="form-control" required aria-required="true">
+                                <label class="form-label" for="email">Email address</label>
+                                <input type="email" id="email" name="email" class="form-input" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="company">Company</label>
+                                <input type="text" id="company" name="company" class="form-input">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="subject">Subject</label>
+                                <input type="text" id="subject" name="subject" class="form-input" required>
                             </div>
                             <div class="col-12">
-                                <div class="card border rounded-4 p-3 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="form-label" for="message">Message</label>
+                                <textarea id="message" name="message" rows="6" class="form-input" required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="calendar-wrap">
+                                    <div class="cal-header">
                                         <div>
-                                            <label class="form-label mb-1">Choose a date</label>
-                                            <div class="text-muted small">Pick an available day from the calendar.</div>
+                                            <p class="cal-label">Preferred meeting date</p>
+                                            <p id="selectedDateLabel" class="cal-selected">Select a date</p>
                                         </div>
-                                        <div class="text-end small text-muted">
-                                            Selected: <span id="selectedDateLabel">None</span>
-                                            <button type="button" id="showCalendarBtn" class="btn btn-outline-primary btn-sm ms-3" aria-controls="datePickerContainer" aria-expanded="false">Select date</button>
+                                        <div class="btn-group" role="group" aria-label="Calendar navigation">
+                                            <button type="button" class="cal-nav-btn" id="prevMonth" aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
+                                            <button type="button" class="cal-nav-btn" id="nextMonth" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
                                         </div>
                                     </div>
-                                    <div id="datePickerContainer" class="mt-3 d-none">
-                                        <input id="preferredDateVisible" type="date" class="form-control">
+                                    <div class="cal-grid" id="calendarGrid"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="calendar-wrap">
+                                    <p class="cal-label">Preferred time slot</p>
+                                    <div class="time-slot-grid" id="timeSlots">
+                                        <button type="button" class="time-slot-btn" data-time="09:00 AM">09:00 AM</button>
+                                        <button type="button" class="time-slot-btn" data-time="10:30 AM">10:30 AM</button>
+                                        <button type="button" class="time-slot-btn" data-time="12:00 PM">12:00 PM</button>
+                                        <button type="button" class="time-slot-btn" data-time="02:00 PM">02:00 PM</button>
+                                        <button type="button" class="time-slot-btn" data-time="03:30 PM">03:30 PM</button>
+                                        <button type="button" class="time-slot-btn" data-time="05:00 PM">05:00 PM</button>
                                     </div>
                                 </div>
                             </div>
+
+                            <input type="hidden" id="preferredDate" name="preferred_date">
+                            <input type="hidden" id="preferredTime" name="preferred_time">
+
                             <div class="col-12">
-                                <div class="card border rounded-4 p-3 mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div>
-                                            <label class="form-label mb-1">Choose a time slot</label>
-                                            <div class="text-muted small">Tap to reserve your preferred demo time.</div>
-                                        </div>
-                                        <div class="text-end small text-muted">Selected: <span id="selectedTimeLabel">None</span></div>
-                                    </div>
-                                    <div id="timeSlots" class="d-flex flex-wrap gap-2"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Subject</label>
-                                <input type="text" name="subject" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Message</label>
-                                <input type="text" name="message" class="form-control" required>
-                            </div>
-                            <input id="preferredDate" type="hidden" name="preferred_date" required>
-                            <input id="preferredTime" type="hidden" name="preferred_time" required>
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-venda w-100">Confirm Booking</button>
+                                <button type="submit" class="btn btn-submit-demo">Send request</button>
                             </div>
                         </form>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card card-light p-4 shadow-sm h-100">
-                        <h4 class="fw-bold mb-3">Why book with us?</h4>
-                        <ul class="list-unstyled mt-3">
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i> Personalized demo from our team.</li>
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i> Live walkthrough of SMS, WhatsApp, and dashboards.</li>
-                            <li class="mb-3"><i class="bi bi-check2-circle text-primary me-2"></i> Available slots across Nairobi business hours.</li>
-                        </ul>
-                        <div class="mt-4">
-                            <p class="text-muted"><strong>Need immediate help?</strong></p>
-                            <p class="text-muted mb-0"><i class="bi bi-envelope me-2"></i>support@greyteeks.com</p>
-                            <p class="text-muted"><i class="bi bi-phone me-2"></i>+254 700 000 000</p>
-                        </div>
-                    </div>
+                    </section>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <footer class="py-4 bg-white border-top">
+    <footer class="site-footer">
         <div class="container text-center">
-            <p class="text-muted mb-0">© 2026 Greyteeks. Book your live demo today.</p>
+            <p class="footer-copy">© 2026 Greyteeks. A modern marketing experience.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const showCalendarBtn = document.getElementById('showCalendarBtn');
-        const datePickerContainer = document.getElementById('datePickerContainer');
-        const preferredDateVisible = document.getElementById('preferredDateVisible');
+        const calendarGrid = document.getElementById('calendarGrid');
         const selectedDateLabel = document.getElementById('selectedDateLabel');
-        const preferredDateInput = document.getElementById('preferredDate');
-        const preferredTimeInput = document.getElementById('preferredTime');
-        const selectedTimeLabel = document.getElementById('selectedTimeLabel');
-        const timeSlotsRoot = document.getElementById('timeSlots');
+        const preferredDate = document.getElementById('preferredDate');
+        const preferredTime = document.getElementById('preferredTime');
+        const timeSlots = document.querySelectorAll('.time-slot-btn');
+        let currentDate = new Date();
+        let selectedDate = null;
 
-        const availableTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '03:30 PM'];
-
-        function setDatePickerRange() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const minDate = `${year}-${month}-${day}`;
-            const maxDate = `${year + 5}-${month}-${day}`;
-            preferredDateVisible.setAttribute('min', minDate);
-            preferredDateVisible.setAttribute('max', maxDate);
-            preferredDateVisible.value = '';
-            preferredDateInput.value = '';
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
         }
 
-        function formatDisplay(dateValue) {
-            const date = new Date(dateValue);
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
+        function renderCalendar(date) {
+            calendarGrid.innerHTML = '';
+            const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+            const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            const firstDay = monthStart.getDay();
+            const monthLabel = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+            document.querySelector('.cal-month-label')?.remove();
+            const label = document.createElement('p');
+            label.className = 'cal-month-label mb-0';
+            label.textContent = monthLabel;
+            document.querySelector('.cal-header').prepend(label);
 
-        function updateSelectedDate(dateValue) {
-            if (!dateValue) {
-                selectedDateLabel.textContent = 'None';
-                preferredDateInput.value = '';
-                renderSlots();
-                return;
-            }
-            selectedDateLabel.textContent = formatDisplay(dateValue);
-            preferredDateInput.value = dateValue;
-            hideCalendar();
-            renderSlots();
-        }
-
-        function renderSlots() {
-            timeSlotsRoot.innerHTML = '';
-            if (!preferredDateInput.value) {
-                selectedTimeLabel.textContent = 'None';
-                preferredTimeInput.value = '';
-                timeSlotsRoot.innerHTML = '<div class="text-muted">Select a date first to view available time slots.</div>';
-                return;
-            }
-
-            availableTimes.forEach((time) => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'btn btn-outline-secondary slot-button';
-                button.textContent = time;
-                button.addEventListener('click', () => {
-                    preferredTimeInput.value = time;
-                    selectedTimeLabel.textContent = time;
-                    document.querySelectorAll('.slot-button').forEach(el => el.classList.remove('btn-primary', 'text-white'));
-                    button.classList.add('btn-primary', 'text-white');
-                });
-                timeSlotsRoot.appendChild(button);
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            weekdays.forEach(day => {
+                const weekday = document.createElement('div');
+                weekday.className = 'cal-weekday';
+                weekday.textContent = day;
+                calendarGrid.appendChild(weekday);
             });
-        }
 
-        function hideCalendar() {
-            if (!datePickerContainer.classList.contains('d-none')) {
-                datePickerContainer.classList.add('d-none');
-                showCalendarBtn.setAttribute('aria-expanded', 'false');
+            for (let i = 0; i < firstDay; i++) {
+                const blank = document.createElement('div');
+                blank.className = 'cal-day cal-day--empty';
+                calendarGrid.appendChild(blank);
+            }
+
+            for (let day = 1; day <= monthEnd.getDate(); day++) {
+                const cellDate = new Date(date.getFullYear(), date.getMonth(), day);
+                const dayButton = document.createElement('button');
+                dayButton.type = 'button';
+                dayButton.className = 'cal-day';
+                dayButton.textContent = day;
+
+                if (cellDate < new Date(new Date().setHours(0,0,0,0))) {
+                    dayButton.classList.add('cal-day--past');
+                    dayButton.disabled = true;
+                }
+
+                if (selectedDate && formatDate(selectedDate) === formatDate(cellDate)) {
+                    dayButton.classList.add('cal-day--selected');
+                }
+
+                dayButton.addEventListener('click', () => {
+                    selectedDate = cellDate;
+                    preferredDate.value = formatDate(selectedDate);
+                    selectedDateLabel.textContent = selectedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    renderCalendar(currentDate);
+                });
+
+                calendarGrid.appendChild(dayButton);
             }
         }
 
-        showCalendarBtn.addEventListener('click', () => {
-            const hidden = datePickerContainer.classList.toggle('d-none');
-            showCalendarBtn.setAttribute('aria-expanded', String(!hidden));
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar(currentDate);
         });
 
-        preferredDateVisible.addEventListener('change', () => {
-            updateSelectedDate(preferredDateVisible.value);
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar(currentDate);
         });
 
-        setDatePickerRange();
-        renderSlots();
+        timeSlots.forEach(button => {
+            button.addEventListener('click', () => {
+                timeSlots.forEach(s => s.classList.remove('selected'));
+                button.classList.add('selected');
+                preferredTime.value = button.dataset.time;
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCalendar(currentDate);
+        });
     </script>
 </body>
 </html>

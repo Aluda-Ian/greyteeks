@@ -1,13 +1,15 @@
 from django.db import models
 from config import settings
 
-from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, EmailTemplate, WhatsAppTemplate
+from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, EmailTemplate, WhatsAppTemplate, MessageTemplate
 from contacts_app.models import Group
 
 class Campaign(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaigns')
     title = models.CharField(max_length=200)
-    message_body = models.TextField()
+    description = models.TextField(blank=True, default='')
+    message_body = models.TextField(blank=True, default='')
+    sms_template = models.ForeignKey(MessageTemplate, on_delete=models.SET_NULL, null=True, blank=True)
 
     send_sms = models.BooleanField(default=False, verbose_name='SMS')
     send_whatsapp = models.BooleanField(default=False, verbose_name='WhatsApp')
@@ -22,9 +24,11 @@ class Campaign(models.Model):
             ('scheduled', 'Scheduled'),
             ('sent', 'Sent'),
             ('failed', 'Failed'),
+            ('cancelled', 'Cancelled'),
         ],
         default='draft'
     )
+    cancel_reason = models.TextField(blank=True)
 
     sms_server = models.ForeignKey(SMSProvider, on_delete=models.SET_NULL, null=True, blank=True)
     whatsapp_server = models.ForeignKey(WhatsAppProvider, on_delete=models.SET_NULL, null=True, blank=True)

@@ -23,6 +23,13 @@
         </div>
 
         <div class="row g-3 mt-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Campaign Description</label>
+                {{ form.description }}
+            </div>
+        </div>
+
+        <div class="row g-3 mt-3">
             <div class="col-md-4">
                 <div class="form-check card p-3 h-100">
                     {{ form.send_sms }}
@@ -49,6 +56,10 @@
                 <div class="mb-3">
                     <label class="form-label">SMS Provider</label>
                     {{ form.sms_server }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">SMS Template</label>
+                    {{ form.sms_template }}
                 </div>
             </div>
         </div>
@@ -81,18 +92,53 @@
             </div>
         </div>
 
-        <div class="mt-4">
-            <label class="form-label fw-semibold">Message Body</label>
-            {{ form.message_body }}
+        <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-clock me-2"></i> When to Send</h6>
+            <input type="hidden" name="send_mode" id="sendModeInput" value="now">
+
+            <div class="d-flex gap-3 flex-wrap">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="send_mode_radio"
+                           id="sendNow" value="now" checked
+                           onchange="setSendMode('now')">
+                    <label class="form-check-label fw-semibold" for="sendNow">
+                        <i class="bi bi-send me-1 text-primary"></i> Send Immediately
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="send_mode_radio"
+                           id="sendLater" value="schedule"
+                           onchange="setSendMode('schedule')">
+                    <label class="form-check-label fw-semibold" for="sendLater">
+                        <i class="bi bi-calendar-clock me-1 text-warning"></i> Schedule for Later
+                    </label>
+                </div>
+            </div>
+
+            <div id="schedulerSection" class="mt-3 d-none">
+                <label class="form-label fw-semibold">Select Date &amp; Time</label>
+                <input type="datetime-local"
+                       name="scheduled_time"
+                       id="scheduledTime"
+                       class="form-control"
+                       min=""
+                       style="max-width: 320px;">
+                <div class="form-text text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Time is in your local timezone ({{ TIME_ZONE|default:"Africa/Nairobi" }}). Campaign will send automatically at the scheduled time.
+                </div>
+            </div>
         </div>
 
         <div class="mb-3 mt-3">
             <button type="button" class="btn btn-info text-white" onclick="generateAI()">
-                ✨ Generate with AI
+                ✨ Generate campaign description with AI
             </button>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Save Campaign</button>
+        <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+            <i class="bi bi-send me-2"></i> Launch Campaign Now
+        </button>
     </form>
 </div>
 
@@ -111,7 +157,37 @@ window.addEventListener('DOMContentLoaded', function() {
     toggleSection('id_send_sms', 'sms-section');
     toggleSection('id_send_whatsapp', 'whatsapp-section');
     toggleSection('id_send_email', 'email-section');
+    setMinDateTime();
 });
+
+function setMinDateTime() {
+    const datetimeInput = document.getElementById('scheduledTime');
+    if (!datetimeInput) return;
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    const pad = n => String(n).padStart(2, '0');
+    const minVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    datetimeInput.setAttribute('min', minVal);
+}
+
+function setSendMode(mode) {
+    const section = document.getElementById('schedulerSection');
+    const btn = document.getElementById('submitBtn');
+    const hidden = document.getElementById('sendModeInput');
+    if (!section || !btn || !hidden) return;
+
+    hidden.value = mode;
+    if (mode === 'schedule') {
+        section.classList.remove('d-none');
+        btn.innerHTML = '<i class="bi bi-calendar-check me-2"></i> Schedule Campaign';
+        btn.classList.replace('btn-primary', 'btn-warning');
+        setMinDateTime();
+    } else {
+        section.classList.add('d-none');
+        btn.innerHTML = '<i class="bi bi-send me-2"></i> Launch Campaign Now';
+        btn.classList.replace('btn-warning', 'btn-primary');
+    }
+}
 
 function generateAI() {
     const topic = prompt("What is this campaign about? (e.g., Flash Sale, Welcome Message)");
@@ -119,7 +195,7 @@ function generateAI() {
         fetch(`/api/ai-suggest/?topic=${topic}`)
             .then(response => response.json())
             .then(data => {
-                const textarea = document.getElementById('messageBody');
+                const textarea = document.getElementById('campaignDescription');
                 if (textarea) textarea.value = data.suggestion;
             });
     }

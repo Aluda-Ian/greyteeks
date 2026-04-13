@@ -1,0 +1,21 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4 rounded-4 mx-auto" style="max-width: 560px;">
+    <div class="text-center mb-4">
+        <i class="bi bi-trash-fill text-danger fs-1"></i>
+        <h4 class="fw-bold mt-3">Delete Contact?</h4>
+        <p class="text-muted">
+            Are you sure you want to delete <strong>{{ contact.name|default:contact.phone_number }}</strong> from
+            <strong>{{ contact.group.name }}</strong>? This action cannot be undone.
+        </p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-3">
+            <a href="{% url 'contact_list' %}" class="btn btn-outline-secondary w-50">Cancel</a>
+            <button type="submit" class="btn btn-danger w-50">Delete contact</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

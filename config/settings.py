@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     
     # Third-party
     'rest_framework',
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -140,6 +141,9 @@ TIME_ZONE = 'Africa/Nairobi'
 USE_I18N = True
 
 USE_TZ = True
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # seconds
 
 
 # Static files (CSS, JavaScript, Images)

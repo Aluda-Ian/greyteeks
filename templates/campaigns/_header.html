@@ -1,13 +1,12 @@
 {% load static %}
-<header class="site-header py-3 shadow-sm bg-white light-surface">
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
+<header class="site-header">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid px-4 px-lg-5">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <img src="{% static 'img/dark logo.svg' %}" class="logo logo-dark me-2" alt="Greyteeks dark logo">
-                <img src="{% static 'img/light logo.svg' %}" class="logo logo-light me-2" alt="Greyteeks light logo">
+                <img src="{% static 'img/dark logo.svg' %}" class="header-logo" alt="Greyteeks logo">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon text-white"><i class="bi bi-list"></i></span>
             </button>
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
@@ -18,18 +17,18 @@
                 </ul>
                 <div class="d-flex align-items-center gap-2">
                     {% if user.is_authenticated %}
-                        <a class="btn btn-outline-primary btn-sm" href="{% url 'dashboard' %}">Dashboard</a>
+                        <a class="btn btn-header-ghost btn-sm" href="{% url 'dashboard' %}">Dashboard</a>
                         <form action="{% url 'logout' %}" method="post" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-primary btn-sm">Logout</button>
+                            <button type="submit" class="btn btn-header-primary btn-sm">Logout</button>
                         </form>
                     {% else %}
                         {% if request.resolver_match.url_name == 'home' %}
-                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started</button>
+                            <button class="btn btn-header-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+                            <button class="btn btn-header-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started</button>
                         {% else %}
-                            <a class="btn btn-outline-primary btn-sm" href="{% url 'login' %}">Login</a>
-                            <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Get Started</a>
+                            <a class="btn btn-header-ghost btn-sm" href="{% url 'login' %}">Login</a>
+                            <a class="btn btn-header-primary btn-sm" href="{% url 'register' %}">Get Started</a>
                         {% endif %}
                     {% endif %}
                 </div>

@@ -1,0 +1,31 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4 rounded-4 mx-auto" style="max-width: 560px;">
+    <h4 class="fw-bold mb-1"><i class="bi bi-calendar-clock me-2 text-warning"></i> Reschedule Campaign</h4>
+    <p class="text-muted mb-4">
+        Currently scheduled: <strong>{{ campaign.scheduled_time|date:"M d, Y" }} at {{ campaign.scheduled_time|time:"g:i A" }}</strong>
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label fw-semibold">New Date &amp; Time</label>
+            <input type="datetime-local" name="scheduled_time" class="form-control" required id="newScheduledTime">
+        </div>
+        <div class="d-flex gap-3">
+            <a href="{% url 'scheduled_campaigns' %}" class="btn btn-outline-secondary w-50">Go Back</a>
+            <button type="submit" class="btn btn-warning w-50 fw-semibold">Reschedule</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    const pad = n => String(n).padStart(2, '0');
+    const newScheduledTime = document.getElementById('newScheduledTime');
+    if (newScheduledTime) {
+        newScheduledTime.min = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+</script>
+{% endblock %}

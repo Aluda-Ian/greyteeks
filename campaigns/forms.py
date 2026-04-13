@@ -10,37 +10,37 @@ class CampaignForm(forms.ModelForm):
         fields = [
             'title',
             'target_group',
+            'description',
             'send_sms',
             'sms_server',
+            'sms_template',
             'send_whatsapp',
             'whatsapp_server',
             'whatsapp_template',
             'send_email',
             'email_server',
             'email_template',
-            'message_body',
         ]
         labels = {
             'send_sms': 'SMS Channel',
             'send_whatsapp': 'WhatsApp Channel',
             'send_email': 'Email Channel',
+            'sms_template': 'SMS Template',
+            'whatsapp_template': 'WhatsApp Template',
+            'email_template': 'Email Template',
+            'description': 'Campaign Description',
         }
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Campaign Name'}),
-            'message_body': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'id': 'messageBody'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'id': 'campaignDescription', 'placeholder': 'Describe the campaign for internal reference.'}),
             'sms_server': forms.Select(attrs={'class': 'form-select'}),
+            'sms_template': forms.Select(attrs={'class': 'form-select'}),
             'whatsapp_server': forms.Select(attrs={'class': 'form-select'}),
             'whatsapp_template': forms.Select(attrs={'class': 'form-select'}),
             'email_server': forms.Select(attrs={'class': 'form-select'}),
             'email_template': forms.Select(attrs={'class': 'form-select'}),
             'target_group': forms.Select(attrs={'class': 'form-select'}),
         }
-
-    message_template = forms.ModelChoiceField(
-        queryset=MessageTemplate.objects.none(),
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_message_template'})
-    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -61,7 +61,7 @@ class CampaignForm(forms.ModelForm):
         self.fields['whatsapp_server'].queryset = WhatsAppProvider.objects.filter(is_active=True)
         self.fields['whatsapp_template'].queryset = WhatsAppTemplate.objects.all()
         if self.user is not None:
-            self.fields['message_template'].queryset = MessageTemplate.objects.filter(owner=self.user)
+            self.fields['sms_template'].queryset = MessageTemplate.objects.filter(owner=self.user)
         if 'email_server' in self.data:
             try:
                 provider_id = int(self.data.get('email_server'))
@@ -76,14 +76,14 @@ class CampaignForm(forms.ModelForm):
         self.order_fields([
             'title',
             'target_group',
+            'description',
             'send_sms',
             'sms_server',
+            'sms_template',
             'send_whatsapp',
             'whatsapp_server',
             'whatsapp_template',
             'send_email',
             'email_server',
             'email_template',
-            'message_template',
-            'message_body',
         ])

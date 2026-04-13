@@ -34,18 +34,34 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white d-flex align-items-center" href="{% url 'upload_contacts' %}">
-                    <i class="bi bi-cloud-upload me-2"></i> Import Contacts
+                <a class="nav-link text-white d-flex align-items-center justify-content-between"
+                   href="#contactsDropdown"
+                   data-bs-toggle="collapse"
+                   aria-expanded="false"
+                   aria-controls="contactsDropdown">
+                    <span><i class="bi bi-people me-2"></i> Contacts</span>
+                    <i class="bi bi-chevron-down small"></i>
                 </a>
+                <div class="collapse show" id="contactsDropdown">
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'contact_list' %}">
+                                <i class="bi bi-list-ul me-2"></i> Contacts List
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'upload_contacts' %}">
+                                <i class="bi bi-cloud-upload me-2"></i> Import Contacts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white d-flex align-items-center active" href="{% url 'manage_groups' %}">
+                                <i class="bi bi-folder-plus me-2"></i> Groups
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-
-            {% if not user.is_staff %}
-            <li class="nav-item">
-                <a class="nav-link text-white d-flex align-items-center" href="{% url 'customer_create_group' %}">
-                    <i class="bi bi-folder-plus me-2"></i> My Groups
-                </a>
-            </li>
-            {% endif %}
 
             <hr class="text-secondary my-2">
 
@@ -103,6 +119,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'manage_templates' %}">
                                 <i class="bi bi-file-earmark-text me-2"></i> Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'email_builder' %}">
+                                <i class="bi bi-magic me-2"></i> Email Builder
                             </a>
                         </li>
                     </ul>
