@@ -25,20 +25,22 @@
     {% include 'campaigns/_header.html' %}
 
     <main>
-        <section class="hero hero--dark">
+        <section class="hero hero--bright">
             <div class="container hero-inner text-center">
-                <span class="hero-eyebrow">Premium Marketing Experience</span>
-                <h1 class="hero-title">Grow faster with elegant outreach across SMS, WhatsApp, and Email.</h1>
-                <p class="hero-copy">Greyteeks gives your business a polished, unified campaign engine designed for high-volume delivery, modern engagement, and better customer journeys.</p>
-                <div class="hero-actions">
-                    <a href="#services" class="btn btn-hero-primary">Explore solutions</a>
-                    <a href="{% url 'contact' %}" class="btn btn-hero-ghost">Book a demo</a>
+                <div class="hero-copy-panel">
+                    <span class="hero-eyebrow">Premium Marketing Experience</span>
+                    <h1 class="hero-title">Grow faster with elegant outreach across <span class="hero-rotating"><span>SMS</span><span>WhatsApp</span><span>Email</span></span>.</h1>
+                    <p class="hero-copy">Greyteeks gives your business a polished, unified campaign engine designed for high-volume delivery, modern engagement, and better customer journeys.</p>
+                    <div class="hero-actions">
+                        <a href="#services" class="btn btn-hero-primary">Explore solutions</a>
+                        <a href="{% url 'contact' %}" class="btn btn-hero-ghost">Book a demo</a>
+                    </div>
+                    <div class="hero-pill-row">
+                        <div class="hero-pill">24/7 delivery reliability</div>
+                        <div class="hero-pill">3 channels in one platform</div>
+                        <div class="hero-pill">1k+ campaigns launched</div>
+                    </div>
                 </div>
-            </div>
-            <div class="container hero-feature-row">
-                <div class="feature-pill">24/7 Delivery reliability</div>
-                <div class="feature-pill">3 Channels in one platform</div>
-                <div class="feature-pill">1k+ Campaigns launched</div>
             </div>
         </section>
 
@@ -95,27 +97,23 @@
             </div>
         </section>
 
-        <section class="main-section">
-            <div class="container">
-                <div class="stats-section">
-                    <div class="stats-grid">
-                        <div class="stats-item">
-                            <div class="stats-value">99.9%</div>
-                            <div class="stats-copy">Message delivery uptime</div>
-                        </div>
-                        <div class="stats-item">
-                            <div class="stats-value">2.4M</div>
-                            <div class="stats-copy">Messages sent monthly</div>
-                        </div>
-                        <div class="stats-item">
-                            <div class="stats-value">97%</div>
-                            <div class="stats-copy">Customer satisfaction</div>
-                        </div>
-                        <div class="stats-item">
-                            <div class="stats-value">1</div>
-                            <div class="stats-copy">Unified workspace</div>
-                        </div>
-                    </div>
+        <section class="stats-banner">
+            <div class="container stats-grid">
+                <div class="stats-item">
+                    <div class="stats-value">99.9%</div>
+                    <div class="stats-copy">Delivery uptime</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value">2.4M</div>
+                    <div class="stats-copy">Messages sent monthly</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value">97%</div>
+                    <div class="stats-copy">Customer satisfaction</div>
+                </div>
+                <div class="stats-item">
+                    <div class="stats-value">1</div>
+                    <div class="stats-copy">Unified workspace</div>
                 </div>
             </div>
         </section>

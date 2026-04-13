@@ -1,0 +1,49 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom mt-3">
+    <div>
+        <h2 class="fw-bold m-0">Campaign Logs</h2>
+        <p class="text-muted mb-0">Review failed campaigns and diagnose delivery issues.</p>
+    </div>
+    <a href="{% url 'campaigns_overview' %}" class="btn btn-sm btn-outline-secondary px-3 py-2 rounded-3 fw-semibold">
+        <i class="bi bi-eye me-1"></i> All Campaigns
+    </a>
+</div>
+
+<div class="alert alert-warning rounded-4">
+    Only campaigns marked as failed are shown here. Use this log to identify delivery problems and follow up with providers.
+</div>
+
+<div class="table-responsive bg-white p-3 shadow-sm rounded-4">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Campaign</th>
+                <th>Channels</th>
+                <th>Group</th>
+                <th>Owner</th>
+                <th>Failure Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for campaign in failed_campaigns %}
+                <tr>
+                    <td><strong>{{ campaign.title }}</strong></td>
+                    <td>{{ campaign.active_channel_labels }}</td>
+                    <td>{{ campaign.target_group.name|default:"General" }}</td>
+                    <td>{{ campaign.user.username }}</td>
+                    <td class="text-muted small">{{ campaign.created_at|date:"M d, Y" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="bi bi-exclamation-triangle fs-2 d-block mb-2"></i>
+                        No failed campaigns found.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

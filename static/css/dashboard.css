@@ -1,7 +1,8 @@
 /* Sidebar Styling */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 body { 
     background-color: #f8f9fa; 
-    font-family: 'Inter', sans-serif; 
+    font-family: 'Montserrat', sans-serif; 
 }
 
 .sidebar { 
@@ -24,7 +25,7 @@ body {
 
 .sidebar .nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: #3182ce !important;
+    color: #475569 !important;
 }
 
 /* Card and Content Styling */
@@ -42,6 +43,17 @@ main {
     margin-left: 16.666667%; 
     padding-left: 1rem;
 }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+}
+
+h1 { font-size: 2rem; }
+
+h2 { font-size: 1.45rem; }
+
+h3 { font-size: 1.15rem; }
 
 .dashboard-content {
     padding-left: 1rem;
@@ -149,8 +161,8 @@ main {
 }
 .site-header .nav-link:hover,
 .site-header .nav-link.active {
-    color: #1d4ed8;
-    background: rgba(49, 130, 206, 0.08);
+    color: #475569;
+    background: rgba(71, 85, 105, 0.08);
 }
 .site-header .btn-outline-primary,
 .site-header .btn-primary {
@@ -158,12 +170,12 @@ main {
     border-radius: 999px;
 }
 .site-header .btn-outline-primary {
-    border-color: #3182ce;
-    color: #3182ce;
+    border-color: #475569;
+    color: #475569;
 }
 .site-header .btn-primary {
-    background-color: #3182ce;
-    border-color: #3182ce;
+    background-color: #475569;
+    border-color: #475569;
 }
 .site-header .btn-outline-primary:hover,
 .site-header .btn-primary:hover {
@@ -200,7 +212,7 @@ main {
 /* Active dropdown stays open indicator */
 .sidebar .collapse.show + li,
 .sidebar .collapse.show {
-    border-left: 2px solid #3182ce;
+    border-left: 2px solid #475569;
     margin-left: 0.5rem;
     padding-left: 0.25rem;
 }

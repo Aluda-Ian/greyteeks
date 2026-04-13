@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 # Add ai_suggest_view to this line
-from campaigns.views import about_view, cancel_campaign, contact_view, dashboard, create_campaign, email_builder, email_builder_delete, email_builder_save, home_view, manage_groups, register_view, reschedule_campaign, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group
+from campaigns.views import about_view, activate_account, cancel_campaign, campaign_logs, campaigns_overview, contact_view, dashboard, create_campaign, delete_campaign, email_builder, email_builder_delete, email_builder_save, home_view, manage_groups, register_view, reschedule_campaign, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group
 from contacts_app.views import contact_list, delete_contact, edit_contact, upload_contacts
 
 admin.site.site_header = 'Greyteeks Admin'
@@ -12,8 +12,13 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', register_view, name='register'),
+    path('activate/<uidb64>/<token>/', activate_account, name='activate'),
     path('dashboard/', dashboard, name='dashboard'),
     path('campaign/new/', create_campaign, name='create_campaign'),
+    path('campaigns/<int:campaign_id>/edit/', create_campaign, name='edit_campaign'),
+    path('campaigns/<int:campaign_id>/delete/', delete_campaign, name='delete_campaign'),
+    path('campaigns/', campaigns_overview, name='campaigns_overview'),
+    path('campaigns/logs/', campaign_logs, name='campaign_logs'),
     path('campaigns/scheduled/', scheduled_campaigns, name='scheduled_campaigns'),
     path('campaigns/<int:campaign_id>/cancel/', cancel_campaign, name='cancel_campaign'),
     path('campaigns/<int:campaign_id>/reschedule/', reschedule_campaign, name='reschedule_campaign'),

@@ -24,9 +24,9 @@
     {% include 'campaigns/_header.html' %}
 
     <main>
-        <section class="hero hero--soft">
+        <section class="hero hero--bright">
             <div class="container hero-inner text-center">
-                <span class="hero-eyebrow">Contact Greyteeks</span>
+                <span class="section-prelabel">Contact Greyteeks</span>
                 <h1 class="hero-title">Start your next campaign with a direct line to our team.</h1>
                 <p class="hero-copy">Whether you're launching a new automation or need help with integration, share your details and preferred booking time.</p>
             </div>
@@ -35,40 +35,6 @@
         <section class="main-section">
             <div class="container">
                 <div class="contact-grid">
-                    <aside class="contact-info-card">
-                        <span class="section-prelabel">Reach out</span>
-                        <h2>Personalised support for every brand.</h2>
-                        <p class="contact-copy">Talk to our product specialists, request help with onboarding, or schedule a campaign review in minutes.</p>
-
-                        <div class="contact-details">
-                            <div class="detail-row">
-                                <span class="detail-icon"><i class="bi bi-envelope-fill"></i></span>
-                                <div>
-                                    <p class="detail-label">Email</p>
-                                    <p class="detail-value">support@greyteeks.com</p>
-                                </div>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-icon"><i class="bi bi-telephone-fill"></i></span>
-                                <div>
-                                    <p class="detail-label">Phone</p>
-                                    <p class="detail-value">+254 700 000 000</p>
-                                </div>
-                            </div>
-                            <div class="detail-row">
-                                <span class="detail-icon"><i class="bi bi-geo-alt-fill"></i></span>
-                                <div>
-                                    <p class="detail-label">Office</p>
-                                    <p class="detail-value">Nairobi, Kenya</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="note-card">
-                            <p>Need help deciding? Use the form to share your timeline, channel preference, and campaign goals.</p>
-                        </div>
-                    </aside>
-
                     <section class="contact-form-panel">
                         <div class="panel-header">
                             <h2>Send us a request</h2>
@@ -135,6 +101,40 @@
                             </div>
                         </form>
                     </section>
+
+                    <aside class="contact-info-card">
+                        <span class="section-prelabel">Reach out</span>
+                        <h2>Personalised support for every brand.</h2>
+                        <p class="contact-copy">Talk to our product specialists, request help with onboarding, or schedule a campaign review in minutes.</p>
+
+                        <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+                            <div class="col">
+                                <div class="info-card p-3 h-100">
+                                    <div class="detail-icon"><i class="bi bi-envelope-fill"></i></div>
+                                    <p class="detail-label mb-1">Email</p>
+                                    <p class="detail-value mb-0">support@greyteeks.com</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="info-card p-3 h-100">
+                                    <div class="detail-icon"><i class="bi bi-telephone-fill"></i></div>
+                                    <p class="detail-label mb-1">Phone</p>
+                                    <p class="detail-value mb-0">+254758272146</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="info-card p-3 h-100">
+                                    <div class="detail-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                    <p class="detail-label mb-1">Office</p>
+                                    <p class="detail-value mb-0">Nairobi, Kenya</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="note-card">
+                            <p>Need help deciding? Use the form to share your timeline, channel preference, and campaign goals.</p>
+                        </div>
+                    </aside>
                 </div>
             </div>
         </section>
@@ -225,7 +225,7 @@
 
         timeSlots.forEach(button => {
             button.addEventListener('click', () => {
-                timeSlots.forEach(s => s.classList.remove('selected'));
+                timeSlots.forEach(s => s.classList.remove('selected')); 
                 button.classList.add('selected');
                 preferredTime.value = button.dataset.time;
             });

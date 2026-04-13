@@ -14,14 +14,33 @@
     {% include 'campaigns/_header.html' %}
 
     <main>
-        <section class="hero hero--soft">
-            <div class="container hero-inner text-center">
-                <span class="hero-eyebrow">About Greyteeks</span>
-                <h1 class="hero-title">Built for modern teams that need fast, measurable outreach.</h1>
-                <p class="hero-copy">Greyteeks brings SMS, WhatsApp, and email together in a premium, cohesive system — so campaigns launch quickly and results are easy to read.</p>
-                <div class="hero-actions">
-                    <a href="{% url 'contact' %}" class="btn btn-hero-primary">Book a demo</a>
-                    <a href="{% url 'home' %}#services" class="btn btn-hero-ghost">See solutions</a>
+        <section class="hero hero--bright hero--split">
+            <div class="container hero-inner">
+                <div class="hero-copy-panel">
+                    <span class="hero-eyebrow">About Greyteeks</span>
+                    <h1 class="hero-title">Built for modern teams that need fast, measurable outreach.</h1>
+                    <p class="hero-copy">Greyteeks brings SMS, WhatsApp, and email together in a premium, cohesive system — so campaigns launch quickly and results are easy to read.</p>
+                    <div class="hero-actions">
+                        <a href="{% url 'contact' %}" class="btn btn-hero-primary">Book a demo</a>
+                        <a href="{% url 'home' %}#services" class="btn btn-hero-ghost">See solutions</a>
+                    </div>
+                </div>
+                <div class="about-visual">
+                    <div class="visual-chip">Why Greyteeks</div>
+                    <div class="about-stat-grid">
+                        <div class="about-stat-card">
+                            <span class="about-stat-number">8x</span>
+                            <p>Faster campaign setup</p>
+                        </div>
+                        <div class="about-stat-card">
+                            <span class="about-stat-number">93%</span>
+                            <p>Connected engagements</p>
+                        </div>
+                        <div class="about-stat-card">
+                            <span class="about-stat-number">24/7</span>
+                            <p>Support available</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

@@ -16,7 +16,7 @@
 
     <!-- Logo -->
     <div class="sidebar-brand d-flex align-items-center justify-content-center px-3 py-3">
-        <img src="{% static 'img/light logo.svg' %}" class="sidebar-logo" alt="Greyteeks logo">
+        <img src="{% static 'img/light-logo.svg' %}" class="sidebar-logo" alt="Greyteeks logo">
     </div>
 
     <div class="px-2 pb-4">
@@ -193,35 +193,15 @@
                     <div class="row gy-4">
                         <div class="col-lg-6">
                             <div class="card border-0 shadow-sm p-4 rounded-4">
-                                <h5 class="fw-bold mb-3">Email Templates</h5>
-                                <form method="post" class="mb-4">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="create_email_template">
-                                    <div class="mb-3">
-                                        <label class="form-label">Template Name</label>
-                                        <input type="text" class="form-control" name="name" required>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">Email Templates</h5>
+                                        <p class="text-muted mb-0">Manage email templates using the visual builder.</p>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Subject</label>
-                                        <input type="text" class="form-control" name="subject" required>
-                                    </div>
-                                    {% if email_providers %}
-                                    <div class="mb-3">
-                                        <label class="form-label">Provider</label>
-                                        <select class="form-select" name="provider_id">
-                                            <option value="">Default Provider</option>
-                                            {% for provider in email_providers %}
-                                                <option value="{{ provider.id }}">{{ provider.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    {% endif %}
-                                    <div class="mb-3">
-                                        <label class="form-label">Body</label>
-                                        <textarea class="form-control" name="body_text" rows="4" required></textarea>
-                                    </div>
-                                    <button class="btn btn-primary w-100" type="submit">Save Email Template</button>
-                                </form>
+                                    <a href="{% url 'email_builder' %}" class="btn btn-sm btn-dark px-3 py-2 rounded-3 fw-semibold">
+                                        <i class="bi bi-magic me-1"></i> Open Email Builder
+                                    </a>
+                                </div>
 
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">

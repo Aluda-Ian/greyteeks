@@ -9,6 +9,11 @@ from django.utils.dateparse import parse_datetime
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from contacts_app.models import Contact, Group
 from accounts.models import UserQuota
 from .models import Campaign
@@ -75,6 +80,49 @@ def dashboard(request):
         'has_contacts': Contact.objects.filter(group__user=request.user).exists() if not request.user.is_staff else None,
     }
     return render(request, 'campaigns/dashboard.html', context)
+
+@login_required
+def campaigns_overview(request):
+    if request.user.is_staff:
+        campaigns = Campaign.objects.order_by('-created_at').select_related('user', 'target_group')
+    else:
+        campaigns = Campaign.objects.filter(user=request.user).order_by('-created_at').select_related('target_group')
+
+    return render(request, 'campaigns/campaigns_overview.html', {
+        'campaigns': campaigns,
+    })
+
+@login_required
+def campaign_logs(request):
+    if not request.user.is_staff:
+        raise PermissionDenied
+
+    failed_campaigns = Campaign.objects.filter(status='failed').order_by('-created_at').select_related('user', 'target_group')
+    return render(request, 'campaigns/campaign_logs.html', {
+        'failed_campaigns': failed_campaigns,
+    })
+
+@login_required
+def delete_campaign(request, campaign_id):
+    if request.method != 'POST':
+        return redirect('campaigns_overview')
+
+    if request.user.is_staff:
+        campaign = Campaign.objects.filter(id=campaign_id).first()
+    else:
+        campaign = Campaign.objects.filter(id=campaign_id, user=request.user).first()
+
+    if not campaign:
+        messages.error(request, 'Campaign not found.')
+        return redirect('campaigns_overview')
+
+    if campaign.status != 'draft':
+        messages.error(request, 'Only draft campaigns can be deleted.')
+        return redirect('campaigns_overview')
+
+    campaign.delete()
+    messages.success(request, 'Draft campaign deleted successfully.')
+    return redirect('campaigns_overview')
 
 def about_view(request):
     return render(request, 'campaigns/about.html')
@@ -206,6 +254,7 @@ def manage_mailing(request):
     providers = EmailProvider.objects.order_by('-id')
     return render(request, 'campaigns/manage_mailing.html', {'providers': providers})
 
+@login_required
 def manage_templates(request):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -608,15 +657,42 @@ def customer_create_group(request):
     return render(request, 'campaigns/customer_groups.html', {'groups': groups})
 
 @login_required
-def create_campaign(request):
-    """Handles logic for creating and launching unified multi-channel campaigns."""
+def create_campaign(request, campaign_id=None):
+    """Handles logic for creating, editing, saving, and launching unified multi-channel campaigns."""
+    campaign = None
+    is_edit = False
+    if campaign_id is not None:
+        campaign = Campaign.objects.filter(id=campaign_id).first()
+        if not campaign or (campaign.user != request.user and not request.user.is_staff):
+            messages.error(request, 'Campaign not found.')
+            return redirect('campaigns_overview')
+        if campaign.status != 'draft':
+            messages.error(request, 'Only draft campaigns can be edited.')
+            return redirect('campaigns_overview')
+        is_edit = True
+
     if request.method == 'POST':
-        form = CampaignForm(request.POST, user=request.user)
-        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE}
+        action = request.POST.get('action', 'launch')
+        form = CampaignForm(request.POST, user=request.user, instance=campaign)
+        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE, 'is_edit': is_edit}
         if form.is_valid():
             campaign = form.save(commit=False)
             campaign.user = request.user
             selected_sms_template = form.cleaned_data.get('sms_template')
+
+            if action == 'save_draft':
+                if selected_sms_template:
+                    campaign.message_body = selected_sms_template.body
+                campaign.status = 'draft'
+                scheduled_time_str = request.POST.get('scheduled_time', '').strip()
+                if scheduled_time_str:
+                    scheduled_dt = parse_datetime(scheduled_time_str)
+                    if timezone.is_naive(scheduled_dt):
+                        scheduled_dt = timezone.make_aware(scheduled_dt)
+                    campaign.scheduled_time = scheduled_dt
+                campaign.save()
+                messages.success(request, 'Draft saved successfully.')
+                return redirect('campaigns_overview')
 
             if campaign.send_sms and not selected_sms_template:
                 messages.error(request, 'Select an SMS template before launching a campaign with SMS enabled.')
@@ -771,8 +847,8 @@ def create_campaign(request):
 
             return redirect('dashboard')
     else:
-        form = CampaignForm(user=request.user)
-        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE}
+        form = CampaignForm(user=request.user, instance=campaign)
+        context = {'form': form, 'TIME_ZONE': django_settings.TIME_ZONE, 'is_edit': is_edit}
 
     return render(request, 'campaigns/create_campaign.html', context)
 
@@ -847,32 +923,89 @@ def ai_suggest_view(request):
     suggestion = get_ai_campaign_suggestion(topic)
     return JsonResponse({'suggestion': suggestion})
 
+def send_verification_email(user, request):
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    activation_path = reverse('activate', kwargs={'uidb64': uid, 'token': token})
+    activation_link = f"{django_settings.SITE_URL.rstrip('/')}{activation_path}"
+
+    subject = 'Verify your Greyteeks email address'
+    message = f"""Hi {user.first_name or user.username},
+
+Thanks for signing up for Greyteeks. Please verify your email address by clicking the link below:
+
+{activation_link}
+
+If you did not create this account, you can ignore this message.
+
+Thanks,
+Greyteeks Team"""
+
+    send_mail(
+        subject,
+        message,
+        django_settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+
+
+def activate_account(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+            login(request, user)
+            messages.success(request, 'Your email has been verified and your account is now active.')
+        else:
+            messages.info(request, 'Your email is already verified. You are now logged in.')
+            login(request, user)
+        return redirect('dashboard')
+
+    messages.error(request, 'Verification link is invalid or has expired.')
+    return redirect('home')
+
+
 def register_view(request):
     """Handles new user registration from the home page modal."""
     if request.method == 'POST':
-        username = request.POST.get('username')
+        username = request.POST.get('username') or request.POST.get('email')
         email = request.POST.get('email')
-        password = request.POST.get('password')
-        full_name = request.POST.get('full_name', '')
-        
-        if not username or not password:
-            messages.error(request, "Username and Password are required.")
+        password = request.POST.get('password1') or request.POST.get('password')
+        password_confirm = request.POST.get('password2') or request.POST.get('password_confirm')
+        full_name = request.POST.get('name') or request.POST.get('full_name', '')
+
+        if not username or not email or not password:
+            messages.error(request, "Email and password are required.")
             return redirect('home')
-            
+
+        if password_confirm and password != password_confirm:
+            messages.error(request, "Passwords do not match. Please try again.")
+            return redirect('home')
+
+        if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
+            messages.error(request, "An account with that email already exists.")
+            return redirect('home')
+
         try:
-            # Create user and assign full name to first_name field
             user = User.objects.create_user(
-                username=username, 
-                email=email, 
+                username=username,
+                email=email,
                 password=password,
-                first_name=full_name
+                first_name=full_name,
+                is_active=False,
             )
-            login(request, user)
-            messages.success(request, f"Welcome to Greyteeks, {username}!")
-            return redirect('dashboard')
-        
-        except IntegrityError:
-            messages.error(request, "That username is already taken. Please try another.")
+            send_verification_email(user, request)
+            messages.success(request, "Your account has been created. Check your email to verify your address before logging in.")
             return redirect('home')
-    
+        except IntegrityError:
+            messages.error(request, "That email is already taken. Please try another.")
+            return redirect('home')
+
     return redirect('home')

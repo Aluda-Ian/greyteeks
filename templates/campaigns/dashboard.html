@@ -18,7 +18,7 @@
 
     <!-- Logo -->
     <div class="sidebar-brand d-flex align-items-center justify-content-center px-3 py-3">
-        <img src="{% static 'img/light logo.svg' %}" class="sidebar-logo" alt="Greyteeks logo">
+        <img src="{% static 'img/light-logo.svg' %}" class="sidebar-logo" alt="Greyteeks logo">
     </div>
 
     <div class="px-2 pb-4">
@@ -31,9 +31,35 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white d-flex align-items-center" href="{% url 'create_campaign' %}">
-                    <i class="bi bi-megaphone me-2"></i> Create Campaign
+                <a class="nav-link text-white d-flex align-items-center justify-content-between"
+                   href="#campaignsDropdown"
+                   data-bs-toggle="collapse"
+                   aria-expanded="false"
+                   aria-controls="campaignsDropdown">
+                    <span><i class="bi bi-kanban me-2"></i> Campaigns</span>
+                    <i class="bi bi-chevron-down small"></i>
                 </a>
+                <div class="collapse" id="campaignsDropdown">
+                    <ul class="nav flex-column ms-3 mt-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'create_campaign' %}">
+                                <i class="bi bi-plus-circle me-2"></i> Create Campaign
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'campaigns_overview' %}">
+                                <i class="bi bi-eye me-2"></i> Check Campaigns
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'campaign_logs' %}">
+                                <i class="bi bi-journal-text me-2"></i> Campaign Logs
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
             </li>
             <li class="nav-item">
                 <a class="nav-link text-white d-flex align-items-center justify-content-between"
@@ -428,17 +454,25 @@
 document.addEventListener('DOMContentLoaded', function () {
     const path = window.location.pathname;
 
-    const messagingPaths = ['/mailing/', '/sms/', '/whatsapp/', '/templates/'];
+    const messagingPaths = ['/mailing/', '/sms/', '/whatsapp/', '/templates/', '/templates/email/builder/'];
+    const campaignPaths = ['/campaign/new/', '/campaigns/', '/campaigns/logs/'];
     const paymentPaths = ['/billing/admin/'];
 
     const messagingEl = document.getElementById('messagingDropdown');
+    const campaignsEl = document.getElementById('campaignsDropdown');
     const paymentsEl = document.getElementById('paymentsDropdown');
     const messagingToggle = document.querySelector('[data-bs-target="#messagingDropdown"], [href="#messagingDropdown"]');
+    const campaignsToggle = document.querySelector('[data-bs-target="#campaignsDropdown"], [href="#campaignsDropdown"]');
     const paymentsToggle = document.querySelector('[data-bs-target="#paymentsDropdown"], [href="#paymentsDropdown"]');
 
     if (messagingEl && messagingPaths.some(p => path.includes(p))) {
         messagingEl.classList.add('show');
         if (messagingToggle) messagingToggle.setAttribute('aria-expanded', 'true');
+    }
+
+    if (campaignsEl && campaignPaths.some(p => path.includes(p))) {
+        campaignsEl.classList.add('show');
+        if (campaignsToggle) campaignsToggle.setAttribute('aria-expanded', 'true');
     }
 
     if (paymentsEl && paymentPaths.some(p => path.includes(p))) {

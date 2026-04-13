@@ -3,7 +3,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid px-4 px-lg-5">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <img src="{% static 'img/dark logo.svg' %}" class="header-logo" alt="Greyteeks logo">
+                <img src="{% static 'img/dark-logo.svg' %}" class="header-logo" alt="Greyteeks logo">
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon text-white"><i class="bi bi-list"></i></span>
@@ -36,3 +36,69 @@
         </div>
     </nav>
 </header>
+
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="loginModalLabel">Login to Greyteeks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="modalLoginEmail" class="form-label">Email address or username</label>
+                        <input type="text" class="form-control" id="modalLoginEmail" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalLoginPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="modalLoginPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="registerModalLabel">Get Started with Greyteeks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    <div class="row gy-3">
+                        <div class="col-md-6">
+                            <label for="modalRegisterName" class="form-label">Full name</label>
+                            <input type="text" class="form-control" id="modalRegisterName" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalRegisterEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="modalRegisterEmail" name="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalRegisterCompany" class="form-label">Company</label>
+                            <input type="text" class="form-control" id="modalRegisterCompany" name="company">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalRegisterPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="modalRegisterPassword" name="password1" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="modalRegisterPasswordConfirm" class="form-label">Confirm password</label>
+                            <input type="password" class="form-control" id="modalRegisterPasswordConfirm" name="password2" required>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100">Create account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

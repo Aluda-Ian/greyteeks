@@ -2,9 +2,10 @@
 
 {% block content %}
 <div class="card p-4 shadow-sm">
-    <h3>Create New Campaign</h3>
+    <h3>{% if is_edit %}Edit Draft Campaign{% else %}Create New Campaign{% endif %}</h3>
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="action" id="actionInput" value="launch">
         {% if not form.target_group.field.queryset %}
             <div class="alert alert-warning">
                 You have no contact groups yet. <a href="{% url 'customer_create_group' %}">Create one first</a>.
@@ -136,9 +137,14 @@
             </button>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100" id="submitBtn">
-            <i class="bi bi-send me-2"></i> Launch Campaign Now
-        </button>
+        <div class="d-flex flex-column flex-sm-row gap-2">
+            <button type="submit" class="btn btn-outline-secondary w-100" onclick="setAction('save_draft')">
+                <i class="bi bi-save me-2"></i> Save Draft
+            </button>
+            <button type="submit" class="btn btn-primary w-100" id="submitBtn" onclick="setAction('launch')">
+                <i class="bi bi-send me-2"></i> Launch Campaign Now
+            </button>
+        </div>
     </form>
 </div>
 
@@ -168,6 +174,12 @@ function setMinDateTime() {
     const pad = n => String(n).padStart(2, '0');
     const minVal = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
     datetimeInput.setAttribute('min', minVal);
+}
+
+function setAction(action) {
+    const actionInput = document.getElementById('actionInput');
+    if (!actionInput) return;
+    actionInput.value = action;
 }
 
 function setSendMode(mode) {
