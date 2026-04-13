@@ -8,28 +8,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Greyteeks || Responsive HTML 5 Template</title>
 
-  <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %} %} %}" type="image/x-icon">
-  <link rel="icon" href="{% static 'assets/images/favicon.ico' %} %} %}" type="image/x-icon">
+  <!-- <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon"> -->
   <!--- End favicon-->
 
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet">
   <!-- End google font  -->
 
   <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static ' %}assets/css/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
-  <link rel="stylesheet" href="{% static ' %}assets/css/swiper-bundle.min.css">
+  <link rel="stylesheet" href="{% static 'assets/css/swiper-bundle.min.css">
   <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
-  <link rel="stylesheet" href="{% static ' %}assets/css/custom-font.css">
+  <link rel="stylesheet" href="{% static 'assets/css/custom-font.css">
   <link rel="stylesheet" href="{% static 'assets/css/fontawesome.css' %}">
-  <link rel="stylesheet" href="{% static ' %}assets/css/aos.css">
+  <link rel="stylesheet" href="{% static 'assets/css/aos.css">
   <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
-  <link rel="stylesheet" href="{% static ' %}assets/css/splitting.css">
+  <link rel="stylesheet" href="{% static 'assets/css/splitting.css">
   <link rel="stylesheet" href="{% static 'assets/css/icomoon.css' %}">
 
   <!-- Code Editor  -->
 
-  <link rel="stylesheet" href="{% static ' %}assets/css/main.css">
+  <link rel="stylesheet" href="{% static 'assets/css/main.css">
   <link rel="stylesheet" href="{% static 'assets/css/app.min.css' %}">
 </head>
 
@@ -57,7 +57,7 @@
         <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
       </svg>
       <div class="top-arrow">
-        <img src="{% static ' %}assets/images/arrowtop.png' %}" alt="">
+        <img src="{% static 'assets/images/arrowtop.png" alt="">
       </div>
     </div>
   </div>
@@ -65,61 +65,8 @@
 
 
 
-  <header class="site-header sofax-header-section site-header--menu-center" id="sticky-menu">
-    <div class="container">
-      <nav class="navbar site-navbar">
-        <!-- Brand Logo-->
-        <div class="brand-logo">
-          <a href="index.html">
-            <img src="{% static 'assets/images/logo/logo-dark.svg' %} %} %}" alt="" class="light-version-logo">
-          </a>
-        </div>
-        <div class="menu-block-wrapper">
-          <div class="menu-overlay"></div>
-          <nav class="menu-block" id="append-menu-header">
-            <div class="mobile-menu-head">
-              <div class="go-back">
-                <i class="fa fa-angle-left"></i>
-              </div>
-              <div class="current-menu-title"></div>
-              <div class="mobile-menu-close">&times;</div>
-            </div>
-            <ul class="site-menu-main">
-
-              <li class="nav-item">
-                <a href="#home" class="nav-link-item">Home</a>
-              </li>
-              <li class="nav-item">
-                <a href="#features" class="nav-link-item">Features</a>
-              </li>
-              <li class="nav-item">
-                <a href="#service" class="nav-link-item">Service</a>
-              </li>
-              <li class="nav-item">
-                <a href="#testimonial" class="nav-link-item">Testimonial</a>
-              </li>
-              <li class="nav-item">
-                <a href="#blog" class="nav-link-item">Blog</a>
-              </li>
-
-            </ul>
-          </nav>
-        </div>
-
-        <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-none d-xs-inline-flex">
-          <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="contact-us.html">
-            <span class="button-wraper">Get started</span>
-          </a>
-        </div>
-        <!-- mobile menu trigger -->
-        <div class="mobile-menu-trigger ">
-          <span></span>
-        </div>
-        <!--/.Mobile Menu Hamburger Ends-->
-      </nav>
-    </div>
-  </header>
-  <!--End landex-header-section -->
+  {% include 'home/_header.html' %}
+<!--End landex-header-section -->
 
   <div id="home" class="sofax-section-padding6">
     <div class="container">
@@ -128,13 +75,13 @@
         <p>Transform your marketing strategy with a our state-of-the-art email platform designed to elevate your brand and engage your audience like never before. Elevate your campaigns amplify your reach watch your business grow.</p>
       </div>
       <div class="sofax-hero-btn-wrap extra-mt">
-        <a class="sofax-default-btn pill wow fadeInUpX" data-wow-delay="0.10s" data-text="Get Started" href="contact-us.html">
+        <a class="sofax-default-btn pill wow fadeInUpX" data-wow-delay="0.10s" data-text="Get Started" href="{% url 'contact' %}">
           <span class="button-wraper">Get Started</span>
         </a>
-        <a class="sofax-default-btn outline-btn pill sofax-popup-video videov9 video-init wow fadeInUpX" data-wow-delay="0.20s" href="https://www.youtube.com/watch?v=6mttwIBcig0"><img src="{% static 'assets/images/v9/videoplay2.png' %} %} %}" alt="">Watch A Demo</a>
+        <a class="sofax-default-btn outline-btn pill sofax-popup-video videov9 video-init wow fadeInUpX" data-wow-delay="0.20s" href="https://www.youtube.com/watch?v=6mttwIBcig0"><img src="{% static 'assets/images/v9/videoplay2.png' %}" alt="">Watch A Demo</a>
       </div>
       <div class="hero9-thumb wow fadeInUpX">
-        <img src="{% static 'assets/images/v9/thumb1v9.png' %} %} %}" alt="">
+        <img src="{% static 'assets/images/v9/thumb1v9.png' %}" alt="">
       </div>
     </div>
   </div>
@@ -146,22 +93,22 @@
       </div>
       <div class="sofax-brand-slider">
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo1v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo1v9.png' %}" alt="">
         </div>
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo2v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo2v9.png' %}" alt="">
         </div>
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo3v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo3v9.png' %} alt="">
         </div>
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo4v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo4v9.png' %}" alt="">
         </div>
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo5v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo5v9.png' %}" alt="">
         </div>
         <div class="sofax-logo-icon-item">
-          <img src="{% static 'assets/images/v9/logo6v9.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v9/logo6v9.png' %}" alt="">
         </div>
       </div>
     </div>
@@ -178,7 +125,7 @@
         <div class="col-lg-4 col-md-6">
           <div class="sofax-features-boxv7 wow fadeInUpX" data-wow-delay="0.1s">
             <div class="sofax-features-iconv7">
-              <img src="{% static 'assets/images/v9/icon1v9.png' %} %} %}" alt="">
+              <img src="{% static 'assets/images/v9/icon1v9.png' %}" alt="">
             </div>
             <div class="sofax-features-contentv7 light-color">
               <h4>Email Templates</h4>
@@ -190,7 +137,7 @@
         <div class="col-lg-4 col-md-6">
           <div class="sofax-features-boxv7 wow fadeInUpX" data-wow-delay="0.2s">
             <div class="sofax-features-iconv7">
-              <img src="{% static 'assets/images/v9/icon2v9.png' %} %} %}" alt="">
+              <img src="{% static 'assets/images/v9/icon2v9.png' %}" alt="">
             </div>
             <div class="sofax-features-contentv7 light-color">
               <h4>A/B Testing</h4>
@@ -202,7 +149,7 @@
         <div class="col-lg-4 col-md-6">
           <div class="sofax-features-boxv7 wow fadeInUpX" data-wow-delay="0.3s">
             <div class="sofax-features-iconv7">
-              <img src="{% static 'assets/images/v9/icon3v9.png' %} %} %}" alt="">
+              <img src="{% static 'assets/images/v9/icon3v9.png' %}" alt="">
             </div>
             <div class="sofax-features-contentv7 light-color">
               <h4>Mobile Optimization</h4>
@@ -357,7 +304,7 @@
       <div class="row">
         <div class="col-lg-5">
           <div class="sofax-content-thumb-v9 box-shadow wow fadeInLeft">
-            <img src="{% static 'assets/images/v9/thumb2v9.png' %} %} %}" alt="">
+            <img src="{% static 'assets/images/v9/thumb2v9.png' %}" alt="">
           </div>
         </div>
         <div class="col-lg-7">
@@ -368,7 +315,7 @@
           <div class="extra-mt ml-70">
             <div class="sofax-iconbox-wrap2">
               <div class="sofax-iconbox-icon2">
-                <img src="{% static 'assets/images/v9/icon4v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/icon4v9.png' %}" alt="">
               </div>
               <div class="sofax-iconbox-data2">
                 <h4>Track campaign performance</h4>
@@ -377,7 +324,7 @@
             </div>
             <div class="sofax-iconbox-wrap2">
               <div class="sofax-iconbox-icon2">
-                <img src="{% static 'assets/images/v9/icon5v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/icon5v9.png' %}" alt="">
               </div>
               <div class="sofax-iconbox-data2">
                 <h4>Convert teads and customers</h4>
@@ -386,7 +333,7 @@
             </div>
             <div class="sofax-iconbox-wrap2">
               <div class="sofax-iconbox-icon2">
-                <img src="{% static 'assets/images/v9/icon6v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/icon6v9.png' %}" alt="">
               </div>
               <div class="sofax-iconbox-data2">
                 <h4>Engage customers effectively</h4>
@@ -404,7 +351,7 @@
       <div class="row">
         <div class="col-lg-5 order-lg-2">
           <div class="sofax-content-thumb-v9 box-shadow ml-50 wow fadeInRight">
-            <img src="{% static 'assets/images/v9/thumb3v9.png' %} %} %}" alt="">
+            <img src="{% static 'assets/images/v9/thumb3v9.png' %}" alt="">
           </div>
         </div>
         <div class="col-lg-7">
@@ -414,7 +361,7 @@
             <div class="extra-mt">
               <div class="sofax-content-iconbox-wrap content-v5">
                 <div class="sofax-iconbox-icon content-v5">
-                  <img src="{% static 'assets/images/v5/icon4.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v5/icon4.png' %}" alt="">
                 </div>
                 <div class="sofax-iconbox-data content-v5">
                   <h4>Segment your audience</h4>
@@ -422,7 +369,7 @@
               </div>
               <div class="sofax-content-iconbox-wrap content-v5">
                 <div class="sofax-iconbox-icon content-v5">
-                  <img src="{% static 'assets/images/v5/icon4.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v5/icon4.png' %}" alt="">
                 </div>
                 <div class="sofax-iconbox-data content-v5">
                   <h4>Protect sensitive data</h4>
@@ -430,14 +377,14 @@
               </div>
               <div class="sofax-content-iconbox-wrap content-v5">
                 <div class="sofax-iconbox-icon content-v5">
-                  <img src="{% static 'assets/images/v5/icon4.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v5/icon4.png' %}" alt="">
                 </div>
                 <div class="sofax-iconbox-data content-v5">
                   <h4>Test and analyze</h4>
                 </div>
               </div>
               <div class="sofax-title-btn extra-mt wow fadeInUpX">
-                <a class="sofax-default-btn pill" data-text="Get Started" href="contact-us.html">
+                <a class="sofax-default-btn pill" data-text="Get Started" href="{% url 'contact' %}">
                   <span class="button-wraper">Get Started</span>
                 </a>
               </div>
@@ -461,7 +408,7 @@
             <div class="row">
               <div class="col-lg-5">
                 <div class="testimonial-thumb">
-                  <img src="{% static 'assets/images/v2/t-thumb2.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v2/t-thumb2.png' %}" alt="">
                 </div>
               </div>
               <div class="col-lg-7">
@@ -469,19 +416,19 @@
                   <div class="sofax-testimonial-rating">
                     <ul>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                     </ul>
                   </div>
@@ -498,7 +445,7 @@
             <div class="row">
               <div class="col-lg-5">
                 <div class="testimonial-thumb">
-                  <img src="{% static 'assets/images/v2/textimonialthumb.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v2/textimonialthumb.png' %}" alt="">
                 </div>
               </div>
               <div class="col-lg-7">
@@ -506,19 +453,19 @@
                   <div class="sofax-testimonial-rating">
                     <ul>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                     </ul>
                   </div>
@@ -535,7 +482,7 @@
             <div class="row">
               <div class="col-lg-5">
                 <div class="testimonial-thumb">
-                  <img src="{% static 'assets/images/v2/t-thumb3.png' %} %} %}" alt="">
+                  <img src="{% static 'assets/images/v2/t-thumb3.png' %}" alt="">
                 </div>
               </div>
               <div class="col-lg-7">
@@ -543,19 +490,19 @@
                   <div class="sofax-testimonial-rating">
                     <ul>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                       <li>
-                        <img src="{% static 'assets/images/v2/yellowstart.svg' %} %} %}" alt="">
+                        <img src="{% static 'assets/images/v2/yellowstart.svg' %}" alt="">
                       </li>
                     </ul>
                   </div>
@@ -596,7 +543,7 @@
           <div class="sofax-blog-wrap-v4 sofax-blog-wrap-v9 wow fadeInUpX" data-wow-delay="0.1s">
             <div class="sofax-blog-img">
               <a href="single-blog.html">
-                <img src="{% static 'assets/images/v9/thumb4v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/thumb4v9.png' %}" alt="">
               </a>
             </div>
             <a href="single-blog.html">
@@ -604,7 +551,7 @@
                 <div class="sofax-blog-metav9 ">
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon7v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon7v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <p>Growth</p>
@@ -612,7 +559,7 @@
                   </div>
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon8v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon8v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <div class="market-contentv9">
@@ -639,7 +586,7 @@
           <div class="sofax-blog-wrap-v4 sofax-blog-wrap-v9 wow fadeInUpX" data-wow-delay="0.2s">
             <div class="sofax-blog-img">
               <a href="single-blog.html">
-                <img src="{% static 'assets/images/v9/thumb5v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/thumb5v9.png' %}" alt="">
               </a>
             </div>
             <a href="single-blog.html">
@@ -647,7 +594,7 @@
                 <div class="sofax-blog-metav9 ">
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon7v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon7v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <p>Email</p>
@@ -655,7 +602,7 @@
                   </div>
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon8v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon8v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <div class="market-contentv9">
@@ -682,7 +629,7 @@
           <div class="sofax-blog-wrap-v4 sofax-blog-wrap-v9 wow fadeInUpX" data-wow-delay="0.3s">
             <div class="sofax-blog-img">
               <a href="single-blog.html">
-                <img src="{% static 'assets/images/v9/thumb6v9.png' %} %} %}" alt="">
+                <img src="{% static 'assets/images/v9/thumb6v9.png' %}" alt="">
               </a>
             </div>
             <a href="single-blog.html">
@@ -690,7 +637,7 @@
                 <div class="sofax-blog-metav9 ">
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon7v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon7v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <p>Email</p>
@@ -698,7 +645,7 @@
                   </div>
                   <div class="blog-btn-icon-wrap">
                     <div class="market-iconv9">
-                      <img src="{% static 'assets/images/v9/icon8v9.png' %} %} %}" alt="">
+                      <img src="{% static 'assets/images/v9/icon8v9.png' %}" alt="">
                     </div>
                     <div class="market-contentv9">
                       <div class="market-contentv9">
@@ -731,13 +678,13 @@
         <h2>Driving business growth with a new experience</h2>
         <p>Start tracking your sales pipeline, manage leads, and automate your entire sales process in one place so you can easily focus on selling.</p>
         <div class="extra-mt wow fadeInUpX">
-          <a class="sofax-default-btn pill" data-text="Create a free account" href="sign-up.html">
+          <a class="sofax-default-btn pill" data-text="Create a free account" href="{% url 'register' %}">
             <span class="button-wraper">Create a free account</span>
           </a>
           <span class="cta-bottom">Full access. No credit card needed.</span>
         </div>
         <div class="sofax-cta-shape">
-          <img src="{% static 'assets/images/v1/shape4.png' %} %} %}" alt="">
+          <img src="{% static 'assets/images/v1/shape4.png' %}" alt="">
         </div>
       </div>
     </div>
@@ -750,7 +697,7 @@
         <div class="row">
           <div class="col-xl-4 col-md-12">
             <div class="sofax-footer-wrap mr-25">
-              <a href="index.html"><img src="{% static 'assets/images/logo/logo-dark.svg' %} %} %}" alt=""></a>
+              <a href="{% url 'home' %}"><img src="{% static 'assets/images/logo/logo-dark.svg' %}" alt=""></a>
               <p>Greyteeks has many plans for the future to work with great clients and continue to work with agencies.</p>
               <div class="sofax-social-icon">
                 <ul>
@@ -794,9 +741,9 @@
             <div class="sofax-footer-menu ml-50">
               <h5>Company</h5>
               <ul>
-                <li><a href="about-us.html">About Us</a></li>
-                <li><a href="contact-us.html">Contact US</a></li>
-                <li><a href="contact-us.html">Privacy Policy</a></li>
+                <li><a href="{% url 'about' %}">About Us</a></li>
+                <li><a href="{% url 'contact' %}">Contact US</a></li>
+                <li><a href="{% url 'contact' %}">Privacy Policy</a></li>
                 <li><a href="terms&condition.html">Terms & Conditions</a></li>
               </ul>
             </div>
@@ -805,10 +752,10 @@
             <div class="sofax-footer-menu">
               <h5>Utility pages</h5>
               <ul>
-                <li><a href="contact-us.html">Instructions</a></li>
-                <li><a href="contact-us.html">Style guide</a></li>
+                <li><a href="{% url 'contact' %}">Instructions</a></li>
+                <li><a href="{% url 'contact' %}">Style guide</a></li>
                 <li><a href="404.html">404 Pages</a></li>
-                <li><a href="contact-us.html">Licenses</a></li>
+                <li><a href="{% url 'contact' %}">Licenses</a></li>
               </ul>
             </div>
           </div>
@@ -836,29 +783,29 @@
 
 
   <!-- scripts -->
-  <script src="{% static 'assets/js/jquery-3.7.1.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/aos.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/menu/menu.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/isotope.pkgd.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/jquery.magnific-popup.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/swiper-bundle.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/countdown.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/slick.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/wow.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/modernizr.min.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/countdown.js' %} %} %}"></script>
-  <script src="{% static 'assets/js/skill-bar.js' %} %} %}"></script>
+  <script src="{% static 'assets/js/jquery-3.7.1.js' %}"></script>
+  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/aos.js' %}"></script>
+  <script src="{% static 'assets/js/menu/menu.js' %}"></script>
+  <script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script>
+  <script src="{% static 'assets/js/jquery.magnific-popup.min.js' %}"></script>
+  <script src="{% static 'assets/js/swiper-bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/countdown.js' %}"></script>
+  <script src="{% static 'assets/js/slick.js' %}"></script>
+  <script src="{% static 'assets/js/wow.min.js' %}"></script>
+  <script src="{% static 'assets/js/modernizr.min.js' %}"></script>
+  <script src="{% static 'assets/js/countdown.js' %}"></script>
+  <script src="{% static 'assets/js/skill-bar.js' %}"></script>
   <script src="{% static 'assets/js/pricing-switcher.js' %}"></script>
-  <script src="{% static ' %}assets/js/top-to-bottom.js"></script>
+  <script src="{% static 'assets/js/top-to-bottom.js"></script>
   <script src="{% static 'assets/js/gsap.js' %}"></script>
-  <script src="{% static ' %}assets/js/ScrollTrigger.js"></script>
+  <script src="{% static 'assets/js/ScrollTrigger.js"></script>
   <script src="{% static 'assets/js/SplitText.js' %}"></script>
-  <script src="{% static ' %}assets/js/gsap-animation.js"></script>
+  <script src="{% static 'assets/js/gsap-animation.js"></script>
 
 
   <!-- <script src="{% static 'assets/js/scrollsmooth.js' %}"></script> -->
-  <script src="{% static ' %}assets/js/accordion.js"></script>
+  <script src="{% static 'assets/js/accordion.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyArZVfNvjnLNwJZlLJKuOiWHZ6vtQzzb1Y"></script>
 
   <script src="{% static 'assets/js/app.js' %}"></script>

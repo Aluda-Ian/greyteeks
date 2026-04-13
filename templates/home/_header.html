@@ -1,104 +1,92 @@
 {% load static %}
-<header class="site-header">
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid px-4 px-lg-5">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
-                <img src="{% static 'img/dark-logo.svg' %} %} %}" class="header-logo" alt="Greyteeks logo">
-            </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon text-white"><i class="bi bi-list"></i></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                </ul>
-                <div class="d-flex align-items-center gap-2">
-                    {% if user.is_authenticated %}
-                        <a class="btn btn-header-ghost btn-sm" href="{% url 'dashboard' %}">Dashboard</a>
-                        <form action="{% url 'logout' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-header-primary btn-sm">Logout</button>
-                        </form>
-                    {% else %}
-                        {% if request.resolver_match.url_name == 'home' %}
-                            <button class="btn btn-header-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-                            <button class="btn btn-header-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started</button>
-                        {% else %}
-                            <a class="btn btn-header-ghost btn-sm" href="{% url 'login' %}">Login</a>
-                            <a class="btn btn-header-primary btn-sm" href="{% url 'register' %}">Get Started</a>
-                        {% endif %}
-                    {% endif %}
-                </div>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Greyteeks || Responsive HTML 5 Template</title>
+
+  <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
+  <!--- End favicon-->
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <!-- End google font  -->
+
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/swiper-bundle.min.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/custom-font.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/fontawesome.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/aos.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/splitting.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/icomoon.css' %}">
+
+  <!-- Code Editor  -->
+
+  <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
+  <link rel="stylesheet" href="{% static 'assets/css/app.min.css' %}">
+</head>
+<header class="site-header sofax-header-section site-header--menu-center inner-header dark-bg" id="sticky-menu">
+  <div class="container">
+    <nav class="navbar site-navbar">
+      <div class="brand-logo">
+        <a href="{% url 'home' %}">
+          <img src="{% static 'static/img/light-logo.svg' %}" alt="Greyteeks logo" class="light-version-logo">
+        </a>
+      </div>
+      <div class="menu-block-wrapper">
+        <div class="menu-overlay"></div>
+        <nav class="menu-block" id="append-menu-header">
+          <div class="mobile-menu-head">
+            <div class="go-back">
+              <i class="fa fa-angle-left"></i>
             </div>
-        </div>
+            <div class="current-menu-title"></div>
+            <div class="mobile-menu-close">&times;</div>
+          </div>
+          <ul class="site-menu-main">
+            <li class="nav-item"><a href="{% url 'home' %}" class="nav-link-item">Home</a></li>
+            <li class="nav-item"><a href="{% url 'about' %}" class="nav-link-item">About</a></li>
+            <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link-item">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-none d-xs-inline-flex">
+        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'register' %}">
+          <span class="button-wraper">Get started</span>
+        </a>
+      </div>
+      <div class="mobile-menu-trigger"><span></span></div>
     </nav>
+  </div>
 </header>
+ <!-- scripts -->
+  <script src="{% static 'assets/js/jquery-3.7.1.js' %}"></script>
+  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/aos.js' %}"></script>
+  <script src="{% static 'assets/js/menu/menu.js' %}"></script>
+  <script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script>
+  <script src="{% static 'assets/js/jquery.magnific-popup.min.js' %}"></script>
+  <script src="{% static 'assets/js/swiper-bundle.min.js' %}"></script>
+  <script src="{% static 'assets/js/countdown.js' %}"></script>
+  <script src="{% static 'assets/js/slick.js' %}"></script>
+  <script src="{% static 'assets/js/wow.min.js' %}"></script>
+  <script src="{% static 'assets/js/modernizr.min.js' %}"></script>
+  <script src="{% static 'assets/js/countdown.js' %}"></script>
+  <script src="{% static 'assets/js/skill-bar.js' %}"></script>
+  <script src="{% static 'assets/js/pricing-switcher.js' %}"></script>
+  <script src="{% static 'assets/js/top-to-bottom.js' %}"></script>
+  <script src="{% static 'assets/js/gsap.js' %}"></script>
+  <script src="{% static 'assets/js/ScrollTrigger.js' %}"></script>
+  <script src="{% static 'assets/js/SplitText.js' %}"></script>
+  <script src="{% static 'assets/js/gsap-animation.js' %}"></script>
 
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="loginModalLabel">Login to Greyteeks</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="modalLoginEmail" class="form-label">Email address or username</label>
-                        <input type="text" class="form-control" id="modalLoginEmail" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalLoginPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="modalLoginPassword" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Login</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="registerModalLabel">Get Started with Greyteeks</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="post" action="{% url 'register' %}">
-                    {% csrf_token %}
-                    <div class="row gy-3">
-                        <div class="col-md-6">
-                            <label for="modalRegisterName" class="form-label">Full name</label>
-                            <input type="text" class="form-control" id="modalRegisterName" name="name" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="modalRegisterEmail" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="modalRegisterEmail" name="email" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="modalRegisterCompany" class="form-label">Company</label>
-                            <input type="text" class="form-control" id="modalRegisterCompany" name="company">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="modalRegisterPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="modalRegisterPassword" name="password1" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="modalRegisterPasswordConfirm" class="form-label">Confirm password</label>
-                            <input type="password" class="form-control" id="modalRegisterPasswordConfirm" name="password2" required>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary w-100">Create account</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+  <!-- <script src="{% static 'assets/js/scrollsmooth.js' %}"></script> -->
+  <script src="{% static 'assets/js/accordion.js' %}"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyArZVfNvjnLNwJZlLJKuOiWHZ6vtQzzb1Y"></script>
+
+  <script src="{% static 'assets/js/app.js' %}"></script>
