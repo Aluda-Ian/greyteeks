@@ -3,7 +3,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Greyteeks || Responsive HTML 5 Template</title>
+  <title>Greyteeks || Multi-channel Marketing Platform</title>
 
   <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
   <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
@@ -33,7 +33,7 @@
   <div class="container">
     <nav class="navbar site-navbar">
       <div class="brand-logo">
-          <img src="{% static 'img/light-logo.svg' %}" alt="Greyteeks logo" class="light-version-logo">
+          <img src="{% static 'assets/img/light-logo.svg'%}" alt="Greyteeks logo" class="light-version-logo">
       </div>
       <div class="menu-block-wrapper">
         <div class="menu-overlay"></div>
@@ -53,10 +53,10 @@
         </nav>
       </div>
       <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-flex align-items-center">
-        <a class="sofax-default-btn outline-btn pill sofax-header-btn me-3" data-text="Login" href="{% url 'sign_in' %}" style="border-color: #ffffff; color: #ffffff !important;">
+        <a class="sofax-default-btn outline-btn pill sofax-header-btn me-3" data-text="Login" href="{% url 'login' %}" style="border-color: #ffffff; color: #ffffff !important;">
           <span class="button-wraper">Login</span>
         </a>
-        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'sign_up' %}">
+        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'register' %}">
           <span class="button-wraper">Get started</span>
         </a>
       </div>

@@ -6,7 +6,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Greyteeks || Responsive HTML 5 Template</title>
+  <title>Greyteeks || Register</title>
 
   <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
   <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
@@ -79,7 +79,7 @@
       <div class="sofax-form-field-box">
         <h2>Create an account</h2>
         <div class="sofax-field-box">
-          <form action="{% url 'sign_up' %}" method="post">
+          <form action="{% url 'register' %}" method="post">
             {% csrf_token %}
             <div class="sofax-main-field">
               <label>Full Name</label>
@@ -100,7 +100,7 @@
             <button class="sofax-subcribe-btn2" type="submit">Create Account</button>
             <div class="login">
               <span>Already have an account?</span>
-              <a href="{% url 'sign_in' %}">
+              <a href="{% url 'login' %}">
                 <h4>Sign In</h4>
               </a>
             </div>
