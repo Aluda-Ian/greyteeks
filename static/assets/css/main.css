@@ -944,11 +944,11 @@ bodt {
 }
 
 .reveal-header .dark-version-logo {
-  display: block !important;
+  display: none !important;
 }
 
 .reveal-header .light-version-logo {
-  display: none !important;
+  display: block !important;
 }
 
 @media (min-width: 992px) {

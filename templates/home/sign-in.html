@@ -80,27 +80,30 @@
         <h2>Welcome back</h2>
         <div class="sofax-field-box">
 
-          <form action="#">
+          <form action="{% url 'sign_in' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <div class="sofax-main-field">
               <label>Email Address</label>
-              <input type="email" placeholder="exalpio456@gmail.com">
+              <input type="text" name="username" placeholder="you@example.com">
             </div>
             <div class="sofax-main-field sofax-subscription-field-inner">
-              <input id="password-field" type="password" class="form-control" name="password" value="Min 8 characters">
+              <label>Password</label>
+              <input id="password-field" type="password" name="password" class="form-control" placeholder="Enter your password">
               <div toggle="#password-field" class="fa fa-fw fa-eye field-icon toggle-password"></div>
             </div>
             <div class="sofax-form-box forgot-password">
-              <input type="checkbox" id="css">
+              <input type="checkbox" id="css" name="remember">
               <label for="css">
                 Remember me
               </label>
-              <a href="#">Forget password?</a>
+              <a href="{% url 'password_reset' %}">Forget password?</a>
             </div>
-            <button class="sofax-subcribe-btn2" type="submit">Create Account</button>
+            <button class="sofax-subcribe-btn2" type="submit">Sign In</button>
             <div class="login mt-24">
               <span>Don’t have an account?</span>
-              <a href="{% url 'register' %}">
-                <h4>Log In</h4>
+              <a href="{% url 'sign_up' %}">
+                <h4>Sign Up</h4>
               </a>
             </div>
             <div class="login-with-google mt-24">

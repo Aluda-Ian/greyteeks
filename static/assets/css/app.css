@@ -16,18 +16,19 @@
 **/
 :root
 {
---heading-color: #0E0E0E;
---body-color: #3C3C3C;
---accent-color: #E5ABF3;
---light-bg: #F9F9FA;
---dark-bg: #0E0E0E;
---white-bg: #fff;
---white-color: #fff;
---light-color: #EAEDF0;
---light-color2: #DBDBDB;
---light-color3: #DBDBDB1A;
+--heading-color: #111827;
+--body-color: #4B5563;
+--accent-color: #1D4ED8;
+--accent-bg: #2563EB;
+--light-bg: #F3F4F6;
+--dark-bg: #1F2937;
+--white-bg: #FFFFFF;
+--white-color: #FFFFFF;
+--light-color: #E5E7EB;
+--light-color2: #D1D5DB;
+--light-color3: rgba(209,213,219,0.1);
 --green-bg: #0C9347;
---grey-color: #747474;
+--grey-color: #6B7280;
 }
 
 /*1.0 base css*/
@@ -2213,6 +2214,7 @@ a.social-icon img {
 .sofax-default-btn.sofax-header-btn,
 #sofax-submit-btn.sofax-header-btn {
   padding: 13px 36px;
+  color: var(--white-color) !important;
 }
 .sofax-default-btn.outline-btn,
 #sofax-submit-btn.outline-btn {

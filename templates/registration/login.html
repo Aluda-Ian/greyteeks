@@ -14,8 +14,13 @@
                     {{ form.password.label_tag }}
                     <input type="password" name="password" class="form-control">
                 </div>
+                <input type="hidden" name="next" value="{% url 'dashboard' %}">
                 <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
             </form>
+            <div class="text-center mt-3">
+                <p class="mb-1">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+                <p class="mb-0"><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+            </div>
         </div>
     </div>
 </div>

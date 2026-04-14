@@ -33,9 +33,7 @@
   <div class="container">
     <nav class="navbar site-navbar">
       <div class="brand-logo">
-        <a href="{% url 'home' %}">
-          <img src="{% static 'static/img/light-logo.svg' %}" alt="Greyteeks logo" class="light-version-logo">
-        </a>
+          <img src="{% static 'img/light-logo.svg' %}" alt="Greyteeks logo" class="light-version-logo">
       </div>
       <div class="menu-block-wrapper">
         <div class="menu-overlay"></div>
@@ -50,12 +48,15 @@
           <ul class="site-menu-main">
             <li class="nav-item"><a href="{% url 'home' %}" class="nav-link-item">Home</a></li>
             <li class="nav-item"><a href="{% url 'about' %}" class="nav-link-item">About</a></li>
-            <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link-item">Contact</a></li>
+            <li class="nav-item"><a href="/contact/" class="nav-link-item">Contact</a></li>
           </ul>
         </nav>
       </div>
-      <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-none d-xs-inline-flex">
-        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'register' %}">
+      <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-flex align-items-center">
+        <a class="sofax-default-btn outline-btn pill sofax-header-btn me-3" data-text="Login" href="{% url 'sign_in' %}" style="border-color: #ffffff; color: #ffffff !important;">
+          <span class="button-wraper">Login</span>
+        </a>
+        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'sign_up' %}">
           <span class="button-wraper">Get started</span>
         </a>
       </div>

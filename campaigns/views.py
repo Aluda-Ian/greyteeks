@@ -1007,6 +1007,9 @@ def activate_account(request, uidb64, token):
 
 def register_view(request):
     """Handles new user registration from the home page modal."""
+    if request.method == 'GET':
+        return render(request, 'home/sign-up.html')
+
     if request.method == 'POST':
         username = request.POST.get('username') or request.POST.get('email')
         email = request.POST.get('email')

@@ -79,18 +79,19 @@
       <div class="sofax-form-field-box">
         <h2>Create an account</h2>
         <div class="sofax-field-box">
-          <form action="#">
+          <form action="{% url 'sign_up' %}" method="post">
+            {% csrf_token %}
             <div class="sofax-main-field">
               <label>Full Name</label>
-              <input type="text" placeholder="Selimth Joar">
+              <input type="text" name="full_name" placeholder="Selimth Joar">
             </div>
             <div class="sofax-main-field">
               <label>Email Address</label>
-              <input type="email" placeholder="exalpio456@gmail.com">
+              <input type="email" name="email" placeholder="you@example.com">
             </div>
             <div class="sofax-main-field sofax-subscription-field-inner">
               <label>Password</label>
-              <input id="password-field" type="password" class="form-control" name="password" value="Min 8 characters">
+              <input id="password-field" type="password" name="password" class="form-control" placeholder="Choose a strong password">
               <div toggle="#password-field" class="fa fa-fw fa-eye field-icon toggle-password"></div>
             </div>
             <div class="sofax-form-content1">
@@ -98,9 +99,9 @@
             </div>
             <button class="sofax-subcribe-btn2" type="submit">Create Account</button>
             <div class="login">
-              <span>Don’t have an account?</span>
-              <a href="{% url 'register' %}">
-                <h4>Log In</h4>
+              <span>Already have an account?</span>
+              <a href="{% url 'sign_in' %}">
+                <h4>Sign In</h4>
               </a>
             </div>
             <div class="login-with-google">
