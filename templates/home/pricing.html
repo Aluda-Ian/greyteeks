@@ -87,86 +87,38 @@
       <div class="sofax-section-title center pb-50">
         <h2>Discover the right price plan for you</h2>
       </div>
-      <div class="pricing-btn">
-        <label>Per Month</label>
-        <div class="toggle-btn">
-          <input class="form-check-input btn-toggle price-deck-trigger" type="checkbox" id="flexSwitchCheckDefault" data-pricing-trigger data-target="#table-price-value" checked>
-        </div>
-        <label>Per Year</label>
-      </div>
-      <div class="row" id="table-price-value" data-pricing-dynamic data-value-active="monthly">
-        <div class="col-xl-4 col-md-6">
-          <div class="sofax-pricing-wrap wow fadeInUpX" data-wow-delay="0.1s">
+      <div class="row">
+        {% for plan in plans %}
+        <div class="col-xl-4 col-md-6 mb-4">
+          <div class="sofax-pricing-wrap wow fadeInUpX {% if plan.is_featured %}active{% endif %}" data-wow-delay="0.{{ forloop.counter }}s">
             <div class="sofax-pricing-header">
               <img src="{% static 'assets/images/v1/icon7.png' %}" alt="">
-              <h4>Essential</h4>
+              <h4>{{ plan.name }}</h4>
             </div>
             <div class="sofax-pricing-price">
               <h2>$</h2>
-              <div class="sofax-price-value dynamic-value" data-active="19" data-monthly="19" data-yearly="39"></div>
-              <p class="dynamic-value" data-active="/Per Month" data-monthly="/Per Month" data-yearly="/Per Yearly"></p>
+              <div class="sofax-price-value" style="font-size: 40px; font-weight: 700;">{{ plan.price_usd }}</div>
+              <p>One-time top-up</p>
             </div>
             <div class="sofax-pricing-body">
-              <h5>Key features:</h5>
+              <h5>What's included:</h5>
               <ul>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Send SMS, WhatsApp and email campaigns in one place</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Upload contacts from CSV or Excel with easy segmentation</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Local payment options and fast account top-up</li>
+                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt=""> {{ plan.units }} API Units</li>
+                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt=""> Equivalent to KES {{ plan.price_kes }}</li>
+                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt=""> Multi-channel support (SMS, WA, Email)</li>
+                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt=""> Analytics and reporting</li>
               </ul>
             </div>
             <div class="sofax-pricing-footer">
-              <a class="sofax-default-btn outline-btn d-block pill" href="{% url 'contact' %}">Purchase now</a>
+              <a class="sofax-default-btn {% if not plan.is_featured %}outline-btn{% else %}btn-hover{% endif %} d-block pill" href="{% url 'register' %}">Get started</a>
             </div>
           </div>
         </div>
-        <div class="col-xl-4 col-md-6">
-          <div class="sofax-pricing-wrap wow fadeInUpX active" data-wow-delay="0.2s">
-            <div class="sofax-pricing-header">
-              <img src="{% static 'assets/images/v1/icon5.png' %}" alt="">
-              <h4>Professional</h4>
-            </div>
-            <div class="sofax-pricing-price">
-              <h2>$</h2>
-              <div class="sofax-price-value dynamic-value" data-active="49" data-monthly="49" data-yearly="69"></div>
-              <p class="dynamic-value" data-active="/Per Month" data-monthly="/Per Month" data-yearly="/Per Yearly"></p>
-            </div>
-            <div class="sofax-pricing-body">
-              <h5>Key features:</h5>
-              <ul>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Advanced reporting for opens, clicks, and delivery rates</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Automated follow-ups and recurring campaigns</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Shared access for your marketing team</li>
-              </ul>
-            </div>
-            <div class="sofax-pricing-footer">
-              <a class="sofax-default-btn d-block pill btn-hover" href="{% url 'contact' %}">Purchase now</a>
-            </div>
-          </div>
+        {% empty %}
+        <div class="col-12 text-center">
+          <p>No active pricing plans found. Please configure them in the admin dashboard.</p>
         </div>
-        <div class="col-xl-4 col-md-6">
-          <div class="sofax-pricing-wrap wow fadeInUpX" data-wow-delay="0.3s">
-            <div class="sofax-pricing-header">
-              <img src="{% static 'assets/images/v1/icon6.png' %}" alt="">
-              <h4>Enterprise</h4>
-            </div>
-            <div class="sofax-pricing-price">
-              <h2>$</h2>
-              <div class="sofax-price-value dynamic-value" data-active="129" data-monthly="129" data-yearly="199"></div>
-              <p class="dynamic-value" data-active="/Per Month" data-monthly="/Per Month" data-yearly="/Per Yearly"></p>
-            </div>
-            <div class="sofax-pricing-body">
-              <h5>Key features:</h5>
-              <ul>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Streamlined lead routing and account access control</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Document and contract management with e-signatures</li>
-                <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt="">Revenue forecasts & reporting</li>
-              </ul>
-            </div>
-            <div class="sofax-pricing-footer">
-              <a class="sofax-default-btn outline-btn d-block pill" href="{% url 'contact' %}">Purchase now</a>
-            </div>
-          </div>
-        </div>
+        {% endfor %}
       </div>
     </div>
   </section>

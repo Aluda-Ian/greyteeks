@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include, reverse_lazy
 # Add ai_suggest_view to this line
-from campaigns.views import about_view, activate_account, cancel_campaign, campaign_logs, campaigns_overview, contact_view, dashboard, create_campaign, delete_campaign, email_builder, email_builder_delete, email_builder_save, home_view, manage_groups, register_view, reschedule_campaign, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group
+from campaigns.views import about_view, activate_account, cancel_campaign, campaign_logs, campaigns_overview, contact_view, dashboard, create_campaign, delete_campaign, email_builder, email_builder_delete, email_builder_save, home_view, manage_groups, register_view, reschedule_campaign, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group, pricing_view, service_view, faq_view, api_documentation_view
 from contacts_app.views import contact_list, delete_contact, edit_contact, upload_contacts
 
 admin.site.site_header = 'Greyteeks Admin'
@@ -48,6 +48,10 @@ urlpatterns = [
     path('my/email-providers/', my_email_providers, name='my_email_providers'),
     path('about/', about_view, name='about'),
     path('contact/', contact_view, name='contact'),
+    path('services/', service_view, name='services'),
+    path('pricing/', pricing_view, name='pricing'),
+    path('faq/', faq_view, name='faq'),
+    path('docs/api/', api_documentation_view, name='api_documentation'),
     path('contacts/', contact_list, name='contact_list'),
     path('contacts/upload/', upload_contacts, name='upload_contacts'),
     path('contacts/<int:contact_id>/edit/', edit_contact, name='edit_contact'),

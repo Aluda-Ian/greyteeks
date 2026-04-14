@@ -1,40 +1,148 @@
 {% load static %}
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Greyteeks || Multi-channel Marketing Platform</title>
+<style>
+  /* Modern Glassmorphism Sticky Header Override */
+  .custom-premium-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.85);
+    /* Light translucent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    /* Safari support */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow float */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Smooth scroll transition */
+    padding: 10px 0;
+    /* Padding for breathability */
+  }
 
-  <!-- <link rel="shortcut icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
-  <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon"> -->
-  <!--- End favicon-->
+  /* Adjust the original header height dependency and avoid dark-bg rules */
+  body .custom-premium-header {
+    background-image: none !important;
+  }
 
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:wght@100..900&display=swap" rel="stylesheet">
-  <!-- End google font  -->
+  /* Add padding to the body so the fixed header does not cover the first section */
+  body {
+    padding-top: 90px;
+  }
 
-  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/bootstrap-icons.min.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/swiper-bundle.min.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/custom-font.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/fontawesome.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/aos.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/splitting.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/icomoon.css' %}">
+  /* Navigation Link Typography and Hover Micro-Animation */
+  .custom-premium-header .nav-link-item {
+    position: relative;
+    color: #1f2937 !important;
+    /* Dark Slate Gray */
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.3px;
+    transition: color 0.3s ease;
+    text-decoration: none;
+    padding: 10px 15px;
+    /* Increase click area */
+  }
 
-  <!-- Code Editor  -->
+  /* Link Underline Micro-Animation */
+  .custom-premium-header .nav-link-item::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    /* Offset below text */
+    left: 50%;
+    background-color: #0f172a;
+    /* Deep Slate marker */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
 
-  <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
-  <link rel="stylesheet" href="{% static 'assets/css/app.min.css' %}">
-</head>
-<header class="site-header sofax-header-section site-header--menu-center inner-header dark-bg" id="sticky-menu">
+  .custom-premium-header .nav-link-item:hover {
+    color: #0f172a !important;
+    /* Deeper hover state */
+  }
+
+  .custom-premium-header .nav-link-item:hover::after {
+    width: 80%;
+    /* Expand to cover line */
+  }
+
+  /* Login Text Button CTA - minimalist and elegant */
+  .cta-login-btn {
+    color: #4b5563 !important;
+    /* Subtle gray */
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin-right: 10px;
+  }
+
+  .cta-login-btn:hover {
+    color: #0f172a !important;
+    background-color: rgba(15, 23, 42, 0.05);
+    /* Slight dark overlay */
+  }
+
+  /* Get Started Primary Pill Button */
+  .cta-primary-pill {
+    background: #0f172a !important;
+    /* Deep dark indigo/slate */
+    color: #ffffff !important;
+    font-weight: 600;
+    padding: 12px 28px !important;
+    border-radius: 50px !important;
+    /* Perfect Pill */
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+
+  .cta-primary-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3);
+    background: #1e293b !important;
+    /* Lighter hover state */
+    color: #ffffff !important;
+  }
+
+  /* Logo Sizing */
+  .custom-premium-logo {
+    width: 350px !important;
+    /* Force the width so SVG does not collapse to 0x0 */
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+  }
+
+  /* Mobile specific styling to override light/dark mode clashes */
+  .custom-premium-header .mobile-menu-trigger span,
+  .custom-premium-header .mobile-menu-trigger span::before,
+  .custom-premium-header .mobile-menu-trigger span::after {
+    background-color: #0f172a !important;
+    /* Dark hamburger icon */
+  }
+</style>
+
+<!-- Removed "sofax-header-section sticky-menu dark-bg" completely. Added custom glass classes -->
+<header class="site-header site-header--menu-center custom-premium-header" id="custom-glass-header">
   <div class="container">
     <nav class="navbar site-navbar">
+
+      <!-- Brand Logo Configured for Light BG -->
       <a class="brand-logo" href="{% url 'home' %}">
-          <img src="{% static 'assets/images/logo/light-logo.svg' %}" class="brand-logo" alt="Greyteeks logo">
+        <img src="{% static 'assets/images/logo/logo-dark.svg' %}" class="custom-premium-logo" alt="Greyteeks logo">
       </a>
+
       <div class="menu-block-wrapper">
         <div class="menu-overlay"></div>
         <nav class="menu-block" id="append-menu-header">
@@ -45,49 +153,33 @@
             <div class="current-menu-title"></div>
             <div class="mobile-menu-close">&times;</div>
           </div>
+          <!-- Menu Items with custom hover styling automatically applied -->
           <ul class="site-menu-main">
             <li class="nav-item"><a href="{% url 'home' %}" class="nav-link-item">Home</a></li>
             <li class="nav-item"><a href="{% url 'about' %}" class="nav-link-item">About</a></li>
-            <li class="nav-item"><a href="/contact/" class="nav-link-item">Contact</a></li>
+            <li class="nav-item"><a href="{% url 'services' %}" class="nav-link-item">Services</a></li>
+            <li class="nav-item"><a href="{% url 'pricing' %}" class="nav-link-item">Pricing</a></li>
+            <li class="nav-item"><a href="{% url 'faq' %}" class="nav-link-item">FAQ</a></li>
+            <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link-item">Contact</a></li>
           </ul>
         </nav>
       </div>
+
+      <!-- Premium CTAs -->
       <div class="header-btn header-three-site-btn header-btn-l1 ms-auto d-flex align-items-center">
-        <a class="sofax-default-btn outline-btn pill sofax-header-btn me-3" data-text="Login" href="{% url 'login' %}" style="border-color: #ffffff; color: #ffffff !important;">
-          <span class="button-wraper">Login</span>
+        <!-- New Login Style -->
+        <a class="cta-login-btn" href="{% url 'sign_in' %}">
+          Login
         </a>
-        <a class="sofax-default-btn pill sofax-header-btn" data-text="Get started" href="{% url 'register' %}">
-          <span class="button-wraper">Get started</span>
+        <!-- New Primary Get Started Style -->
+        <a class="cta-primary-pill" href="{% url 'register' %}">
+          Get started
         </a>
       </div>
+
+      <!-- Mobile hamburger -->
       <div class="mobile-menu-trigger"><span></span></div>
+
     </nav>
   </div>
 </header>
- <!-- scripts -->
-  <script src="{% static 'assets/js/jquery-3.7.1.js' %}"></script>
-  <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/aos.js' %}"></script>
-  <script src="{% static 'assets/js/menu/menu.js' %}"></script>
-  <script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script>
-  <script src="{% static 'assets/js/jquery.magnific-popup.min.js' %}"></script>
-  <script src="{% static 'assets/js/swiper-bundle.min.js' %}"></script>
-  <script src="{% static 'assets/js/countdown.js' %}"></script>
-  <script src="{% static 'assets/js/slick.js' %}"></script>
-  <script src="{% static 'assets/js/wow.min.js' %}"></script>
-  <script src="{% static 'assets/js/modernizr.min.js' %}"></script>
-  <script src="{% static 'assets/js/countdown.js' %}"></script>
-  <script src="{% static 'assets/js/skill-bar.js' %}"></script>
-  <script src="{% static 'assets/js/pricing-switcher.js' %}"></script>
-  <script src="{% static 'assets/js/top-to-bottom.js' %}"></script>
-  <script src="{% static 'assets/js/gsap.js' %}"></script>
-  <script src="{% static 'assets/js/ScrollTrigger.js' %}"></script>
-  <script src="{% static 'assets/js/SplitText.js' %}"></script>
-  <script src="{% static 'assets/js/gsap-animation.js' %}"></script>
-
-
-  <!-- <script src="{% static 'assets/js/scrollsmooth.js' %}"></script> -->
-  <script src="{% static 'assets/js/accordion.js' %}"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyArZVfNvjnLNwJZlLJKuOiWHZ6vtQzzb1Y"></script>
-
-  <script src="{% static 'assets/js/app.js' %}"></script>

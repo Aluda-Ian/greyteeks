@@ -1,0 +1,156 @@
+{% extends 'campaigns/dashboard.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom mt-3">
+        <div>
+            <h2 class="fw-bold m-0"><i class="bi bi-book-half text-primary me-2"></i>API Integrations Documentation</h2>
+            <p class="text-muted mt-1 mb-0">Complete guide on how to configure SMS and WhatsApp gateways on Greyteeks.</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <!-- SMS Section -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <h5 class="fw-bold m-0"><i class="bi bi-chat-left-dots text-primary me-2"></i> SMS API Providers</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="accordion" id="accordionSms">
+                        
+                        <!-- Africa's Talking -->
+                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                            <h2 class="accordion-header" id="headingAT">
+                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAT" aria-expanded="false" aria-controls="collapseAT">
+                                    Africa's Talking
+                                </button>
+                            </h2>
+                            <div id="collapseAT" class="accordion-collapse collapse" aria-labelledby="headingAT" data-bs-parent="#accordionSms">
+                                <div class="accordion-body bg-light">
+                                    <p class="text-muted">Africa's Talking provides robust SMS networks across Africa.</p>
+                                    <ol class="mb-0">
+                                        <li class="mb-2"><strong>Create an account</strong> on the <a href="https://account.africastalking.com/" target="_blank">Africa's Talking portal</a>.</li>
+                                        <li class="mb-2"><strong>Get your App Username:</strong> Ensure you create an "App" and use the exact App Username, <em>not</em> your login email.</li>
+                                        <li class="mb-2"><strong>Generate an API Key:</strong> Go to Settings > API Key and generate your key. Keep this secure.</li>
+                                        <li class="mb-2"><strong>Sender ID:</strong> Register an alphanumeric Sender ID. E.g., `GREYTEEKS`.</li>
+                                        <li class="mt-3"><strong>Dashboard Setup:</strong> Navigate to SMS > Add Provider. Select "Africa's Talking", input the API Key, your App Username, and your approved Sender ID.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Twilio -->
+                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                            <h2 class="accordion-header" id="headingTwilio">
+                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwilio" aria-expanded="false" aria-controls="collapseTwilio">
+                                    Twilio
+                                </button>
+                            </h2>
+                            <div id="collapseTwilio" class="accordion-collapse collapse" aria-labelledby="headingTwilio" data-bs-parent="#accordionSms">
+                                <div class="accordion-body bg-light">
+                                    <ol class="mb-0">
+                                        <li class="mb-2"><strong>Login</strong> to your <a href="https://console.twilio.com/" target="_blank">Twilio Console</a>.</li>
+                                        <li class="mb-2"><strong>Username (SID):</strong> Find your Account SID on the dashboard. This acts as your "username" in our setup.</li>
+                                        <li class="mb-2"><strong>API Key (Auth Token):</strong> Next to the Account SID, copy your Auth Token.</li>
+                                        <li class="mb-2"><strong>Sender ID:</strong> Copy your active Twilio Phone Number (e.g., `+1234567890`) or approved Alphanumeric Sender ID.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Infobip SMS -->
+                        <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
+                            <h2 class="accordion-header" id="headingInfobipSMS">
+                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipSMS" aria-expanded="false" aria-controls="collapseInfobipSMS">
+                                    Infobip SMS
+                                </button>
+                            </h2>
+                            <div id="collapseInfobipSMS" class="accordion-collapse collapse" aria-labelledby="headingInfobipSMS" data-bs-parent="#accordionSms">
+                                <div class="accordion-body bg-light">
+                                    <ol class="mb-0">
+                                        <li class="mb-2"><strong>API Key:</strong> Found inside the Developers section of your Infobip account.</li>
+                                        <li class="mb-2"><strong>Base URL (Username field):</strong> Use your custom Infobip Base URL (e.g., `xyz.api.infobip.com`) in the Greyteeks Username configuration field.</li>
+                                        <li class="mb-2"><strong>Sender ID:</strong> Configure the sender number registered with Infobip.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Section -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <h5 class="fw-bold m-0"><i class="bi bi-whatsapp text-success me-2"></i> WhatsApp API Providers</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="accordion" id="accordionWA">
+                        
+                        <!-- Meta Cloud API -->
+                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                            <h2 class="accordion-header" id="headingMeta">
+                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMeta" aria-expanded="false" aria-controls="collapseMeta">
+                                    Meta Cloud API (Official WhatsApp)
+                                </button>
+                            </h2>
+                            <div id="collapseMeta" class="accordion-collapse collapse" aria-labelledby="headingMeta" data-bs-parent="#accordionWA">
+                                <div class="accordion-body bg-light">
+                                    <p class="text-muted">Direct connection to Meta's infrastructure for zero-markup messaging.</p>
+                                    <h6 class="fw-bold mt-3">Step 1: Create a Meta App</h6>
+                                    <ol class="mb-3">
+                                        <li>Go to <a href="https://developers.facebook.com/" target="_blank">Meta for Developers</a>.</li>
+                                        <li>Create App > Business > Set up WhatsApp product.</li>
+                                    </ol>
+                                    <h6 class="fw-bold">Step 2: Generate Access Token</h6>
+                                    <ol class="mb-3">
+                                        <li>Do NOT use the temporary token provided on the dashboard.</li>
+                                        <li>Go to <strong>Business Settings</strong> > System Users.</li>
+                                        <li>Generate a token for a System User and assign it the <code class="text-danger">whatsapp_business_messaging</code> permission.</li>
+                                    </ol>
+                                    <h6 class="fw-bold">Step 3: Extract IDs</h6>
+                                    <ol class="mb-0">
+                                        <li class="mb-2"><strong>Phone Number ID:</strong> Found on the WhatsApp > Getting Started page. This uniquely identifies the sending number.</li>
+                                        <li><strong>WhatsApp Business Account ID (WABA ID):</strong> Also found on the Getting Started page.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Infobip WA -->
+                        <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
+                            <h2 class="accordion-header" id="headingInfobipWA">
+                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipWA" aria-expanded="false" aria-controls="collapseInfobipWA">
+                                    Infobip WhatsApp
+                                </button>
+                            </h2>
+                            <div id="collapseInfobipWA" class="accordion-collapse collapse" aria-labelledby="headingInfobipWA" data-bs-parent="#accordionWA">
+                                <div class="accordion-body bg-light">
+                                    <ol class="mb-0">
+                                        <li class="mb-2"><strong>Access Token (API Key):</strong> Generated from Infobip's developer dashboard.</li>
+                                        <li class="mb-2"><strong>Base URL:</strong> The assigned regional URL (e.g., `xyz.api.infobip.com`).</li>
+                                        <li class="mb-2"><strong>Infobip Sender:</strong> The official WhatsApp number approved inside Infobip.</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Section -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary text-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb"></i> Crucial Note on WhatsApp Templates</h5>
+                    <p class="mb-0">By Meta policy, all brand-initiated outbound WhatsApp messages <strong>must strictly be approved Templates</strong>. The contents of templates sent through Greyteeks must match your Meta Console approval character-for-character to avoid failure.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
