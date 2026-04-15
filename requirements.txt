@@ -1,2 +1,7 @@
 apscheduler
 django-apscheduler
+requests
+celery>=5.0
+redis>=4.0
+psycopg2-binary
+dj-database-url

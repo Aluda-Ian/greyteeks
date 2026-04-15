@@ -348,7 +348,7 @@
                         <div class="template-name">{{ tmpl.name }}</div>
                         <div class="template-actions">
                             <a href="{% url 'email_builder_edit' tmpl.id %}" class="btn-topbar btn-topbar-primary" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;">Edit</a>
-                            <button type="button" class="btn-topbar" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;" onclick="deleteBuilderTemplate({{ tmpl.id }}, this)">Discard</button>
+                            <button type="button" class="btn-topbar" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;" data-template-id="{{ tmpl.id }}" onclick="deleteBuilderTemplate(this.dataset.templateId, this)">Discard</button>
                         </div>
                     </div>
                 {% empty %}
@@ -1313,14 +1313,34 @@
             document.getElementById('testModal').classList.add('hidden');
         }
 
-        function sendTestEmail() {
+        async function sendTestEmail() {
             const email = document.getElementById('testEmail').value.trim();
             if (!email) {
                 showToast('Enter a recipient email to send a test.', 'error');
                 return;
             }
+            const subject = document.getElementById('saveSubject').value.trim();
+            if (!subject) {
+                showToast('Enter a subject before sending a test email.', 'error');
+                return;
+            }
+            const providerId = document.getElementById('saveProvider').value || null;
+            const htmlContent = generateEmailHTML();
             closeTestModal();
-            showToast(`Test email would be sent to ${email}.`, 'success');
+            const res = await fetch('{% url "email_builder_test" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN,
+                },
+                body: JSON.stringify({ recipient: email, subject, html_content: htmlContent, provider_id: providerId }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message || `Test email sent to ${email}.`, 'success');
+            } else {
+                showToast(data.error || 'Unable to send test email.', 'error');
+            }
         }
 
         async function saveTemplate() {
@@ -1343,12 +1363,43 @@
             });
             const data = await res.json();
             if (data.success) {
-                document.getElementById('builderRoot').dataset.templateId = data.template_id;
+                const root = document.getElementById('builderRoot');
+                root.dataset.templateId = data.template_id;
+                document.getElementById('templateName').value = name;
                 showToast(data.message, 'success');
                 closeSaveModal();
+                updateTemplateList(data.template_id, name);
             } else {
                 showToast(data.error || 'Save failed.', 'error');
             }
+        }
+
+        function updateTemplateList(templateId, name) {
+            const list = document.getElementById('templateList');
+            const existingCard = document.getElementById(`templateCard${templateId}`);
+            if (existingCard) {
+                const titleEl = existingCard.querySelector('.template-name');
+                if (titleEl) titleEl.textContent = name;
+                return;
+            }
+            const templateCard = document.createElement('div');
+            templateCard.className = 'template-card';
+            templateCard.id = `templateCard${templateId}`;
+            templateCard.innerHTML = `
+                <div class="template-name">${name}</div>
+                <div class="template-actions">
+                    <a href="${window.location.origin}{% url 'email_builder_edit' 0 %}" class="btn-topbar btn-topbar-primary" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;">Edit</a>
+                    <button type="button" class="btn-topbar" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;" onclick="deleteBuilderTemplate(${templateId}, this)">Discard</button>
+                </div>
+            `;
+            const editLink = templateCard.querySelector('a');
+            if (editLink) {
+                editLink.href = editLink.href.replace('/0/', `/${templateId}/`);
+            }
+            if (list.querySelector('.text-muted.small')) {
+                list.innerHTML = '';
+            }
+            list.prepend(templateCard);
         }
 
         async function deleteBuilderTemplate(templateId, button) {
@@ -1437,6 +1488,9 @@
         window.openTestModal = openTestModal;
         window.closeTestModal = closeTestModal;
         window.saveTemplate = saveTemplate;
+        window.sendTestEmail = sendTestEmail;
+        window.updateTemplateList = updateTemplateList;
+        window.deleteBuilderTemplate = deleteBuilderTemplate;
 
         initBuilder();
     </script>

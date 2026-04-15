@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 import mimetypes
 from pathlib import Path
+import dj_database_url
 
 # Fix SVG display issue on some Windows systems
 mimetypes.add_type("image/svg+xml", ".svg", True)
@@ -47,6 +48,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-5d1pu#p25c3n1+t$!wr)2
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+WHATSAPP_VERIFY_TOKEN = os.environ.get('WHATSAPP_VERIFY_TOKEN', 'greyteeks-whatsapp-token')
 AT_USERNAME = os.environ.get('AT_USERNAME', '')
 AT_API_KEY = os.environ.get('AT_API_KEY', '')
 
@@ -104,6 +106,8 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.csrf',
+                'django.template.context_processors.csrf',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -118,12 +122,21 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR.as_posix()}/db.sqlite3",
+        conn_max_age=600,
+        ssl_require=False,
+    )
 }
 
+
+# Celery configuration
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Nairobi'
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

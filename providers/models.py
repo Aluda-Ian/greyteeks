@@ -88,6 +88,38 @@ class EmailTemplate(models.Model):
         provider_name = self.provider.name if self.provider else 'No Provider'
         return f"{self.name} ({provider_name})"
 
+
+class WhatsAppDeliveryLog(models.Model):
+    campaign = models.ForeignKey(
+        'campaigns.Campaign',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='whatsapp_delivery_logs'
+    )
+    contact = models.ForeignKey(
+        'contacts_app.Contact',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='whatsapp_delivery_logs'
+    )
+    provider = models.ForeignKey(
+        WhatsAppProvider,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='delivery_logs'
+    )
+    message_id = models.CharField(max_length=200, blank=True)
+    external_id = models.CharField(max_length=200, blank=True)
+    status = models.CharField(max_length=50, default='unknown')
+    raw_payload = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"WhatsApp log {self.status} for {self.contact or 'unknown contact'}"
+
 class MessageTemplate(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,

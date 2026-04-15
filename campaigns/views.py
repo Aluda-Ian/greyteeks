@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 
+import json
+
 from django.http import JsonResponse
 
 from django.contrib import messages
@@ -32,7 +34,7 @@ from django.utils.encoding import force_bytes, force_str
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
-from contacts_app.models import Contact, Group
+from contacts_app.models import Contact, Group, Conversation, Message
 
 from accounts.models import UserQuota
 
@@ -41,12 +43,13 @@ from billing.models import PaymentTransaction
 from .models import Campaign
 
 from .forms import CampaignForm
+from .tasks import dispatch_campaign_task
 
 from .utils import get_ai_campaign_suggestion
 
 from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
-from providers.services import route_sms, route_whatsapp, send_custom_email, test_whatsapp_meta_connection, test_whatsapp_infobip_connection
+from providers.services import route_sms, route_whatsapp, send_custom_email, test_whatsapp_meta_connection, test_whatsapp_infobip_connection, send_whatsapp_meta_message
 
 
 
@@ -226,6 +229,107 @@ def campaign_logs(request):
 
     })
 
+
+
+@login_required
+def unified_inbox(request):
+    conversations = Conversation.objects.filter(user=request.user).select_related('contact').order_by('-last_updated')
+    conversation_list = []
+    for conversation in conversations:
+        latest_message = conversation.messages.order_by('-timestamp').first()
+        conversation_list.append({
+            'id': conversation.id,
+            'contact_name': conversation.contact.name or conversation.contact.phone_number,
+            'phone_number': conversation.contact.phone_number,
+            'last_message': latest_message.content[:80] if latest_message else 'No messages yet.',
+            'last_updated': conversation.last_updated.isoformat(),
+            'unread_count': conversation.messages.filter(direction='inbound', is_read=False).count(),
+        })
+
+    return render(request, 'campaigns/inbox.html', {
+        'conversations': conversation_list,
+        'active_conversation_id': conversation_list[0]['id'] if conversation_list else None,
+    })
+
+
+@login_required
+def get_conversation_messages(request, conversation_id):
+    conversation = Conversation.objects.filter(id=conversation_id, user=request.user).select_related('contact').first()
+    if not conversation:
+        return JsonResponse({'error': 'Conversation not found.'}, status=404)
+
+    messages = list(conversation.messages.order_by('timestamp').all())
+    conversation.messages.filter(direction='inbound', is_read=False).update(is_read=True)
+
+    formatted_messages = []
+    for message in messages:
+        formatted_messages.append({
+            'id': message.id,
+            'direction': message.direction,
+            'channel': message.channel,
+            'content': message.content,
+            'timestamp': message.timestamp.astimezone(timezone.get_current_timezone()).strftime('%b %d, %I:%M %p'),
+            'is_read': message.is_read,
+        })
+
+    return JsonResponse({
+        'conversation': {
+            'id': conversation.id,
+            'contact_name': conversation.contact.name or conversation.contact.phone_number,
+            'phone_number': conversation.contact.phone_number,
+        },
+        'messages': formatted_messages,
+    })
+
+
+@login_required
+def send_inbox_reply(request, conversation_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required.'}, status=405)
+
+    conversation = Conversation.objects.filter(id=conversation_id, user=request.user).select_related('contact').first()
+    if not conversation:
+        return JsonResponse({'error': 'Conversation not found.'}, status=404)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
+
+    message_text = payload.get('message', '').strip()
+    if not message_text:
+        return JsonResponse({'error': 'Reply text is required.'}, status=400)
+
+    provider = WhatsAppProvider.objects.filter(is_active=True).first()
+    if not provider:
+        return JsonResponse({'error': 'No active WhatsApp provider available.'}, status=400)
+
+    reply = Message.objects.create(
+        conversation=conversation,
+        direction='outbound',
+        channel='whatsapp',
+        content=message_text,
+        is_read=True,
+    )
+
+    success, dispatch_message = send_whatsapp_meta_message(provider, conversation.contact.phone_number, message_text)
+    if not success:
+        return JsonResponse({'error': dispatch_message}, status=500)
+
+    conversation.save(update_fields=['last_updated'])
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Reply sent successfully.',
+        'sent_message': {
+            'id': reply.id,
+            'direction': reply.direction,
+            'channel': reply.channel,
+            'content': reply.content,
+            'timestamp': reply.timestamp.astimezone(timezone.get_current_timezone()).strftime('%b %d, %I:%M %p'),
+            'is_read': reply.is_read,
+        },
+    })
 
 
 def _attempt_campaign_send(request, campaign):
@@ -1093,7 +1197,48 @@ def email_builder_save(request):
 
 
 @login_required
+def email_builder_test(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
 
+    import json
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    recipient = data.get('recipient', '').strip()
+    subject = data.get('subject', '').strip()
+    html_content = data.get('html_content', '').strip()
+    provider_id = data.get('provider_id')
+
+    if not recipient or not subject or not html_content:
+        return JsonResponse({'error': 'Recipient, subject, and template HTML are required.'}, status=400)
+
+    provider = None
+    if provider_id:
+        provider = EmailProvider.objects.filter(id=provider_id).first()
+    if not provider:
+        provider = EmailProvider.objects.filter(is_active=True).first()
+
+    if not provider:
+        return JsonResponse({'error': 'No active email provider found. Please configure one first.'}, status=400)
+
+    success, message = send_custom_email(
+        provider,
+        subject,
+        html_content,
+        [recipient],
+        from_email=provider.from_email,
+        html_message=True,
+    )
+
+    if success:
+        return JsonResponse({'success': True, 'message': message})
+    return JsonResponse({'error': message}, status=500)
+
+@login_required
 def manage_sms(request):
 
     if not request.user.is_staff:
@@ -2052,9 +2197,16 @@ def create_campaign(request, campaign_id=None):
 
 
 
-            campaign.status = 'draft'
-
+            campaign.status = 'scheduled'
+            campaign.failure_reason = ''
             campaign.save()
+
+            quota.units_used += unit_count
+            quota.save()
+
+            dispatch_campaign_task.delay(campaign.id)
+            messages.success(request, 'Campaign queued for delivery.')
+            return redirect('dashboard')
 
 
 

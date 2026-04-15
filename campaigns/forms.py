@@ -11,6 +11,7 @@ class CampaignForm(forms.ModelForm):
             'title',
             'target_group',
             'description',
+            'message_body',
             'send_sms',
             'sms_server',
             'sms_template',
@@ -33,6 +34,7 @@ class CampaignForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Campaign Name'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'id': 'campaignDescription', 'placeholder': 'Describe the campaign for internal reference.'}),
+            'message_body': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'id': 'messageBody', 'placeholder': 'Write the campaign message that will be used for email and WhatsApp.'}),
             'sms_server': forms.Select(attrs={'class': 'form-select'}),
             'sms_template': forms.Select(attrs={'class': 'form-select'}),
             'whatsapp_server': forms.Select(attrs={'class': 'form-select'}),
@@ -79,6 +81,7 @@ class CampaignForm(forms.ModelForm):
             'title',
             'target_group',
             'description',
+            'message_body',
             'send_sms',
             'sms_server',
             'sms_template',

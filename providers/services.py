@@ -82,6 +82,120 @@ def send_bulk_infobip_sms(provider_instance, phone_numbers, message):
         return False
 
 
+def send_africas_talking_sms(provider_instance, recipients, message):
+    """Send bulk SMS with Africa's Talking REST API."""
+    if not recipients:
+        print("Africa's Talking SMS Error: no recipients provided")
+        return False
+
+    url = 'https://api.africastalking.com/version1/messaging'
+    headers = {
+        'apiKey': provider_instance.api_key,
+        'Accept': 'application/json',
+    }
+    payload = {
+        'username': provider_instance.username,
+        'to': ','.join(recipients),
+        'message': message,
+    }
+    if getattr(provider_instance, 'sender_id', None):
+        payload['from'] = provider_instance.sender_id
+
+    try:
+        response = requests.post(url, data=payload, headers=headers, timeout=30)
+        data = response.json()
+        recipients_data = data.get('SMSMessageData', {}).get('Recipients', [])
+        failed = [item for item in recipients_data if item.get('status') not in ('Success', 'success')]
+        print(f"Africa's Talking response: {response.status_code} — {len(recipients_data)} recipients, {len(failed)} failed")
+        return response.status_code in (200, 201) and len(failed) == 0
+    except Exception as e:
+        print(f"Africa's Talking SMS Exception: {e}")
+        return False
+
+
+def send_infobip_message(provider_instance, channel, recipients, message):
+    """Send a message through Infobip REST API for SMS or WhatsApp."""
+    if not recipients:
+        print("Infobip Message Error: no recipients provided")
+        return False
+
+    api_key = provider_instance.api_key
+    base_url = provider_instance.username
+    headers = {
+        'Authorization': f'App {api_key}',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    }
+
+    if channel == 'whatsapp':
+        url = f'https://{base_url}/whatsapp/1/message/text'
+        payload = {
+            'from': provider_instance.infobip_sender,
+            'to': recipients[0],
+            'content': {'text': message},
+        }
+    else:
+        url = f'https://{base_url}/sms/2/text/advanced'
+        payload = {
+            'messages': [{
+                'from': provider_instance.sender_id or 'Greyteeks',
+                'destinations': [{'to': number} for number in recipients],
+                'text': message,
+            }]
+        }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        data = response.json()
+        if response.status_code in (200, 201):
+            return True
+        print(f"Infobip message error: {response.status_code} - {data}")
+        return False
+    except Exception as e:
+        print(f"Infobip message exception: {e}")
+        return False
+
+
+def send_meta_whatsapp(provider_instance, recipients, template_name):
+    """Send WhatsApp template messages using Meta Cloud API."""
+    if not recipients:
+        return False, 'No WhatsApp recipients provided.'
+    if not provider_instance.access_token:
+        return False, 'Missing Meta access token.'
+    if not provider_instance.phone_number_id:
+        return False, 'Missing Meta phone number ID.'
+
+    url = f"https://graph.facebook.com/v17.0/{provider_instance.phone_number_id}/messages"
+    headers = {
+        'Authorization': f'Bearer {provider_instance.access_token}',
+        'Content-Type': 'application/json',
+    }
+
+    failures = []
+    for recipient in recipients:
+        data = {
+            'messaging_product': 'whatsapp',
+            'to': recipient,
+            'type': 'template',
+            'template': {
+                'name': template_name,
+                'language': {'code': 'en_US'},
+            },
+        }
+        try:
+            response = requests.post(url, headers=headers, json=data, timeout=30)
+            if response.status_code not in (200, 201):
+                failures.append(f"{recipient}: {response.status_code} {response.text}")
+        except Exception as e:
+            failures.append(f"{recipient}: {e}")
+
+    if failures:
+        message = f"Meta WhatsApp failures: {'; '.join(failures)}"
+        print(message)
+        return False, message
+    return True, 'WhatsApp template messages queued successfully.'
+
+
 def send_whatsapp_meta_message(provider_instance, destination_phone, message_text):
     """Sends a WhatsApp message via Meta Cloud API"""
     url = f"https://graph.facebook.com/v17.0/{provider_instance.phone_number_id}/messages"
@@ -194,7 +308,7 @@ def route_sms(provider_instance, phone_numbers, message):
         return False
     name = provider_instance.name
     if name == 'africas_talking':
-        return send_bulk_at_sms(provider_instance, phone_numbers, message)
+        return send_africas_talking_sms(provider_instance, phone_numbers, message)
     elif name == 'twilio':
         return send_bulk_twilio_sms(provider_instance, phone_numbers, message)
     elif name == 'infobip':
@@ -204,7 +318,7 @@ def route_sms(provider_instance, phone_numbers, message):
         return False
 
 
-def route_whatsapp(provider_instance, destination_phone, message_text):
+def route_whatsapp(provider_instance, destination_phone, message_text, template_name=None):
     """Route WhatsApp sending to the correct provider service."""
     if not provider_instance:
         message = "WhatsApp Error: missing provider instance"
@@ -213,10 +327,12 @@ def route_whatsapp(provider_instance, destination_phone, message_text):
     provider_type = getattr(provider_instance, 'provider_type', 'meta')
     if provider_type == 'infobip':
         return send_whatsapp_infobip_message(provider_instance, destination_phone, message_text)
+    if template_name:
+        return send_meta_whatsapp(provider_instance, [destination_phone], template_name)
     return send_whatsapp_meta_message(provider_instance, destination_phone, message_text)
 
 
-def send_custom_email(provider_instance, subject, message, recipient_list, from_email=None):
+def send_custom_email(provider_instance, subject, message, recipient_list, from_email=None, html_message=False):
     """Sends email using the configured SMTP provider via Django EmailBackend."""
     if not recipient_list:
         msg = "Email Error: no recipients provided"
@@ -241,6 +357,10 @@ def send_custom_email(provider_instance, subject, message, recipient_list, from_
         to=recipient_list,
         connection=connection,
     )
+    if html_message:
+        email.content_subtype = 'html'
+    if html_message:
+        email.content_subtype = 'html'
 
     try:
         email.send(fail_silently=False)

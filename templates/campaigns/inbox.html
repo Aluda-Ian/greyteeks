@@ -1,0 +1,251 @@
+{% extends "campaigns/dashboard.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row gx-4">
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body bg-dark text-white rounded-top p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h4 class="mb-1">Live Inbox</h4>
+                            <p class="text-white-50 mb-0">Reply to WhatsApp and SMS conversations in real time.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush overflow-auto p-3" id="conversationList" style="max-height:72vh;"></div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100 d-flex flex-column">
+                <div class="card-body p-4 d-flex flex-column h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="mb-1" id="activeChatName">Select a conversation</h4>
+                            <p class="text-muted mb-0" id="activeChatPhone">Choose a conversation from the left to begin.</p>
+                        </div>
+                        <span class="badge bg-primary" id="unreadBadge" style="visibility:hidden">0 unread</span>
+                    </div>
+
+                    <div id="chatHistory" class="flex-grow-1 overflow-auto mb-4 p-3 bg-white border rounded-4 shadow-sm" style="min-height: 440px;"></div>
+
+                    <div class="input-group rounded-pill shadow-sm bg-white border border-1">
+                        <input type="text" id="replyInput" class="form-control border-0 ps-4" placeholder="Write a response..." autocomplete="off">
+                        <button type="button" id="sendReplyBtn" class="btn btn-primary rounded-pill px-4">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ conversations|json_script:"inbox-data" }}
+
+<style>
+    .inbox-contact-item {
+        border-radius: 1rem;
+        margin-bottom: 0.65rem;
+        padding: 1rem 1rem;
+        text-align: left;
+    }
+    .inbox-contact-item.active {
+        background: #3182ce;
+        color: #fff;
+    }
+    .chat-bubble {
+        max-width: 82%;
+        padding: 0.95rem 1rem;
+        border-radius: 1.2rem;
+        line-height: 1.5;
+        margin-bottom: 0.9rem;
+        word-break: break-word;
+    }
+    .chat-bubble.inbound {
+        background: #f5f5f7;
+        color: #1a202c;
+        border-top-left-radius: 0.35rem;
+    }
+    .chat-bubble.outbound {
+        background: #3182ce;
+        color: #fff;
+        border-top-right-radius: 0.35rem;
+        margin-left: auto;
+    }
+    .chat-meta {
+        font-size: 0.82rem;
+        color: #6b7280;
+        margin-top: 0.35rem;
+    }
+    .conversation-snippet {
+        font-size: 0.88rem;
+        color: #6b7280;
+    }
+</style>
+
+<script>
+    const conversationData = JSON.parse(document.getElementById('inbox-data').textContent || '[]');
+    let activeConversationId = {{ active_conversation_id|default:'null' }};
+    const conversationListEl = document.getElementById('conversationList');
+    const chatHistoryEl = document.getElementById('chatHistory');
+    const chatNameEl = document.getElementById('activeChatName');
+    const chatPhoneEl = document.getElementById('activeChatPhone');
+    const unreadBadgeEl = document.getElementById('unreadBadge');
+    const replyInput = document.getElementById('replyInput');
+    const sendReplyBtn = document.getElementById('sendReplyBtn');
+    const conversationApiTemplate = '{% url "get_conversation_messages" 0 %}';
+    const replyApiTemplate = '{% url "send_inbox_reply" 0 %}';
+
+    function getCookie(name) {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+        return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+    }
+
+    function formatMessageTimestamp(timestamp) {
+        return timestamp ? timestamp : '';
+    }
+
+    function renderConversationItem(conversation) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'list-group-item list-group-item-action inbox-contact-item d-flex flex-column';
+        if (conversation.id === activeConversationId) {
+            button.classList.add('active');
+        }
+        button.dataset.conversationId = conversation.id;
+        button.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-semibold">${conversation.contact_name}</div>
+                    <div class="text-white-50 small">${conversation.phone_number}</div>
+                </div>
+                ${conversation.unread_count ? `<span class="badge bg-white text-dark rounded-pill">${conversation.unread_count}</span>` : ''}
+            </div>
+            <div class="conversation-snippet mt-2">${conversation.last_message || 'No messages yet.'}</div>
+        `;
+        button.addEventListener('click', () => {
+            setActiveConversation(conversation.id);
+        });
+        return button;
+    }
+
+    function renderConversationList() {
+        conversationListEl.innerHTML = '';
+        if (!conversationData.length) {
+            conversationListEl.innerHTML = '<div class="text-muted px-3">No conversations available. Incoming WhatsApp or SMS messages will appear here.</div>';
+            return;
+        }
+        conversationData.forEach(conv => conversationListEl.appendChild(renderConversationItem(conv)));
+    }
+
+    function updateActiveConversationMeta(conversation) {
+        chatNameEl.textContent = conversation.contact_name;
+        chatPhoneEl.textContent = conversation.phone_number;
+        if (conversation.unread_count > 0) {
+            unreadBadgeEl.style.visibility = 'visible';
+            unreadBadgeEl.textContent = `${conversation.unread_count} unread`;
+        } else {
+            unreadBadgeEl.style.visibility = 'hidden';
+        }
+    }
+
+    function renderMessages(messages) {
+        if (!messages.length) {
+            chatHistoryEl.innerHTML = '<div class="text-center text-muted mt-5">Start the conversation by sending a reply.</div>';
+            return;
+        }
+        chatHistoryEl.innerHTML = messages.map(message => {
+            const bubbleClass = message.direction === 'outbound' ? 'outbound' : 'inbound';
+            return `
+                <div class="chat-bubble ${bubbleClass}">
+                    <div>${message.content}</div>
+                    <div class="chat-meta">${message.channel.toUpperCase()} · ${formatMessageTimestamp(message.timestamp)}</div>
+                </div>
+            `;
+        }).join('');
+        chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    }
+
+    async function fetchConversation(conversationId) {
+        const url = conversationApiTemplate.replace('/0/', `/${conversationId}/`);
+        const response = await fetch(url, {
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
+        return response.ok ? response.json() : null;
+    }
+
+    async function loadConversation(conversationId, preserveActive = false) {
+        const data = await fetchConversation(conversationId);
+        if (!data || data.error) {
+            chatHistoryEl.innerHTML = '<div class="text-danger">Unable to load conversation.</div>';
+            return;
+        }
+        activeConversationId = data.conversation.id;
+        if (!preserveActive) {
+            renderConversationList();
+        }
+        updateActiveConversationMeta({
+            contact_name: data.conversation.contact_name,
+            phone_number: data.conversation.phone_number,
+            unread_count: 0,
+        });
+        renderMessages(data.messages);
+    }
+
+    async function sendReply() {
+        if (!activeConversationId) {
+            return;
+        }
+        const body = replyInput.value.trim();
+        if (!body) {
+            return;
+        }
+        sendReplyBtn.disabled = true;
+        const url = replyApiTemplate.replace('/0/', `/${activeConversationId}/`);
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ message: body }),
+        });
+        const data = await response.json();
+        sendReplyBtn.disabled = false;
+        if (data.success) {
+            replyInput.value = '';
+            await loadConversation(activeConversationId, true);
+        } else {
+            alert(data.error || 'Message send failed.');
+        }
+    }
+
+    function setActiveConversation(conversationId) {
+        activeConversationId = conversationId;
+        renderConversationList();
+        loadConversation(conversationId);
+    }
+
+    renderConversationList();
+    if (activeConversationId) {
+        loadConversation(activeConversationId);
+    }
+
+    sendReplyBtn.addEventListener('click', sendReply);
+    replyInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendReply();
+        }
+    });
+
+    setInterval(() => {
+        if (activeConversationId) {
+            loadConversation(activeConversationId, true);
+        }
+    }, 3000);
+</script>
+{% endblock %}

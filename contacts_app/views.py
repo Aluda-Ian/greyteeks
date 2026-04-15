@@ -15,6 +15,30 @@ def contact_list(request):
     group_id = request.GET.get('group')
     contacts = Contact.objects.filter(group__user=request.user).order_by('-created_at')
     selected_group = None
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        email = request.POST.get('email', '').strip()
+        group_id = request.POST.get('group')
+
+        if not phone_number:
+            messages.error(request, 'Phone number is required to add a contact.')
+        else:
+            target_group = Group.objects.filter(id=group_id, user=request.user).first()
+            if not target_group:
+                messages.error(request, 'Please select a valid group for the contact.')
+            else:
+                Contact.objects.create(
+                    group=target_group,
+                    phone_number=phone_number,
+                    name=name,
+                    email=email,
+                )
+                messages.success(request, 'Contact added successfully.')
+                return redirect('contact_list')
+
+
     if group_id:
         selected_group = groups.filter(id=group_id).first()
         if selected_group:

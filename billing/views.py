@@ -163,7 +163,7 @@ def check_mpesa_status(request, transaction_id):
 def mpesa_callback(request):
     try:
         payload = json.loads(request.body.decode('utf-8') or '{}')
-    except ValueError:
+    except (ValueError, json.JSONDecodeError):
         return HttpResponse('OK')
 
     callback = payload.get('Body', {}).get('stkCallback') if isinstance(payload, dict) else None
@@ -190,14 +190,17 @@ def mpesa_callback(request):
     if not transaction:
         return HttpResponse('OK')
 
+    transaction.mpesa_receipt_number = receipt_number or transaction.mpesa_receipt_number
     if result_code == 0 or result_code == '0':
-        transaction.mpesa_receipt_number = receipt_number or transaction.mpesa_receipt_number
         if transaction.status != 'success':
             credit_user_quota(transaction)
+        else:
+            transaction.status = 'success'
+            transaction.save(update_fields=['mpesa_receipt_number', 'status'])
         return HttpResponse('OK')
 
     transaction.status = 'failed'
-    transaction.save()
+    transaction.save(update_fields=['status'])
     return HttpResponse('OK')
 
 

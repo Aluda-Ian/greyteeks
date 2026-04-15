@@ -51,6 +51,11 @@
                                 <i class="bi bi-eye me-2"></i> Check Campaigns
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'unified_inbox' %}">
+                                <i class="bi bi-chat-left-text me-2"></i> Unified Inbox
+                            </a>
+                        </li>
                         {% if user.is_staff %}
                         <li class="nav-item">
                             <a class="nav-link d-flex align-items-center" href="{% url 'campaign_logs' %}">

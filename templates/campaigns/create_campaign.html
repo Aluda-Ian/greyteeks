@@ -31,6 +31,22 @@
         </div>
 
         <div class="row g-3 mt-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Message Body</label>
+                {{ form.message_body }}
+                <div class="form-text text-muted">
+                    This copy will be used for WhatsApp and email when a template is not selected.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-2">
+            <button type="button" class="btn btn-info text-white" onclick="generateAI()">
+                ✨ Generate AI copy for message body
+            </button>
+        </div>
+
+        <div class="row g-3 mt-3">
             <div class="col-md-4">
                 <div class="form-check card p-3 h-100">
                     {{ form.send_sms }}
