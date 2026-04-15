@@ -641,17 +641,16 @@ def manage_users(request):
 
 
 
-        if target_user and action == 'toggle_active':
-
-            target_user.is_active = not target_user.is_active
-
-            target_user.save()
-
-            state = 'activated' if target_user.is_active else 'deactivated'
-
-            messages.success(request, f"User {target_user.username} has been {state}.")
-
-
+        if target_user:
+            if action == 'toggle_active':
+                target_user.is_active = not target_user.is_active
+                target_user.save()
+                state = 'activated' if target_user.is_active else 'deactivated'
+                messages.success(request, f"User {target_user.username} has been {state}.")
+            elif action == 'delete_user':
+                username = target_user.username
+                target_user.delete()
+                messages.success(request, f"User {username} has been deleted.")
 
         return redirect('manage_users')
 

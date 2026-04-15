@@ -127,31 +127,30 @@
                 <div class="collapse" id="paymentsDropdown">
                     <ul class="nav flex-column ms-3 mt-1">
                         <li class="nav-item">
-                                    <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_transactions' %}">
-                                        <i class="bi bi-receipt me-2"></i> Transactions
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_plans' %}">
-                                        <i class="bi bi-tags me-2"></i> Plans
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item mt-3">
-                        <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
-                            <i class="bi bi-gear-wide-connected me-2"></i> Payment Settings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
-                            <i class="bi bi-robot me-2"></i> API Settings
-                        </a>
-                    </button>
-                </form>
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_transactions' %}">
+                                <i class="bi bi-receipt me-2"></i> Transactions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_plans' %}">
+                                <i class="bi bi-tags me-2"></i> Plans
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
+
+            <li class="nav-item mt-3">
+                <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
+                    <i class="bi bi-gear-wide-connected me-2"></i> Payment Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
+                    <i class="bi bi-robot me-2"></i> API Settings
+                </a>
+            </li>
+            {% endif %}
 
         </ul>
     </div>

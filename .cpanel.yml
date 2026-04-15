@@ -1,0 +1,16 @@
+---
+deployment:
+  tasks:
+    # 1. Activate the Python virtual environment
+    - source /home/vendatech/virtualenv/repositories/greyteeks/3.10/bin/activate
+
+    # 2. Install dependencies
+    - pip install -r requirements.txt
+
+    # 3. Run migrations and collect static files
+    - python manage.py migrate
+    - python manage.py collectstatic --noinput
+
+    # 4. Restart the Python application
+    - mkdir -p tmp
+    - touch tmp/restart.txt

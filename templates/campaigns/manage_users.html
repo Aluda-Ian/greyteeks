@@ -58,12 +58,20 @@
                                                     {% if managed_user == request.user %}
                                                         <span class="text-muted small">Current user</span>
                                                     {% else %}
-                                                        <form method="post" class="d-inline-block">
+                                                        <form method="post" class="d-inline-block me-1">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="user_id" value="{{ managed_user.id }}">
                                                             <input type="hidden" name="action" value="toggle_active">
                                                             <button type="submit" class="btn btn-sm {% if managed_user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-3">
                                                                 {% if managed_user.is_active %}Deactivate{% else %}Activate{% endif %}
+                                                            </button>
+                                                        </form>
+                                                        <form method="post" class="d-inline-block" onsubmit="return confirm('Delete this user? This cannot be undone.');">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="user_id" value="{{ managed_user.id }}">
+                                                            <input type="hidden" name="action" value="delete_user">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">
+                                                                Delete
                                                             </button>
                                                         </form>
                                                     {% endif %}
