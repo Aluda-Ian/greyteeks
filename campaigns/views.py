@@ -48,7 +48,7 @@ from .ai_services import generate_campaign_copy, suggest_inbox_reply
 
 from .utils import get_ai_campaign_suggestion
 
-from providers.models import AIProviderSetting, EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
+from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
 from providers.services import route_sms, route_whatsapp, send_custom_email, test_whatsapp_meta_connection, test_whatsapp_infobip_connection, send_whatsapp_meta_message
 

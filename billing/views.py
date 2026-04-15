@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import PaymentGatewayConfig, PaymentTransaction, PricingPlan
+from providers.models import AIProviderSetting
 from .services import (
     capture_paypal_order,
     credit_user_quota,
@@ -291,6 +292,8 @@ def admin_billing_settings(request):
     paystack_config, _ = PaymentGatewayConfig.objects.get_or_create(gateway='paystack')
     paypal_config, _ = PaymentGatewayConfig.objects.get_or_create(gateway='paypal')
 
+    ai_config = AIProviderSetting.load()
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'save_mpesa':
@@ -326,12 +329,17 @@ def admin_billing_settings(request):
             paypal_config.is_active = not paypal_config.is_active
             paypal_config.save()
             messages.success(request, 'PayPal activation toggled.')
+        elif action == 'save_gemini_api':
+            ai_config.gemini_api_key = request.POST.get('gemini_api_key', '').strip()
+            ai_config.save()
+            messages.success(request, 'Google Gemini API configuration saved.')
         return redirect('admin_billing_settings')
 
     context = {
         'mpesa_config': mpesa_config,
         'paystack_config': paystack_config,
         'paypal_config': paypal_config,
+        'ai_config': ai_config,
     }
     return render(request, 'billing/admin_settings.html', context)
 

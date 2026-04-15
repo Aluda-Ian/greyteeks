@@ -127,11 +127,6 @@
                 <div class="collapse" id="paymentsDropdown">
                     <ul class="nav flex-column ms-3 mt-1">
                         <li class="nav-item">
-                            <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
-                                <i class="bi bi-gear-wide-connected me-2"></i> Settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_transactions' %}">
                                 <i class="bi bi-receipt me-2"></i> Transactions
                             </a>
@@ -145,19 +140,18 @@
                 </div>
             </li>
 
-            {% endif %}
-
-            <hr class="text-secondary my-2">
-
-            <!-- Logout — all users -->
-            <li class="nav-item">
-                <form action="{% url 'logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link text-danger border-0 bg-transparent d-flex align-items-center w-100">
-                        <i class="bi bi-box-arrow-right me-2"></i> Logout
-                    </button>
-                </form>
+            <li class="nav-item mt-3">
+                <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
+                    <i class="bi bi-gear-wide-connected me-2"></i> Payment Settings
+                </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link text-white-50 d-flex align-items-center" href="{% url 'admin_billing_settings' %}">
+                    <i class="bi bi-robot me-2"></i> API Settings
+                </a>
+            </li>
+
+            {% endif %}
 
         </ul>
     </div>
@@ -315,6 +309,34 @@
                                     <button type="submit" class="btn btn-outline-{% if paypal_config.is_active %}danger{% else %}success{% endif %} w-100">
                                         {% if paypal_config.is_active %}Deactivate{% else %}Activate{% endif %}
                                     </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-4 mt-3">
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm rounded-4 p-4">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div>
+                                        <h5 class="fw-bold">Google Gemini API</h5>
+                                        <div class="text-muted small">AI feature configuration</div>
+                                    </div>
+                                    <span class="badge {% if ai_config.gemini_api_key %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if ai_config.gemini_api_key %}Configured{% else %}Not configured{% endif %}
+                                    </span>
+                                </div>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="save_gemini_api">
+                                    <div class="mb-3">
+                                        <label class="form-label">Gemini API Key</label>
+                                        <div class="input-group">
+                                            <input type="password" name="gemini_api_key" class="form-control" value="{{ ai_config.gemini_api_key }}">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword(this)"><i class="bi bi-eye"></i></button>
+                                        </div>
+                                        <small class="form-text text-muted">Enter your Google Gemini API key to enable AI campaign copy and reply suggestions.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Save Gemini API Key</button>
                                 </form>
                             </div>
                         </div>

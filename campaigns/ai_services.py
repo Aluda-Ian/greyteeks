@@ -1,4 +1,7 @@
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 
 from providers.models import AIProviderSetting
 
@@ -11,6 +14,8 @@ def _get_gemini_key():
 
 
 def _init_gemini():
+    if genai is None:
+        raise ImportError('The google-generativeai package is required for AI features. Install it in the project environment.')
     api_key = _get_gemini_key()
     genai.configure(api_key=api_key)
     return genai
