@@ -9,6 +9,8 @@ body {
 
 .sidebar { 
     height: 100vh; 
+    overflow-y: auto;
+    overflow-x: hidden;
     background: #1a202c; 
     color: white; 
     position: fixed;
@@ -16,6 +18,7 @@ body {
     left: 0;
     z-index: 100;
     width: 16.666667%;
+    box-sizing: border-box;
 }
 
 /* Base Nav Links */

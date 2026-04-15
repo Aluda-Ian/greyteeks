@@ -1,12 +1,16 @@
 import csv
+import json
 from io import TextIOWrapper
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from openpyxl import load_workbook
 
-from .models import Contact, Group
+from .models import Contact, Group, LeadForm
 
 @login_required
 def contact_list(request):
@@ -155,3 +159,124 @@ def upload_contacts(request):
         return redirect('dashboard')
 
     return render(request, 'contacts/upload.html', {'groups': groups})
+
+
+@login_required
+def manage_lead_forms(request):
+    groups = Group.objects.filter(user=request.user).order_by('-created_at')
+    lead_forms = LeadForm.objects.filter(user=request.user).order_by('-created_at')
+    preview_code = None
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        target_group_id = request.POST.get('target_group')
+        success_message = request.POST.get('success_message', '').strip() or 'Thank you for subscribing!'
+
+        if not name:
+            messages.error(request, 'Please give this lead form a name.')
+        else:
+            target_group = groups.filter(id=target_group_id).first()
+            if not target_group:
+                messages.error(request, 'Please choose a valid group for new leads.')
+            else:
+                lead_form = LeadForm.objects.create(
+                    user=request.user,
+                    target_group=target_group,
+                    name=name,
+                    success_message=success_message,
+                )
+                messages.success(request, 'Lead form created successfully. Copy the embed snippet below.')
+                lead_forms = LeadForm.objects.filter(user=request.user).order_by('-created_at')
+                preview_code = _build_lead_form_embed(request, lead_form)
+
+    lead_forms_with_embed = [
+        {
+            'lead_form': lead_form,
+            'embed_code': _build_lead_form_embed(request, lead_form),
+            'embed_url': request.build_absolute_uri(reverse('submit_lead_form', args=[lead_form.public_uuid])),
+        }
+        for lead_form in lead_forms
+    ]
+
+    return render(request, 'contacts/lead_forms.html', {
+        'groups': groups,
+        'lead_forms': lead_forms_with_embed,
+        'preview_code': preview_code,
+    })
+
+
+def _build_lead_form_embed(request, lead_form):
+    action_url = request.build_absolute_uri(reverse('submit_lead_form', args=[lead_form.public_uuid]))
+    return (
+        f'<form action="{action_url}" method="POST" style="max-width:420px; font-family:system-ui, sans-serif;">\n'
+        '  <div style="display:flex; flex-direction:column; gap:10px;">\n'
+        '    <label style="font-weight:600;">Name\n'
+        '      <input type="text" name="name" required style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px;">\n'
+        '    </label>\n'
+        '    <label style="font-weight:600;">Email\n'
+        '      <input type="email" name="email" required style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px;">\n'
+        '    </label>\n'
+        '    <label style="font-weight:600;">Phone\n'
+        '      <input type="tel" name="phone" style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px;">\n'
+        '    </label>\n'
+        '    <button type="submit" style="background:#3182ce; color:white; border:none; padding:12px 18px; border-radius:10px; cursor:pointer;">Subscribe</button>\n'
+        '  </div>\n'
+        '</form>'
+    )
+
+
+@csrf_exempt
+def submit_lead_form(request, form_uuid):
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
+    }
+
+    if request.method == 'OPTIONS':
+        return HttpResponse(status=204, headers=cors_headers)
+
+    if request.method != 'POST':
+        response = HttpResponseNotAllowed(['POST', 'OPTIONS'])
+        for header, value in cors_headers.items():
+            response[header] = value
+        return response
+
+    lead_form = LeadForm.objects.filter(public_uuid=form_uuid).first()
+    if not lead_form:
+        return JsonResponse({'detail': 'Form not found.'}, status=404, headers=cors_headers)
+
+    if not lead_form.is_active:
+        return JsonResponse({'detail': 'This form is inactive.'}, status=403, headers=cors_headers)
+
+    if request.content_type and request.content_type.startswith('application/json'):
+        try:
+            payload = json.loads(request.body.decode('utf-8') or '{}')
+        except json.JSONDecodeError:
+            payload = {}
+        name = payload.get('name', '').strip()
+        email = payload.get('email', '').strip()
+        phone = payload.get('phone', '').strip()
+    else:
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+
+    if not phone and not email:
+        return JsonResponse({'detail': 'Email or phone is required.'}, status=400, headers=cors_headers)
+
+    contact, created = Contact.objects.get_or_create(
+        group=lead_form.target_group,
+        phone_number=phone or '',
+        email=email or '',
+        defaults={'name': name},
+    )
+
+    if not created and name and not contact.name:
+        contact.name = name
+        contact.save(update_fields=['name'])
+
+    response = JsonResponse({'success': True, 'message': lead_form.success_message}, status=200)
+    for header, value in cors_headers.items():
+        response[header] = value
+    return response

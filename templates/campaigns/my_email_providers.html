@@ -1,69 +1,10 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Email Providers — Greyteeks</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 d-none d-md-block sidebar p-3">
-                <div class="text-center mb-3">
-                    <img src="{% static 'img/light-logo.svg' %}" class="sidebar-logo mx-auto" alt="Greyteeks logo">
-                </div>
-                <hr class="text-secondary">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'create_campaign' %}">
-                            <i class="bi bi-megaphone me-2"></i> Create Campaign
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'upload_contacts' %}">
-                            <i class="bi bi-people me-2"></i> Import Contacts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center active" href="{% url 'my_email_providers' %}">
-                            <i class="bi bi-envelope-gear me-2"></i> Email Providers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white d-flex align-items-center" href="{% url 'manage_templates' %}">
-                            <i class="bi bi-journal-text me-2"></i> Message Templates
-                        </a>
-                    </li>
-                    <li class="nav-item mt-5">
-                        <form action="{% url 'logout' %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link text-danger border-0 bg-transparent d-flex align-items-center">
-                                <i class="bi bi-box-arrow-right me-2"></i> Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </nav>
+{% extends 'campaigns/dashboard.html' %}
 
-            <main class="col-md-10 p-0">
-                <div class="px-4">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+{% block page_title %}My Email Providers{% endblock %}
+
+{% block content %}
+<div class="px-4">
+                    
 
                     <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
                         <div>
@@ -179,10 +120,4 @@
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

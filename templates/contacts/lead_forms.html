@@ -1,0 +1,213 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Generation Tools — Greyteeks</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+
+            <nav class="col-md-2 d-none d-md-block sidebar p-0">
+                <div class="sidebar-brand d-flex align-items-center justify-content-center px-3 py-3">
+                    <img src="{% static 'assets/images/logo/logo-white.svg' %}" class="sidebar-logo" alt="Greyteeks logo">
+                </div>
+                <div class="px-2 pb-4">
+                    <ul class="nav flex-column mt-2">
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'dashboard' %}">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center justify-content-between"
+                               href="#contactsDropdown"
+                               data-bs-toggle="collapse"
+                               aria-expanded="true"
+                               aria-controls="contactsDropdown">
+                                <span><i class="bi bi-people me-2"></i> Contacts</span>
+                                <i class="bi bi-chevron-down small"></i>
+                            </a>
+                            <div class="collapse show" id="contactsDropdown">
+                                <ul class="nav flex-column ms-3 mt-1">
+                                    <li class="nav-item">
+                                        <a class="nav-link d-flex align-items-center" href="{% url 'contact_list' %}">
+                                            <i class="bi bi-list-ul me-2"></i> Contacts List
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link d-flex align-items-center" href="{% url 'upload_contacts' %}">
+                                            <i class="bi bi-cloud-upload me-2"></i> Import Contacts
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link active d-flex align-items-center" href="{% url 'manage_lead_forms' %}">
+                                            <i class="bi bi-ui-checks-grid me-2"></i> Lead Forms
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <hr class="text-secondary my-2">
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'manage_templates' %}">
+                                <i class="bi bi-file-earmark-text me-2"></i> Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'email_builder' %}">
+                                <i class="bi bi-magic me-2"></i> Email Builder
+                            </a>
+                        </li>
+                        <hr class="text-secondary my-2">
+                        <li class="nav-item">
+                            <form action="{% url 'logout' %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link text-danger border-0 bg-transparent d-flex align-items-center w-100">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-10 p-0">
+                <div class="dashboard-top-bar d-flex justify-content-between align-items-center px-3 py-3 bg-white border-bottom">
+                    <div>
+                        <div class="text-muted small">Lead Generation Tools</div>
+                        <div class="fs-5 fw-semibold">{{ user.first_name|default:user.username|title }}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center"
+                              style="width:42px; height:42px;">
+                            {{ user.username|first|upper }}
+                        </span>
+                        <span class="fw-semibold text-dark">{{ user.username|title }}</span>
+                    </div>
+                </div>
+
+                <div class="dashboard-content">
+                    <div class="px-4 py-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                            <div>
+                                <h2 class="fw-bold mb-1">Lead Generation Forms</h2>
+                                <p class="text-muted mb-0">Create embeddable opt-in forms that collect leads directly into your selected group.</p>
+                            </div>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                            </a>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-lg-5">
+                                <div class="card border-0 shadow-sm p-4 rounded-4">
+                                    <h5 class="fw-bold mb-3">Create a New Lead Form</h5>
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Form Name</label>
+                                            <input type="text" name="name" class="form-control" placeholder="Main Website Newsletter" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Target Group</label>
+                                            <select name="target_group" class="form-select" required>
+                                                <option value="">Select a group</option>
+                                                {% for group in groups %}
+                                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Success Message</label>
+                                            <input type="text" name="success_message" class="form-control" value="Thank you for subscribing!">
+                                        </div>
+                                        <button class="btn btn-primary w-100" type="submit">Create Lead Form</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-7">
+                                <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+                                    <h5 class="fw-bold mb-3">Embed Snippet</h5>
+                                    <p class="text-muted mb-3">Once your form is live, paste this HTML into any external website to start collecting leads.</p>
+                                    {% if preview_code %}
+                                        <div class="mb-3">
+                                            <textarea id="latestEmbedSnippet" class="form-control" rows="10" readonly>{{ preview_code }}</textarea>
+                                        </div>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="copyEmbed(this, 'latestEmbedSnippet')">
+                                            <i class="bi bi-clipboard me-1"></i> Copy to Clipboard
+                                        </button>
+                                    {% else %}
+                                        <div class="alert alert-info mb-0">Create a lead form to generate the first embed snippet.</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card border-0 shadow-sm p-4 rounded-4">
+                                    <h5 class="fw-bold mb-3">Your Lead Forms</h5>
+                                    {% if lead_forms %}
+                                        {% for item in lead_forms %}
+                                            <div class="mb-4 border rounded-3 p-3">
+                                                <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                                                    <div>
+                                                        <h6 class="fw-semibold mb-1">{{ item.lead_form.name }}</h6>
+                                                        <div class="text-muted small">Group: {{ item.lead_form.target_group.name }} • Status: {{ item.lead_form.is_active|yesno:"Active,Inactive" }}</div>
+                                                    </div>
+                                                    <span class="badge bg-info text-dark">UUID</span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <small class="text-muted">Endpoint:</small>
+                                                    <div class="text-break">{{ item.embed_url }}</div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <textarea id="embed-{{ item.lead_form.id }}" class="form-control" rows="8" readonly>{{ item.embed_code }}</textarea>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="copyEmbed(this, 'embed-{{ item.lead_form.id }}')">
+                                                    <i class="bi bi-clipboard me-1"></i> Copy this snippet
+                                                </button>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-muted">No lead forms have been created yet.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function copyEmbed(button, elementId) {
+            const textarea = document.getElementById(elementId);
+            if (!textarea) return;
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(textarea.value).then(function () {
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check2 me-1"></i> Copied';
+                setTimeout(function () {
+                    button.innerHTML = originalHtml;
+                }, 1400);
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

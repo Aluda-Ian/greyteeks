@@ -44,10 +44,11 @@ from .models import Campaign, CampaignOpenEvent
 
 from .forms import CampaignForm
 from .tasks import dispatch_campaign_task
+from .ai_services import generate_campaign_copy, suggest_inbox_reply
 
 from .utils import get_ai_campaign_suggestion
 
-from providers.models import EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
+from providers.models import AIProviderSetting, EmailProvider, EmailTemplate, MessageTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
 from providers.services import route_sms, route_whatsapp, send_custom_email, test_whatsapp_meta_connection, test_whatsapp_infobip_connection, send_whatsapp_meta_message
 
@@ -332,6 +333,62 @@ def send_inbox_reply(request, conversation_id):
             'is_read': reply.is_read,
         },
     })
+
+
+@login_required
+def api_generate_copy(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required.'}, status=405)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
+
+    topic = payload.get('topic', '').strip()
+    channel = payload.get('channel', '').strip().lower()
+    if not topic or not channel:
+        return JsonResponse({'error': 'Both topic and channel are required.'}, status=400)
+
+    if channel not in ('sms', 'whatsapp', 'email'):
+        return JsonResponse({'error': 'Channel must be sms, whatsapp, or email.'}, status=400)
+
+    try:
+        result = generate_campaign_copy(topic, channel.title())
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    except Exception:
+        return JsonResponse({'error': 'AI generation failed. Please try again later.'}, status=500)
+
+    return JsonResponse({'copy': result})
+
+
+@login_required
+def api_suggest_reply(request, conversation_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required.'}, status=405)
+
+    conversation = Conversation.objects.filter(id=conversation_id, user=request.user).first()
+    if not conversation:
+        return JsonResponse({'error': 'Conversation not found.'}, status=404)
+
+    messages = list(conversation.messages.order_by('-timestamp')[:4])
+    if not messages:
+        return JsonResponse({'error': 'No recent chat history available.'}, status=400)
+
+    history = '\n'.join(
+        f"{message.direction.title()} ({message.channel}): {message.content}"
+        for message in reversed(messages)
+    )
+
+    try:
+        suggestion = suggest_inbox_reply(history)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+    except Exception:
+        return JsonResponse({'error': 'AI suggestion failed. Please try again later.'}, status=500)
+
+    return JsonResponse({'suggestion': suggestion})
 
 
 def _attempt_campaign_send(request, campaign):
@@ -800,9 +857,13 @@ def manage_templates(request):
 
             name = request.POST.get('name', '').strip()
 
+            description = request.POST.get('description', '').strip()
+
             subject = request.POST.get('subject', '').strip()
 
-            body_text = request.POST.get('body_text', '').strip()
+            status = request.POST.get('status', 'draft') if request.user.is_staff else 'draft'
+
+            status = 'published' if status == 'published' else 'draft'
 
             provider_id = request.POST.get('provider_id') if request.user.is_staff else None
 
@@ -814,9 +875,9 @@ def manage_templates(request):
 
 
 
-            if not (name and body_text):
+            if not (name and subject):
 
-                messages.error(request, 'Please provide a template name and body text.')
+                messages.error(request, 'Please provide a template name and subject.')
 
             else:
 
@@ -828,11 +889,19 @@ def manage_templates(request):
 
                     name=name,
 
+                    description=description,
+
                     subject=subject,
 
-                    body_text=body_text,
+                    body_text='',
 
-                    is_active=True,
+                    html_content='',
+
+                    design_json=None,
+
+                    status=status,
+
+                    is_active=(status == 'published'),
 
                 )
 
@@ -966,7 +1035,9 @@ def manage_templates(request):
 
         models.Q(owner=request.user) | models.Q(owner=None)
 
-    ).order_by('-created_at')
+    ).order_by('-status', '-created_at')
+    draft_templates = email_templates.filter(status='draft')
+    published_templates = email_templates.filter(status='published')
 
     whatsapp_templates = WhatsAppTemplate.objects.select_related('provider').filter(
 
@@ -985,6 +1056,10 @@ def manage_templates(request):
     context = {
 
         'email_templates': email_templates,
+
+        'draft_templates': draft_templates,
+
+        'published_templates': published_templates,
 
         'whatsapp_templates': whatsapp_templates,
 
@@ -1211,34 +1286,28 @@ def email_builder_save(request):
             return JsonResponse({'error': 'Template not found.'}, status=404)
 
         tmpl.name = name
-
+        tmpl.description = description
         tmpl.subject = subject
-
         tmpl.body_text = html_content
         tmpl.html_content = html_content
         tmpl.design_json = design_json
-
+        tmpl.status = status
         tmpl.provider = provider
-
+        tmpl.is_active = (status == 'published')
         tmpl.save()
 
     else:
         tmpl = EmailTemplate.objects.create(
-
             name=name,
-
+            description=description,
             subject=subject,
-
             body_text=html_content,
             html_content=html_content,
             design_json=design_json,
-
+            status=status,
             provider=provider,
-
             owner=request.user if not request.user.is_staff else None,
-
-            is_active=True,
-
+            is_active=(status == 'published'),
         )
 
 

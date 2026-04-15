@@ -40,10 +40,15 @@
             </div>
         </div>
 
-        <div class="col-12 mt-2">
-            <button type="button" class="btn btn-info text-white" onclick="generateAI()">
-                ✨ Generate AI copy for message body
-            </button>
+        <div class="row g-3 mt-3">
+            <div class="col-12">
+                <label class="form-label fw-semibold">AI Topic</label>
+                <input type="text" id="aiTopic" class="form-control mb-2" placeholder="e.g., Weekend sale on laptops">
+                <button type="button" id="btnGenerateAI" class="btn btn-sm btn-outline-primary">
+                    <span id="btnGenerateAIText">✨ Generate Magic Draft</span>
+                </button>
+                <span id="aiStatus" class="text-muted ms-3" style="display:none;">Generating...</span>
+            </div>
         </div>
 
         <div class="row g-3 mt-3">
@@ -217,15 +222,66 @@ function setSendMode(mode) {
     }
 }
 
+async function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 function generateAI() {
-    const topic = prompt("What is this campaign about? (e.g., Flash Sale, Welcome Message)");
-    if (topic) {
-        fetch(`/api/ai-suggest/?topic=${topic}`)
-            .then(response => response.json())
-            .then(data => {
-                const textarea = document.getElementById('campaignDescription');
-                if (textarea) textarea.value = data.suggestion;
-            });
+    const topicInput = document.getElementById('aiTopic');
+    const btn = document.getElementById('btnGenerateAI');
+    const btnText = document.getElementById('btnGenerateAIText');
+    const status = document.getElementById('aiStatus');
+    const messageField = document.getElementById('id_message_body');
+
+    if (!topicInput || !btn || !messageField) {
+        return;
+    }
+
+    const topic = topicInput.value.trim();
+    if (!topic) {
+        alert('Please enter a campaign topic before generating AI copy.');
+        return;
+    }
+
+    let channel = 'email';
+    if (document.getElementById('id_send_whatsapp')?.checked) {
+        channel = 'whatsapp';
+    } else if (document.getElementById('id_send_sms')?.checked) {
+        channel = 'sms';
+    } else if (document.getElementById('id_send_email')?.checked) {
+        channel = 'email';
+    }
+
+    btn.disabled = true;
+    btnText.textContent = 'Generating...';
+    status.style.display = 'inline';
+
+    try {
+        const response = await fetch('/api/campaigns/generate-copy/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ topic, channel }),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.copy) {
+            messageField.value = data.copy;
+        } else {
+            alert(data.error || 'Unable to generate AI copy.');
+        }
+    } catch (error) {
+        alert('Unable to reach the AI service. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = '✨ Generate Magic Draft';
+        status.style.display = 'none';
     }
 }
 </script>

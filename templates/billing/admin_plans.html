@@ -256,7 +256,7 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-end">
-                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2 edit-plan-btn" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" data-plan-units="{{ plan.units }}" data-plan-price-kes="{{ plan.price_kes }}" data-plan-price-usd="{{ plan.price_usd }}" data-plan-description="{{ plan.description|escapejs }}" data-plan-featured="{{ plan.is_featured|yesno:'true,false' }}">Edit</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2 edit-plan-btn" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name|escape }}" data-plan-units="{{ plan.units }}" data-plan-price-kes="{{ plan.price_kes }}" data-plan-price-usd="{{ plan.price_usd }}" data-plan-description="{{ plan.description|escape }}" data-plan-featured="{{ plan.is_featured|yesno:'true,false' }}">Edit</button>
                                                         <form method="post" class="d-inline-block me-2">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="action" value="toggle_plan">

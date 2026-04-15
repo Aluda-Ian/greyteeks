@@ -62,11 +62,13 @@ urlpatterns = [
     path('contacts/upload/', upload_contacts, name='upload_contacts'),
     path('contacts/<int:contact_id>/edit/', edit_contact, name='edit_contact'),
     path('contacts/<int:contact_id>/delete/', delete_contact, name='delete_contact'),
+    path('contacts/forms/', include('contacts_app.urls')),
     path('', include('providers.urls')),
     path('inbox/', unified_inbox, name='unified_inbox'),
     path('api/inbox/conversations/<int:conversation_id>/', get_conversation_messages, name='get_conversation_messages'),
     path('api/inbox/conversations/<int:conversation_id>/reply/', send_inbox_reply, name='send_inbox_reply'),
     path('billing/', include('billing.urls')),
+    path('api/campaigns/', include('campaigns.urls')),
     path('api/ai-suggest/', ai_suggest_view, name='ai_suggest'),
     path('system-admin/', admin.site.urls),
 ]

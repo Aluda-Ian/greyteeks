@@ -70,6 +70,11 @@ class EmailProvider(models.Model):
         return f"{self.name} ({'Active' if self.is_active else 'Inactive'})"
 
 class EmailTemplate(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+
     provider = models.ForeignKey(EmailProvider, on_delete=models.CASCADE, related_name='templates', null=True, blank=True)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -79,16 +84,38 @@ class EmailTemplate(models.Model):
         related_name='email_templates'
     )
     name = models.CharField(max_length=100, help_text="Internal template name")
+    description = models.TextField(blank=True, default='', help_text="Short template description")
     subject = models.CharField(max_length=200)
     body_text = models.TextField(help_text="Email body text or HTML")
     html_content = models.TextField(blank=True, default='')
     design_json = models.JSONField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         provider_name = self.provider.name if self.provider else 'No Provider'
         return f"{self.name} ({provider_name})"
+
+
+class AIProviderSetting(models.Model):
+    gemini_api_key = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'AI Provider Setting'
+        verbose_name_plural = 'AI Provider Settings'
+
+    def __str__(self):
+        return 'AI Provider Configuration'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
 
 
 class WhatsAppDeliveryLog(models.Model):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .env_utils import update_env_file
-from .models import EmailProvider, EmailTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
+from .models import AIProviderSetting, EmailProvider, EmailTemplate, SMSProvider, WhatsAppProvider, WhatsAppTemplate
 
 
 def _update_sms_provider_env(obj):
@@ -99,3 +99,15 @@ class EmailTemplateAdmin(StaffOnlyAdmin):
     list_display = ('name', 'provider', 'subject', 'is_active')
     list_filter = ('provider', 'is_active')
     search_fields = ('name', 'subject', 'body_text')
+
+
+@admin.register(AIProviderSetting)
+class AIProviderSettingAdmin(StaffOnlyAdmin):
+    list_display = ('gemini_api_key',)
+    fields = ('gemini_api_key',)
+
+    def has_add_permission(self, request):
+        return not AIProviderSetting.objects.exists()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(pk=1)

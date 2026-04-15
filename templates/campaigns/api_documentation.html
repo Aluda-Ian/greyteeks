@@ -1,156 +1,1160 @@
 {% extends 'campaigns/dashboard.html' %}
 
 {% block content %}
+<style>
+    /* ───────────────────────────────────────────────
+       API DOCS – Custom Styles
+    ─────────────────────────────────────────────── */
+    :root {
+        --doc-live-color:    #16a34a;
+        --doc-live-bg:       #f0fdf4;
+        --doc-live-border:   #86efac;
+        --doc-sandbox-color: #d97706;
+        --doc-sandbox-bg:    #fffbeb;
+        --doc-sandbox-border:#fcd34d;
+        --doc-code-bg:       #0f172a;
+        --doc-code-text:     #e2e8f0;
+        --doc-code-comment:  #64748b;
+        --doc-code-key:      #7dd3fc;
+        --doc-code-str:      #a5f3fc;
+        --doc-primary:       #6366f1;
+    }
+
+    /* Environment Banner */
+    .env-banner {
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        border: 1.5px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    .env-banner.live    { background: var(--doc-live-bg);    border-color: var(--doc-live-border);    color: var(--doc-live-color); }
+    .env-banner.sandbox { background: var(--doc-sandbox-bg); border-color: var(--doc-sandbox-border); color: var(--doc-sandbox-color); }
+
+    /* Environment toggle pill */
+    .env-toggle-wrap { display: inline-flex; border: 2px solid #e2e8f0; border-radius: 50px; overflow: hidden; cursor: pointer; }
+    .env-btn {
+        padding: 6px 22px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        border: none;
+        background: transparent;
+        transition: all 0.25s ease;
+        cursor: pointer;
+    }
+    .env-btn.active.live    { background: var(--doc-live-color);    color: #fff; }
+    .env-btn.active.sandbox { background: var(--doc-sandbox-color); color: #fff; }
+
+    /* Section nav pills */
+    .doc-nav { position: sticky; top: 16px; }
+    .doc-nav .nav-link {
+        color: #6b7280;
+        font-size: 0.82rem;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    .doc-nav .nav-link:hover { color: var(--doc-primary); background: #f5f3ff; border-left-color: #c7d2fe; }
+    .doc-nav .nav-link.active { color: var(--doc-primary); background: #eef2ff; border-left-color: var(--doc-primary); font-weight: 700; }
+
+    /* Code block */
+    .code-block {
+        background: var(--doc-code-bg);
+        color: var(--doc-code-text);
+        border-radius: 10px;
+        padding: 1.1rem 1.25rem;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        font-size: 0.8rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        position: relative;
+    }
+    .code-block .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        color: #94a3b8;
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .code-block .copy-btn:hover { background: var(--doc-primary); color: #fff; border-color: var(--doc-primary); }
+    .code-block .c { color: var(--doc-code-comment); font-style: italic; }
+    .code-block .k { color: #c084fc; }
+    .code-block .s { color: #86efac; }
+    .code-block .n { color: var(--doc-code-key); }
+    .code-block .v { color: #fbbf24; }
+    .code-block .url-live    { color: #4ade80; }
+    .code-block .url-sandbox { color: #fbbf24; }
+
+    /* Env-specific show/hide */
+    .show-live    { display: none; }
+    .show-sandbox { display: none; }
+    body.env-live    .show-live    { display: block; }
+    body.env-sandbox .show-sandbox { display: block; }
+    body.env-live    .show-live.d-inline    { display: inline !important; }
+    body.env-sandbox .show-sandbox.d-inline { display: inline !important; }
+    body.env-live    .hide-live    { display: none !important; }
+    body.env-sandbox .hide-sandbox { display: none !important; }
+
+    /* Inline env tags */
+    .badge-live    { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-sandbox { background: #fef9c3; color: #b45309; border: 1px solid #fde047; }
+    .badge-env {
+        font-size: 0.68rem;
+        padding: 2px 10px;
+        border-radius: 50px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    /* Field table */
+    .field-table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; font-weight: 700; }
+    .field-table td { font-size: 0.83rem; vertical-align: middle; }
+    .field-table code { background: #f1f5f9; color: #7c3aed; padding: 1px 6px; border-radius: 4px; font-size: 0.78rem; }
+    .required-badge { background: #fee2e2; color: #dc2626; border-radius: 4px; padding: 1px 7px; font-size: 0.7rem; font-weight: 700; }
+    .optional-badge { background: #f3f4f6; color: #6b7280; border-radius: 4px; padding: 1px 7px; font-size: 0.7rem; font-weight: 700; }
+
+    /* Section header */
+    .section-header { border-left: 4px solid var(--doc-primary); padding-left: 14px; margin-bottom: 1.25rem; }
+    .section-header h4 { margin: 0; font-weight: 800; color: #1e1b4b; }
+    .section-header p { margin: 4px 0 0; font-size: 0.88rem; color: #6b7280; }
+
+    /* Accordion custom */
+    .doc-accordion .accordion-button { font-weight: 700; font-size: 0.95rem; }
+    .doc-accordion .accordion-button:not(.collapsed) { background: #eef2ff; color: var(--doc-primary); box-shadow: none; }
+    .doc-accordion .accordion-button::after { filter: invert(0); }
+    .doc-accordion .accordion-button:not(.collapsed)::after { filter: invert(0.4) sepia(1) saturate(5) hue-rotate(211deg); }
+
+    /* Step badge */
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: var(--doc-primary);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* Status codes */
+    .status-200 { background: #dcfce7; color: #15803d; }
+    .status-400 { background: #fee2e2; color: #dc2626; }
+    .status-401 { background: #fef3c7; color: #b45309; }
+    .status-429 { background: #fce7f3; color: #9d174d; }
+    .status-500 { background: #f3f4f6; color: #374151; }
+    .status-pill { padding: 3px 12px; border-radius: 50px; font-size: 0.78rem; font-weight: 700; }
+
+    /* Tip box */
+    .tip-box {
+        background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+        border: 1px solid #c7d2fe;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+    }
+    .warning-box {
+        background: linear-gradient(135deg, #fff7ed 0%, #fef9c3 100%);
+        border: 1px solid #fed7aa;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+    }
+    .danger-box {
+        background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+        border: 1px solid #fca5a5;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+    }
+
+    /* Smooth scroll offset */
+    .doc-section { scroll-margin-top: 80px; }
+</style>
+
 <div class="container-fluid px-4 py-3">
-    <!-- Header -->
+
+    <!-- ═══════════════════════════════════
+         PAGE HEADER
+    ═══════════════════════════════════ -->
     <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom mt-3">
         <div>
-            <h2 class="fw-bold m-0"><i class="bi bi-book-half text-primary me-2"></i>API Integrations Documentation</h2>
-            <p class="text-muted mt-1 mb-0">Complete guide on how to configure SMS and WhatsApp gateways on Greyteeks.</p>
+            <h2 class="fw-bold m-0"><i class="bi bi-journal-code text-primary me-2"></i>API Integration Guide</h2>
+            <p class="text-muted mt-1 mb-0">Configure SMS, WhatsApp &amp; Email gateways — with live and sandbox environments explained.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <!-- ENV Toggle -->
+            <div>
+                <div class="env-toggle-wrap" id="envToggle">
+                    <button class="env-btn active live"    id="btnLive"    onclick="setEnv('live')"><i class="bi bi-circle-fill me-1" style="font-size:0.6rem;"></i>Live</button>
+                    <button class="env-btn sandbox"        id="btnSandbox" onclick="setEnv('sandbox')"><i class="bi bi-code-slash me-1"></i>Sandbox</button>
+                </div>
+                <div class="text-muted text-center mt-1" style="font-size:0.7rem;">Environment</div>
+            </div>
         </div>
     </div>
-    
-    <div class="row">
-        <div class="col-xl-12 col-lg-12">
-            <!-- SMS Section -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
-                    <h5 class="fw-bold m-0"><i class="bi bi-chat-left-dots text-primary me-2"></i> SMS API Providers</h5>
+
+    <!-- ENV Banner -->
+    <div id="envBannerLive" class="env-banner live mb-4 show-live">
+        <i class="bi bi-broadcast-pin fs-5"></i>
+        <div>
+            <strong>Live / Production Mode</strong> — Real messages are sent to real recipients. Charges apply.
+            Click <strong>Sandbox</strong> above to switch to the test environment, which is free and safe for integration testing.
+        </div>
+    </div>
+    <div id="envBannerSandbox" class="env-banner sandbox mb-4 show-sandbox">
+        <i class="bi bi-bug fs-5"></i>
+        <div>
+            <strong>Sandbox / Test Mode</strong> — Messages are simulated; no real delivery, no charges. Perfect for
+            development and QA. Switch to <strong>Live</strong> when you're ready to go to production.
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         LAYOUT: Nav + Main Content
+    ═══════════════════════════════════ -->
+    <div class="row g-4">
+
+        <!-- LEFT: Quick-nav -->
+        <div class="col-lg-2 d-none d-lg-block">
+            <nav class="doc-nav">
+                <div class="text-uppercase fw-bold text-muted mb-2" style="font-size:0.7rem; letter-spacing:0.08em;">Contents</div>
+                <ul class="nav flex-column gap-1">
+                    <li class="nav-item"><a href="#section-overview"   class="nav-link active">Overview</a></li>
+                    <li class="nav-item"><a href="#section-sms"        class="nav-link">SMS Providers</a></li>
+                    <li class="nav-item"><a href="#section-whatsapp"   class="nav-link">WhatsApp Providers</a></li>
+                    <li class="nav-item"><a href="#section-email"      class="nav-link">Email / SMTP</a></li>
+                    <li class="nav-item"><a href="#section-endpoints"  class="nav-link">API Endpoints</a></li>
+                    <li class="nav-item"><a href="#section-ratelimits" class="nav-link">Rate Limits</a></li>
+                    <li class="nav-item"><a href="#section-errors"     class="nav-link">Error Codes</a></li>
+                    <li class="nav-item"><a href="#section-templates"  class="nav-link">WA Templates</a></li>
+                    <li class="nav-item"><a href="#section-testing"    class="nav-link">Testing Guide</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- RIGHT: Main Docs -->
+        <div class="col-lg-10">
+
+            <!-- ─────────────────────────────────────
+                 1. OVERVIEW
+            ───────────────────────────────────── -->
+            <div id="section-overview" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-info-circle-fill text-primary me-2"></i>Overview</h4>
+                    <p>Base URLs, authentication, and environment configuration.</p>
                 </div>
-                <div class="card-body p-4">
-                    <div class="accordion" id="accordionSms">
-                        
-                        <!-- Africa's Talking -->
-                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
-                            <h2 class="accordion-header" id="headingAT">
-                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAT" aria-expanded="false" aria-controls="collapseAT">
-                                    Africa's Talking
-                                </button>
-                            </h2>
-                            <div id="collapseAT" class="accordion-collapse collapse" aria-labelledby="headingAT" data-bs-parent="#accordionSms">
-                                <div class="accordion-body bg-light">
-                                    <p class="text-muted">Africa's Talking provides robust SMS networks across Africa.</p>
-                                    <ol class="mb-0">
-                                        <li class="mb-2"><strong>Create an account</strong> on the <a href="https://account.africastalking.com/" target="_blank">Africa's Talking portal</a>.</li>
-                                        <li class="mb-2"><strong>Get your App Username:</strong> Ensure you create an "App" and use the exact App Username, <em>not</em> your login email.</li>
-                                        <li class="mb-2"><strong>Generate an API Key:</strong> Go to Settings > API Key and generate your key. Keep this secure.</li>
-                                        <li class="mb-2"><strong>Sender ID:</strong> Register an alphanumeric Sender ID. E.g., `GREYTEEKS`.</li>
-                                        <li class="mt-3"><strong>Dashboard Setup:</strong> Navigate to SMS > Add Provider. Select "Africa's Talking", input the API Key, your App Username, and your approved Sender ID.</li>
-                                    </ol>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm h-100" style="border-color: var(--doc-live-border) !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge-env badge-live me-2">LIVE</span>
+                                    <strong>Production Base URL</strong>
                                 </div>
+                                <div class="code-block mb-0" style="padding: 0.75rem 1rem; font-size:0.77rem;">
+                                    <span class="url-live">https://app.greyteeks.com/api/v1</span>
+                                </div>
+                                <div class="mt-2 text-muted small">Real-world traffic. All API calls here result in actual SMS / WhatsApp sends and billing.</div>
                             </div>
                         </div>
-
-                        <!-- Twilio -->
-                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
-                            <h2 class="accordion-header" id="headingTwilio">
-                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwilio" aria-expanded="false" aria-controls="collapseTwilio">
-                                    Twilio
-                                </button>
-                            </h2>
-                            <div id="collapseTwilio" class="accordion-collapse collapse" aria-labelledby="headingTwilio" data-bs-parent="#accordionSms">
-                                <div class="accordion-body bg-light">
-                                    <ol class="mb-0">
-                                        <li class="mb-2"><strong>Login</strong> to your <a href="https://console.twilio.com/" target="_blank">Twilio Console</a>.</li>
-                                        <li class="mb-2"><strong>Username (SID):</strong> Find your Account SID on the dashboard. This acts as your "username" in our setup.</li>
-                                        <li class="mb-2"><strong>API Key (Auth Token):</strong> Next to the Account SID, copy your Auth Token.</li>
-                                        <li class="mb-2"><strong>Sender ID:</strong> Copy your active Twilio Phone Number (e.g., `+1234567890`) or approved Alphanumeric Sender ID.</li>
-                                    </ol>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm h-100" style="border-color: var(--doc-sandbox-border) !important;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge-env badge-sandbox me-2">SANDBOX</span>
+                                    <strong>Sandbox Base URL</strong>
                                 </div>
+                                <div class="code-block mb-0" style="padding: 0.75rem 1rem; font-size:0.77rem;">
+                                    <span class="url-sandbox">https://sandbox.greyteeks.com/api/v1</span>
+                                </div>
+                                <div class="mt-2 text-muted small">Safe testing environment. Messages are never delivered. No charges incurred.</div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Infobip SMS -->
-                        <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
-                            <h2 class="accordion-header" id="headingInfobipSMS">
-                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipSMS" aria-expanded="false" aria-controls="collapseInfobipSMS">
-                                    Infobip SMS
-                                </button>
-                            </h2>
-                            <div id="collapseInfobipSMS" class="accordion-collapse collapse" aria-labelledby="headingInfobipSMS" data-bs-parent="#accordionSms">
-                                <div class="accordion-body bg-light">
-                                    <ol class="mb-0">
-                                        <li class="mb-2"><strong>API Key:</strong> Found inside the Developers section of your Infobip account.</li>
-                                        <li class="mb-2"><strong>Base URL (Username field):</strong> Use your custom Infobip Base URL (e.g., `xyz.api.infobip.com`) in the Greyteeks Username configuration field.</li>
-                                        <li class="mb-2"><strong>Sender ID:</strong> Configure the sender number registered with Infobip.</li>
-                                    </ol>
-                                </div>
-                            </div>
+                <div class="tip-box mb-3">
+                    <strong><i class="bi bi-key text-primary me-2"></i>Authentication</strong>
+                    <p class="mb-2 mt-1 small text-muted">All API requests require a <code>Bearer</code> token in the <code>Authorization</code> header. Obtain your key from <strong>Settings → API Keys</strong> in the Greyteeks dashboard.</p>
+                    <div class="code-block" style="font-size:0.78rem;">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c"># Authorization header format</span>
+<span class="n">Authorization</span>: <span class="s">Bearer YOUR_API_KEY_HERE</span>
+
+<span class="c"># Example curl</span>
+curl -X GET <span class="url-live show-live">https://app.greyteeks.com/api/v1/status</span><span class="url-sandbox show-sandbox">https://sandbox.greyteeks.com/api/v1/status</span> \
+  -H <span class="s">"Authorization: Bearer sk_live_xxxxxxxxxxxx"</span> \
+  -H <span class="s">"Content-Type: application/json"</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-1"><i class="bi bi-arrow-left-right text-primary me-1"></i>Request Format</div>
+                            <div class="small text-muted">All request bodies must be <strong>JSON</strong>.<br>Set <code>Content-Type: application/json</code>.</div>
                         </div>
-
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-1"><i class="bi bi-arrow-return-right text-success me-1"></i>Response Format</div>
+                            <div class="small text-muted">All responses return <strong>JSON</strong> with a consistent <code>status</code>, <code>message</code>, and optional <code>data</code> envelope.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-1"><i class="bi bi-clock text-warning me-1"></i>Timeouts</div>
+                            <div class="small text-muted">API requests time out after <strong>30 seconds</strong>. Implement retry logic for critical workflows.</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- WhatsApp Section -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
-                    <h5 class="fw-bold m-0"><i class="bi bi-whatsapp text-success me-2"></i> WhatsApp API Providers</h5>
+            <!-- ─────────────────────────────────────
+                 2. SMS PROVIDERS
+            ───────────────────────────────────── -->
+            <div id="section-sms" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-chat-left-dots-fill text-primary me-2"></i>SMS API Providers</h4>
+                    <p>Step-by-step credential extraction and Greyteeks configuration for each supported SMS gateway.</p>
                 </div>
-                <div class="card-body p-4">
-                    <div class="accordion" id="accordionWA">
-                        
-                        <!-- Meta Cloud API -->
-                        <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
-                            <h2 class="accordion-header" id="headingMeta">
-                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMeta" aria-expanded="false" aria-controls="collapseMeta">
-                                    Meta Cloud API (Official WhatsApp)
-                                </button>
-                            </h2>
-                            <div id="collapseMeta" class="accordion-collapse collapse" aria-labelledby="headingMeta" data-bs-parent="#accordionWA">
-                                <div class="accordion-body bg-light">
-                                    <p class="text-muted">Direct connection to Meta's infrastructure for zero-markup messaging.</p>
-                                    <h6 class="fw-bold mt-3">Step 1: Create a Meta App</h6>
-                                    <ol class="mb-3">
-                                        <li>Go to <a href="https://developers.facebook.com/" target="_blank">Meta for Developers</a>.</li>
-                                        <li>Create App > Business > Set up WhatsApp product.</li>
-                                    </ol>
-                                    <h6 class="fw-bold">Step 2: Generate Access Token</h6>
-                                    <ol class="mb-3">
-                                        <li>Do NOT use the temporary token provided on the dashboard.</li>
-                                        <li>Go to <strong>Business Settings</strong> > System Users.</li>
-                                        <li>Generate a token for a System User and assign it the <code class="text-danger">whatsapp_business_messaging</code> permission.</li>
-                                    </ol>
-                                    <h6 class="fw-bold">Step 3: Extract IDs</h6>
-                                    <ol class="mb-0">
-                                        <li class="mb-2"><strong>Phone Number ID:</strong> Found on the WhatsApp > Getting Started page. This uniquely identifies the sending number.</li>
-                                        <li><strong>WhatsApp Business Account ID (WABA ID):</strong> Also found on the Getting Started page.</li>
-                                    </ol>
+
+                <div class="accordion doc-accordion" id="accordionSms">
+
+                    <!-- AFRICA'S TALKING -->
+                    <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAT">
+                                <span class="step-badge bg-primary me-3">AT</span>
+                                Africa's Talking
+                                <span class="ms-3 badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.72rem;">Recommended for Africa</span>
+                            </button>
+                        </h2>
+                        <div id="collapseAT" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p class="text-muted">Africa's Talking provides robust, developer-friendly SMS coverage across 10+ African countries with reliable delivery reports.</p>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="tip-box">
+                                            <strong><span class="badge-env badge-live badge-env me-1">LIVE</span> Production Endpoint</strong>
+                                            <div class="code-block mt-2" style="font-size:0.77rem;">https://api.africastalking.com/version1/messaging</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="warning-box">
+                                            <strong><span class="badge-env badge-sandbox me-1">SANDBOX</span> Sandbox Endpoint</strong>
+                                            <div class="code-block mt-2" style="font-size:0.77rem;">https://api.sandbox.africastalking.com/version1/messaging</div>
+                                            <div class="small text-muted mt-1">Use sandbox username: <code>sandbox</code>. Messages appear in the AT simulator.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3"><i class="bi bi-list-ol me-2 text-primary"></i>Setup Steps</h6>
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">1</span>
+                                        <div><strong>Create an account</strong> on the <a href="https://account.africastalking.com/" target="_blank">Africa's Talking portal</a>. Verify your email and phone number to unlock full access.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">2</span>
+                                        <div><strong>Create an App:</strong> From your dashboard → <em>Apps</em> → <em>Create App</em>. Give it a unique name (e.g., <code>greyteeks-prod</code>). Note the <strong>App Username</strong> — this is <em>not</em> your login email.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">3</span>
+                                        <div><strong>Generate an API Key:</strong> Inside the app →<em>Settings → API Key</em> → click <em>Generate</em>. Copy and store it immediately (it won't be shown again).</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">4</span>
+                                        <div><strong>Register a Sender ID:</strong> Go to <em>SMS → Sender IDs → Request</em>. Provide your business name (e.g., <code>GREYTEEKS</code>). Approval may take 1–3 business days.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">5</span>
+                                        <div>
+                                            <strong>Configure in Greyteeks:</strong> Go to <em>Messaging → SMS → Add Provider</em>, select <em>Africa's Talking</em> and enter:
+                                            <table class="table table-sm field-table mt-2 mb-0">
+                                                <thead><tr><th>Greyteeks Field</th><th>Where to Find</th><th>Notes</th></tr></thead>
+                                                <tbody>
+                                                    <tr><td><code>API Key</code></td><td>App → Settings → API Key</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Username</code></td><td>App Username (not login email)</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Sender ID</code></td><td>Approved Sender ID string</td><td><span class="optional-badge">Optional</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tip-box mb-3">
+                                    <strong><i class="bi bi-terminal me-2"></i>Sample cURL — Send SMS</strong>
+                                    <div class="code-block mt-2">
+                                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+curl -X POST <span class="show-live url-live">https://app.greyteeks.com/api/v1/send/sms</span><span class="show-sandbox url-sandbox">https://sandbox.greyteeks.com/api/v1/send/sms</span> \
+  -H <span class="s">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "provider": "africas_talking",
+    "to": ["+254700000001", "+254700000002"],
+    "message": "Hello from Greyteeks!",
+    "sender_id": "GREYTEEKS"
+  }'</span>
+                                    </div>
+                                </div>
+
+                                <div class="warning-box">
+                                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                                    <strong>Sandbox Note:</strong> Use <code>username: "sandbox"</code> and your <strong>sandbox API key</strong> (generated separately from your sandbox app) when testing. Switch to your live app credentials for production.
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Infobip WA -->
-                        <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
-                            <h2 class="accordion-header" id="headingInfobipWA">
-                                <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipWA" aria-expanded="false" aria-controls="collapseInfobipWA">
-                                    Infobip WhatsApp
-                                </button>
-                            </h2>
-                            <div id="collapseInfobipWA" class="accordion-collapse collapse" aria-labelledby="headingInfobipWA" data-bs-parent="#accordionWA">
-                                <div class="accordion-body bg-light">
-                                    <ol class="mb-0">
-                                        <li class="mb-2"><strong>Access Token (API Key):</strong> Generated from Infobip's developer dashboard.</li>
-                                        <li class="mb-2"><strong>Base URL:</strong> The assigned regional URL (e.g., `xyz.api.infobip.com`).</li>
-                                        <li class="mb-2"><strong>Infobip Sender:</strong> The official WhatsApp number approved inside Infobip.</li>
-                                    </ol>
+                    <!-- TWILIO -->
+                    <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwilio">
+                                <span class="step-badge bg-danger me-3"><i class="bi bi-telephone-fill" style="font-size:0.65rem;"></i></span>
+                                Twilio SMS
+                                <span class="ms-3 badge bg-info-subtle text-info border border-info-subtle" style="font-size:0.72rem;">Global Coverage</span>
+                            </button>
+                        </h2>
+                        <div id="collapseTwilio" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p class="text-muted">Twilio is a globally trusted CPaaS with SMS coverage in 180+ countries and strong delivery guarantees.</p>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="tip-box">
+                                            <strong><span class="badge-env badge-live me-1">LIVE</span> Production</strong>
+                                            <div class="small text-muted mt-1">Use your production <strong>Account SID</strong> and <strong>Auth Token</strong> from the Twilio Console home page.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="warning-box">
+                                            <strong><span class="badge-env badge-sandbox me-1">SANDBOX</span> Trial Account</strong>
+                                            <div class="small text-muted mt-1">New Twilio accounts come with a free trial. SMS can only be sent to <strong>verified</strong> numbers during trial mode. No charges incurred until upgraded.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3"><i class="bi bi-list-ol me-2 text-primary"></i>Setup Steps</h6>
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">1</span>
+                                        <div>Login to the <a href="https://console.twilio.com/" target="_blank">Twilio Console</a>. From the home page, copy your <strong>Account SID</strong> and <strong>Auth Token</strong>.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">2</span>
+                                        <div><strong>Buy or verify a phone number:</strong> <em>Phone Numbers → Manage → Buy a Number</em>. Enable SMS capability. This becomes your Sender ID.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">3</span>
+                                        <div>
+                                            <strong>Configure in Greyteeks:</strong>
+                                            <table class="table table-sm field-table mt-2 mb-0">
+                                                <thead><tr><th>Greyteeks Field</th><th>Twilio Value</th><th>Notes</th></tr></thead>
+                                                <tbody>
+                                                    <tr><td><code>API Key</code></td><td>Auth Token</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Username</code></td><td>Account SID</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Sender ID</code></td><td>Twilio Phone Number e.g. <code>+1234567890</code></td><td><span class="required-badge">Required</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="code-block mb-3">
+                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c"># Twilio test (send to verified number only in trial)</span>
+curl -X POST <span class="show-live url-live">https://app.greyteeks.com/api/v1/send/sms</span><span class="show-sandbox url-sandbox">https://sandbox.greyteeks.com/api/v1/send/sms</span> \
+  -H <span class="s">"Authorization: Bearer YOUR_GREYTEEKS_KEY"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "provider": "twilio",
+    "to": ["+254700000001"],
+    "message": "Hello from Twilio via Greyteeks!",
+    "sender_id": "+12025551234"
+  }'</span>
+                                </div>
+                                <div class="danger-box">
+                                    <i class="bi bi-shield-exclamation text-danger me-2"></i>
+                                    <strong>Security:</strong> Never expose your Auth Token in client-side code or version control. Use environment variables and rotate tokens if compromised.
                                 </div>
                             </div>
                         </div>
+                    </div>
 
+                    <!-- INFOBIP SMS -->
+                    <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipSMS">
+                                <span class="step-badge bg-dark me-3"><i class="bi bi-globe2" style="font-size:0.65rem;"></i></span>
+                                Infobip SMS
+                                <span class="ms-3 badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:0.72rem;">Enterprise Grade</span>
+                            </button>
+                        </h2>
+                        <div id="collapseInfobipSMS" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p class="text-muted">Infobip is an enterprise CPaaS with high-throughput SMS, built-in analytics, and dedicated regional base URLs for latency optimization.</p>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="tip-box">
+                                            <strong><span class="badge-env badge-live me-1">LIVE</span> Production</strong>
+                                            <div class="small text-muted mt-1">Your account base URL is unique, e.g., <code>xyz123.api.infobip.com</code>. Found in your Infobip portal.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="warning-box">
+                                            <strong><span class="badge-env badge-sandbox me-1">SANDBOX</span> Test Mode</strong>
+                                            <div class="small text-muted mt-1">Infobip provides a <a href="https://www.infobip.com/docs/essentials/free-trial" target="_blank">free trial</a> where SMS deliveries are simulated. Use your trial API key.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3"><i class="bi bi-list-ol me-2 text-primary"></i>Setup Steps</h6>
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">1</span>
+                                        <div>Login to your <a href="https://portal.infobip.com/" target="_blank">Infobip portal</a>. Your unique <strong>Base URL</strong> is displayed on the home page (e.g., <code>xyz.api.infobip.com</code>).</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">2</span>
+                                        <div><strong>Generate API Key:</strong> Go to <em>Developer Tools → API Keys → Create API Key</em>. Assign it the <code>SMS Send</code> permission scope.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">3</span>
+                                        <div><strong>Register Sender:</strong> <em>SMS → Senders → Add Sender</em>. Note your approved sender number or alphanumeric ID.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">4</span>
+                                        <div>
+                                            <strong>Configure in Greyteeks:</strong>
+                                            <table class="table table-sm field-table mt-2 mb-0">
+                                                <thead><tr><th>Greyteeks Field</th><th>Value</th><th></th></tr></thead>
+                                                <tbody>
+                                                    <tr><td><code>API Key</code></td><td>Infobip API Key</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Username</code></td><td>Your Base URL e.g. <code>xyz.api.infobip.com</code></td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Sender ID</code></td><td>Registered sender number</td><td><span class="required-badge">Required</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /SMS accordion -->
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 3. WHATSAPP PROVIDERS
+            ───────────────────────────────────── -->
+            <div id="section-whatsapp" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-whatsapp text-success me-2"></i>WhatsApp API Providers</h4>
+                    <p>Official Meta Cloud API and Infobip WhatsApp gateway configuration.</p>
+                </div>
+
+                <div class="accordion doc-accordion" id="accordionWA">
+
+                    <!-- META CLOUD API -->
+                    <div class="accordion-item mb-3 border rounded-3 overflow-hidden shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMeta">
+                                <span class="step-badge" style="background:#1877f2;"><i class="bi bi-meta" style="font-size:0.65rem;"></i></span>
+                                <span class="ms-3">Meta Cloud API <small class="fw-normal text-muted">(Official WhatsApp)</small></span>
+                                <span class="ms-3 badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.72rem;">Direct Meta Integration</span>
+                            </button>
+                        </h2>
+                        <div id="collapseMeta" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <p class="text-muted">The official Meta Cloud API connects directly to Meta's infrastructure — zero markup, highest reliability, full template management via Meta Business Suite.</p>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="tip-box">
+                                            <strong><span class="badge-env badge-live me-1">LIVE</span> Production</strong>
+                                            <div class="small text-muted mt-1">Messages sent to real mobile numbers. Charges apply per Meta's conversation-based pricing model.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="warning-box">
+                                            <strong><span class="badge-env badge-sandbox me-1">SANDBOX</span> Test Phone Numbers</strong>
+                                            <div class="small text-muted mt-1">In <em>WhatsApp → Getting Started</em>, Meta provides 5 test recipient numbers. Messages send without real delivery. No charges apply.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="fw-bold mb-3"><i class="bi bi-list-ol me-2 text-primary"></i>Detailed Setup</h6>
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">1</span>
+                                        <div><strong>Create a Meta Business Account:</strong> Visit <a href="https://business.facebook.com/" target="_blank">Meta Business Suite</a> and set up or link your business account.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">2</span>
+                                        <div><strong>Create a Meta App:</strong> Go to <a href="https://developers.facebook.com/" target="_blank">Meta for Developers</a> → <em>My Apps → Create App → Business</em>. Add the <em>WhatsApp</em> product.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">3</span>
+                                        <div>
+                                            <strong>Generate a Permanent Access Token (critical):</strong>
+                                            <div class="danger-box mt-2">
+                                                <i class="bi bi-x-circle text-danger me-1"></i> <strong>Do NOT use</strong> the temporary token from the Getting Started page — it expires in 24 hours and will break your integration.
+                                            </div>
+                                            <ul class="small mt-2 mb-0">
+                                                <li>Go to <em>Business Settings → System Users → Add</em></li>
+                                                <li>Create a System User, click <em>Generate New Token</em></li>
+                                                <li>Select your app, enable <code>whatsapp_business_messaging</code> + <code>whatsapp_business_management</code></li>
+                                                <li>Copy and store the token securely — shown only once</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">4</span>
+                                        <div>
+                                            <strong>Extract IDs:</strong> From <em>WhatsApp → Getting Started</em> in your app, copy:
+                                            <ul class="small mb-0 mt-1">
+                                                <li><strong>Phone Number ID</strong> — identifies the sending number</li>
+                                                <li><strong>WhatsApp Business Account ID (WABA ID)</strong> — your business account identifier</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">5</span>
+                                        <div>
+                                            <strong>Configure in Greyteeks:</strong> Go to <em>Messaging → WhatsApp → Add Provider</em>, select <em>Meta Cloud API</em>:
+                                            <table class="table table-sm field-table mt-2 mb-0">
+                                                <thead><tr><th>Greyteeks Field</th><th>Meta Value</th><th></th></tr></thead>
+                                                <tbody>
+                                                    <tr><td><code>Access Token</code></td><td>System User permanent token</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Phone Number ID</code></td><td>From Getting Started page</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>WABA ID</code></td><td>WhatsApp Business Account ID</td><td><span class="required-badge">Required</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">6</span>
+                                        <div>
+                                            <strong>Set up Webhook (for delivery reports &amp; inbound messages):</strong>
+                                            <ul class="small mt-1 mb-0">
+                                                <li>In Meta App → <em>WhatsApp → Configuration</em> → <em>Webhooks</em></li>
+                                                <li>Callback URL: <code class="show-live">https://app.greyteeks.com/webhook/whatsapp/</code><code class="show-sandbox">https://sandbox.greyteeks.com/webhook/whatsapp/</code></li>
+                                                <li>Verify Token: contact your Greyteeks admin for your unique verify token</li>
+                                                <li>Subscribe to: <code>messages</code>, <code>message_deliveries</code>, <code>message_reads</code></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c"># Send a WhatsApp template message</span>
+curl -X POST <span class="show-live url-live">https://app.greyteeks.com/api/v1/send/whatsapp</span><span class="show-sandbox url-sandbox">https://sandbox.greyteeks.com/api/v1/send/whatsapp</span> \
+  -H <span class="s">"Authorization: Bearer YOUR_GREYTEEKS_KEY"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "provider": "meta",
+    "to": "+254700000001",
+    "template_name": "hello_world",
+    "language_code": "en_US",
+    "components": []
+  }'</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INFOBIP WA -->
+                    <div class="accordion-item border rounded-3 overflow-hidden shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfobipWA">
+                                <span class="step-badge bg-dark me-3"><i class="bi bi-globe2" style="font-size:0.65rem;"></i></span>
+                                Infobip WhatsApp
+                            </button>
+                        </h2>
+                        <div id="collapseInfobipWA" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <p class="text-muted">Route WhatsApp messages through Infobip's enterprise gateway with built-in compliance, analytics, and fallback channels.</p>
+
+                                <div class="d-flex flex-column gap-3 mb-4">
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">1</span>
+                                        <div>Login to your <a href="https://portal.infobip.com/" target="_blank">Infobip portal</a>. Enable <strong>WhatsApp</strong> in your package. Your unique <strong>Base URL</strong> is shown on the home page.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">2</span>
+                                        <div><strong>Generate API Key:</strong> <em>Developer Tools → API Keys → Create API Key</em>. Enable the <code>WhatsApp Send</code> and <code>WhatsApp Receive</code> scopes.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">3</span>
+                                        <div><strong>Register WhatsApp Sender:</strong> Contact Infobip support to link your WhatsApp Business number to your Infobip account. Note the approved sender number.</div>
+                                    </div>
+                                    <div class="d-flex gap-3 align-items-start">
+                                        <span class="step-badge">4</span>
+                                        <div>
+                                            <strong>Configure in Greyteeks:</strong>
+                                            <table class="table table-sm field-table mt-2 mb-0">
+                                                <thead><tr><th>Greyteeks Field</th><th>Infobip Value</th><th></th></tr></thead>
+                                                <tbody>
+                                                    <tr><td><code>Access Token</code></td><td>Infobip API Key</td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Base URL</code></td><td>e.g. <code>xyz.api.infobip.com</code></td><td><span class="required-badge">Required</span></td></tr>
+                                                    <tr><td><code>Infobip Sender</code></td><td>Approved WA sender number</td><td><span class="required-badge">Required</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /WA accordion -->
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 4. EMAIL / SMTP
+            ───────────────────────────────────── -->
+            <div id="section-email" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-envelope-fill text-danger me-2"></i>Email / SMTP Configuration</h4>
+                    <p>Configure an SMTP relay for email campaign delivery.</p>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold"><i class="bi bi-envelope-at me-2 text-primary"></i>Gmail / Google Workspace</h6>
+                            <table class="table table-sm field-table">
+                                <tbody>
+                                    <tr><td><code>SMTP Host</code></td><td><code>smtp.gmail.com</code></td></tr>
+                                    <tr><td><code>SMTP Port</code></td><td><code>587</code> (TLS) or <code>465</code> (SSL)</td></tr>
+                                    <tr><td><code>Username</code></td><td>Your Gmail address</td></tr>
+                                    <tr><td><code>Password</code></td><td>App Password (2FA required)</td></tr>
+                                    <tr><td><code>Use TLS</code></td><td>✅ Yes</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="tip-box">
+                                <i class="bi bi-info-circle text-primary me-1"></i>
+                                <strong>App Password:</strong> Go to <em>Google Account → Security → App Passwords</em> (requires 2FA enabled). Use this as your SMTP password instead of your login password.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold"><i class="bi bi-send me-2 text-info"></i>SendGrid</h6>
+                            <table class="table table-sm field-table">
+                                <tbody>
+                                    <tr><td><code>SMTP Host</code></td><td><code>smtp.sendgrid.net</code></td></tr>
+                                    <tr><td><code>SMTP Port</code></td><td><code>587</code></td></tr>
+                                    <tr><td><code>Username</code></td><td><code>apikey</code> (literal string)</td></tr>
+                                    <tr><td><code>Password</code></td><td>Your SendGrid API key</td></tr>
+                                    <tr><td><code>Use TLS</code></td><td>✅ Yes</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="warning-box mt-2">
+                                <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                <strong>Sandbox:</strong> SendGrid provides a <a href="https://docs.sendgrid.com/for-developers/sending-email/sandbox-mode" target="_blank">Sandbox Mode</a> where emails are validated but not delivered. Enable it via the API request header.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c"># Send a transactional email via Greyteeks</span>
+curl -X POST <span class="show-live url-live">https://app.greyteeks.com/api/v1/send/email</span><span class="show-sandbox url-sandbox">https://sandbox.greyteeks.com/api/v1/send/email</span> \
+  -H <span class="s">"Authorization: Bearer YOUR_GREYTEEKS_KEY"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "to": ["recipient@example.com"],
+    "subject": "Welcome to Greyteeks",
+    "template_id": 42,
+    "merge_vars": {
+      "first_name": "Jane",
+      "company": "Acme Corp"
+    }
+  }'</span>
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 5. ENDPOINTS
+            ───────────────────────────────────── -->
+            <div id="section-endpoints" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-code-square text-primary me-2"></i>API Endpoints Reference</h4>
+                    <p>All Greyteeks REST endpoints — current environment: <span class="show-live badge-env badge-live d-inline">LIVE</span><span class="show-sandbox badge-env badge-sandbox d-inline">SANDBOX</span></p>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden bg-white">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="font-size:0.78rem;">Method</th>
+                                <th style="font-size:0.78rem;">Endpoint</th>
+                                <th style="font-size:0.78rem;">Description</th>
+                                <th style="font-size:0.78rem;">Auth</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size:0.83rem;">
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/status</code></td><td>API health check</td><td>No</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/api/v1/send/sms</code></td><td>Send an SMS message or campaign</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/api/v1/send/whatsapp</code></td><td>Send a WhatsApp template message</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/api/v1/send/email</code></td><td>Send a transactional email</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/campaigns</code></td><td>List all campaigns</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/campaigns/{id}</code></td><td>Get campaign details and stats</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/api/v1/campaigns</code></td><td>Create a new campaign</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-warning text-dark">PATCH</span></td><td><code>/api/v1/campaigns/{id}/cancel</code></td><td>Cancel a scheduled campaign</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/contacts</code></td><td>List contacts (paginated)</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/api/v1/contacts/import</code></td><td>Bulk import contacts via JSON</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/templates</code></td><td>List WhatsApp templates</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/delivery-reports/{id}</code></td><td>Get delivery report for a sent message</td><td>Yes</td></tr>
+                            <tr><td><span class="badge bg-primary">POST</span></td><td><code>/webhook/whatsapp/</code></td><td>Meta webhook for delivery &amp; inbound</td><td>Token</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tip-box mt-3">
+                    <i class="bi bi-info-circle text-primary me-2"></i>
+                    <strong>Base URL reminder:</strong>
+                    Prefix all endpoints above with
+                    <span class="show-live"><code class="url-live">https://app.greyteeks.com</code> (Live)</span>
+                    <span class="show-sandbox"><code class="url-sandbox">https://sandbox.greyteeks.com</code> (Sandbox)</span>.
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 6. RATE LIMITS
+            ───────────────────────────────────── -->
+            <div id="section-ratelimits" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-speedometer text-warning me-2"></i>Rate Limits</h4>
+                    <p>Understand the request throttling policy for each environment and plan.</p>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle bg-white shadow-sm rounded-3 overflow-hidden" style="font-size:0.83rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Plan</th>
+                                <th>Requests / Minute</th>
+                                <th>SMS / Hour</th>
+                                <th>WhatsApp / Hour</th>
+                                <th>Environment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Starter</strong></td>
+                                <td>60</td>
+                                <td>500</td>
+                                <td>200</td>
+                                <td><span class="badge-env badge-live">LIVE</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Growth</strong></td>
+                                <td>300</td>
+                                <td>5,000</td>
+                                <td>2,000</td>
+                                <td><span class="badge-env badge-live">LIVE</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Enterprise</strong></td>
+                                <td>Unlimited</td>
+                                <td>Unlimited</td>
+                                <td>Unlimited</td>
+                                <td><span class="badge-env badge-live">LIVE</span></td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Sandbox</strong></td>
+                                <td>30</td>
+                                <td>100 (simulated)</td>
+                                <td>100 (simulated)</td>
+                                <td><span class="badge-env badge-sandbox">SANDBOX</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning-box">
+                    <i class="bi bi-hourglass-split text-warning me-2"></i>
+                    <strong>429 Too Many Requests:</strong> When rate-limited, the response includes a <code>Retry-After</code> header indicating how many seconds to wait before retrying. Implement exponential back-off with jitter in your integration.
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 7. ERROR CODES
+            ───────────────────────────────────── -->
+            <div id="section-errors" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-bug-fill text-danger me-2"></i>Error Codes &amp; Responses</h4>
+                    <p>Standard HTTP status codes and their meaning within the Greyteeks API.</p>
+                </div>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-hover align-middle bg-white shadow-sm" style="font-size:0.83rem;">
+                        <thead class="table-light">
+                            <tr><th>Status</th><th>Code</th><th>Meaning</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><span class="status-pill status-200">200 OK</span></td><td>—</td><td>Request processed successfully</td><td>None</td></tr>
+                            <tr><td><span class="status-pill status-400">400 Bad Request</span></td><td>INVALID_PAYLOAD</td><td>Missing or malformed request body</td><td>Check required fields in request</td></tr>
+                            <tr><td><span class="status-pill status-401">401 Unauthorized</span></td><td>INVALID_TOKEN</td><td>API key missing or invalid</td><td>Regenerate key from Settings</td></tr>
+                            <tr><td><span class="status-pill status-400">403 Forbidden</span></td><td>QUOTA_EXCEEDED</td><td>Messaging quota exhausted</td><td>Upgrade plan or wait for reset</td></tr>
+                            <tr><td><span class="status-pill status-400">404 Not Found</span></td><td>RESOURCE_NOT_FOUND</td><td>Campaign or contact not found</td><td>Verify the resource ID</td></tr>
+                            <tr><td><span class="status-pill status-429">429 Too Many Requests</span></td><td>RATE_LIMITED</td><td>Request rate exceeded</td><td>Use <code>Retry-After</code> header to back off</td></tr>
+                            <tr><td><span class="status-pill status-500">500 Internal Error</span></td><td>SERVER_ERROR</td><td>Unexpected server-side error</td><td>Retry after a delay; contact support if persistent</td></tr>
+                            <tr><td><span class="status-pill status-400">422 Unprocessable</span></td><td>PROVIDER_ERROR</td><td>Downstream provider rejected the message</td><td>Check provider credentials and template approval status</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c">// Standard Greyteeks error response body</span>
+{
+  <span class="n">"status"</span>:  <span class="s">"error"</span>,
+  <span class="n">"code"</span>:    <span class="s">"INVALID_TOKEN"</span>,
+  <span class="n">"message"</span>: <span class="s">"The API key provided is invalid or has been revoked."</span>,
+  <span class="n">"docs"</span>:    <span class="s">"https://app.greyteeks.com/docs/errors#INVALID_TOKEN"</span>
+}
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 8. WHATSAPP TEMPLATES
+            ───────────────────────────────────── -->
+            <div id="section-templates" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-file-earmark-check-fill text-success me-2"></i>WhatsApp Message Templates</h4>
+                    <p>Meta requires all business-initiated messages to use pre-approved templates.</p>
+                </div>
+
+                <div class="danger-box mb-4">
+                    <h6 class="fw-bold"><i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>Critical — Template Compliance</h6>
+                    <p class="mb-0 small">Per Meta policy, <strong>every outbound WhatsApp message initiated by a business</strong> must use a pre-approved template. The message body must match the approved template character-for-character. Any deviation will cause delivery failure with a <code>PROVIDER_ERROR</code>.</p>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-2"><i class="bi bi-megaphone text-primary me-1"></i>MARKETING</div>
+                            <div class="small text-muted">Promotions, offers, newsletters. User must have opted in. Charged at marketing conversation rate.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-2"><i class="bi bi-bell text-warning me-1"></i>UTILITY</div>
+                            <div class="small text-muted">Order confirmations, alerts, account notifications. Lower rate than marketing.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 bg-light p-3 rounded-3 h-100">
+                            <div class="fw-bold mb-2"><i class="bi bi-shield-check text-success me-1"></i>AUTHENTICATION</div>
+                            <div class="small text-muted">OTPs and verification codes. Lowest rate. Must use the standard OTP template format.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">Creating &amp; Submitting a Template</h6>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">1</span>
+                        <div>In Meta Business Suite → <em>WhatsApp Manager → Message Templates → Create Template</em></div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">2</span>
+                        <div>Choose <strong>Category</strong> (Marketing / Utility / Authentication), enter a lowercase underscore <strong>Template Name</strong> (e.g., <code>order_confirmation</code>), and select a <strong>Language</strong>.</div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">3</span>
+                        <div>Write the template body using <code>{{1}}</code>, <code>{{2}}</code> for dynamic variables. Example: <code>Hello {{1}}, your order {{2}} has been shipped.</code></div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">4</span>
+                        <div>Submit for review. Approval typically takes <strong>2–24 hours</strong>. You'll receive an email notification.</div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">5</span>
+                        <div>In Greyteeks → <em>Messaging → WhatsApp → Templates → Import</em>. Paste the exact template name and configure variable mappings.</div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c">// Sending a template with variables</span>
+{
+  <span class="n">"provider"</span>:      <span class="s">"meta"</span>,
+  <span class="n">"to"</span>:           <span class="s">"+254700000001"</span>,
+  <span class="n">"template_name"</span>: <span class="s">"order_confirmation"</span>,
+  <span class="n">"language_code"</span>: <span class="s">"en_US"</span>,
+  <span class="n">"components"</span>: [
+    {
+      <span class="n">"type"</span>: <span class="s">"body"</span>,
+      <span class="n">"parameters"</span>: [
+        { <span class="n">"type"</span>: <span class="s">"text"</span>, <span class="n">"text"</span>: <span class="s">"Jane"</span> },
+        { <span class="n">"type"</span>: <span class="s">"text"</span>, <span class="n">"text"</span>: <span class="s">"ORD-20240415"</span> }
+      ]
+    }
+  ]
+}
+                </div>
+            </div>
+
+            <!-- ─────────────────────────────────────
+                 9. TESTING GUIDE
+            ───────────────────────────────────── -->
+            <div id="section-testing" class="doc-section mb-5">
+                <div class="section-header mb-3">
+                    <h4><i class="bi bi-flask-fill text-info me-2"></i>Integration Testing Guide</h4>
+                    <p>Best practices for validating your setup before going live.</p>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 h-100">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-1-circle-fill text-primary me-2"></i>SMS Testing Checklist</h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Use Africa's Talking sandbox (username: <code>sandbox</code>) to simulate sends</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Twilio: verify at least one test phone number in console before trial sends</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Test phone number formatting: always use E.164 format (<code>+254XXXXXXXXX</code>)</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Check delivery reports via <code>GET /api/v1/delivery-reports/{id}</code></li>
+                                <li class="d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Verify <code>sender_id</code> is approved before bulk sends</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm p-4 rounded-3 h-100">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-2-circle-fill text-success me-2"></i>WhatsApp Testing Checklist</h6>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Use Meta's 5 sandbox test recipient numbers during development</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Confirm <code>hello_world</code> template works before testing your own templates</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Verify webhook is correctly registered and verify token matches</li>
+                                <li class="mb-2 d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Check all variable placeholders are filled in correctly</li>
+                                <li class="d-flex gap-2"><i class="bi bi-check2-square text-success mt-1"></i> Monitor delivery logs via <em>Messaging → WhatsApp → Logs</em></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box mb-4">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-terminal-fill text-primary me-2"></i>Quick Environment Health Check</h6>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="c"># Verify your API key and environment are correctly configured</span>
+curl <span class="show-live url-live">https://app.greyteeks.com/api/v1/status</span><span class="show-sandbox url-sandbox">https://sandbox.greyteeks.com/api/v1/status</span> \
+  -H <span class="s">"Authorization: Bearer YOUR_API_KEY"</span>
+
+<span class="c"># Expected response</span>
+{
+  <span class="n">"status"</span>:      <span class="s">"ok"</span>,
+  <span class="n">"environment"</span>: <span class="show-live"><span class="s">"production"</span></span><span class="show-sandbox"><span class="s">"sandbox"</span></span>,
+  <span class="n">"version"</span>:     <span class="s">"1.0.0"</span>,
+  <span class="n">"timestamp"</span>:   <span class="s">"2026-04-15T12:00:00Z"</span>
+}
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{% url 'manage_sms' %}" class="card border-0 shadow-sm p-3 rounded-3 text-decoration-none d-flex flex-row align-items-center gap-3">
+                            <i class="bi bi-chat-left-dots-fill fs-3 text-primary"></i>
+                            <div>
+                                <div class="fw-bold text-dark">Configure SMS Provider</div>
+                                <div class="small text-muted">Add or edit your SMS gateway settings</div>
+                            </div>
+                            <i class="bi bi-arrow-right ms-auto text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'manage_whatsapp' %}" class="card border-0 shadow-sm p-3 rounded-3 text-decoration-none d-flex flex-row align-items-center gap-3">
+                            <i class="bi bi-whatsapp fs-3 text-success"></i>
+                            <div>
+                                <div class="fw-bold text-dark">Configure WhatsApp Provider</div>
+                                <div class="small text-muted">Add or edit your WhatsApp gateway settings</div>
+                            </div>
+                            <i class="bi bi-arrow-right ms-auto text-muted"></i>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Templates Section -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary text-white">
-                <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb"></i> Crucial Note on WhatsApp Templates</h5>
-                    <p class="mb-0">By Meta policy, all brand-initiated outbound WhatsApp messages <strong>must strictly be approved Templates</strong>. The contents of templates sent through Greyteeks must match your Meta Console approval character-for-character to avoid failure.</p>
-                </div>
-            </div>
-
-        </div>
-    </div>
+        </div><!-- /col-lg-10 -->
+    </div><!-- /row -->
 </div>
+
+<!-- ═══════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════ -->
+<script>
+// ─── Environment Toggle ───────────────────────
+function setEnv(env) {
+    document.body.className = document.body.className
+        .replace(/\benv-\w+/g, '').trim();
+    document.body.classList.add('env-' + env);
+
+    document.getElementById('btnLive').classList.toggle('active', env === 'live');
+    document.getElementById('btnLive').classList.toggle('live', env === 'live');
+    document.getElementById('btnSandbox').classList.toggle('active', env === 'sandbox');
+    document.getElementById('btnSandbox').classList.toggle('sandbox', env === 'sandbox');
+
+    localStorage.setItem('greyteeks_api_env', env);
+}
+
+// Restore last chosen environment
+(function () {
+    const saved = localStorage.getItem('greyteeks_api_env') || 'live';
+    setEnv(saved);
+})();
+
+// ─── Copy to Clipboard ───────────────────────
+function copyCode(btn) {
+    const block = btn.closest('.code-block');
+    const text = block.innerText.replace('Copy', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        btn.style.background = '#16a34a';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#16a34a';
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 2000);
+    });
+}
+
+// ─── Active nav link highlight on scroll ─────
+document.addEventListener('DOMContentLoaded', function () {
+    const sections = document.querySelectorAll('.doc-section');
+    const navLinks = document.querySelectorAll('.doc-nav .nav-link');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+                });
+            }
+        });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+});
+</script>
 {% endblock %}

@@ -32,6 +32,7 @@
 
                     <div class="input-group rounded-pill shadow-sm bg-white border border-1">
                         <input type="text" id="replyInput" class="form-control border-0 ps-4" placeholder="Write a response..." autocomplete="off">
+                        <button type="button" id="btnSuggestReply" class="btn btn-light" title="Suggest AI Reply">✨</button>
                         <button type="button" id="sendReplyBtn" class="btn btn-primary rounded-pill px-4">Send</button>
                     </div>
                 </div>
@@ -241,6 +242,50 @@
             sendReply();
         }
     });
+
+    document.getElementById('btnSuggestReply')?.addEventListener('click', suggestReply);
+
+    async function suggestReply() {
+        if (!activeConversationId) {
+            showToast('Please select a conversation first.', 'warning');
+            return;
+        }
+        const button = document.getElementById('btnSuggestReply');
+        button.disabled = true;
+        button.textContent = '⏳';
+
+        try {
+            const response = await fetch(`/api/campaigns/suggest-reply/${activeConversationId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
+            const data = await response.json();
+            if (response.ok && data.suggestion) {
+                replyInput.value = data.suggestion;
+            } else {
+                showToast(data.error || 'Unable to generate reply.', 'danger');
+            }
+        } catch (error) {
+            showToast('Unable to reach AI service. Please try again.', 'danger');
+        } finally {
+            button.disabled = false;
+            button.textContent = '✨';
+        }
+    }
+
+    function showToast(message, variant = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `position-fixed bottom-0 end-0 m-4 p-3 rounded-3 text-white bg-${variant}`;
+        toast.style.zIndex = '1050';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3200);
+    }
 
     setInterval(() => {
         if (activeConversationId) {
