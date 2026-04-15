@@ -365,6 +365,16 @@ def admin_plans(request):
                 is_featured=request.POST.get('is_featured') == 'on',
             )
             messages.success(request, 'Pricing plan created.')
+        elif action == 'update_plan':
+            plan = get_object_or_404(PricingPlan, id=request.POST.get('plan_id'))
+            plan.name = request.POST.get('name', '').strip()
+            plan.units = int(request.POST.get('units') or 0)
+            plan.price_kes = request.POST.get('price_kes') or 0
+            plan.price_usd = request.POST.get('price_usd') or 0
+            plan.description = request.POST.get('description', '').strip()
+            plan.is_featured = request.POST.get('is_featured') == 'on'
+            plan.save()
+            messages.success(request, 'Pricing plan updated.')
         elif action == 'toggle_plan':
             plan = get_object_or_404(PricingPlan, id=request.POST.get('plan_id'))
             plan.is_active = not plan.is_active

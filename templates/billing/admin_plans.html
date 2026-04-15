@@ -186,34 +186,38 @@
                         <div class="col-lg-4">
                             <div class="card border-0 shadow-sm rounded-4 p-4">
                                 <h5 class="fw-bold mb-3">Create Plan</h5>
-                                <form method="post">
+                                <form method="post" id="plan-form">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="create_plan">
+                                    <input type="hidden" name="action" value="create_plan" id="plan-form-action">
+                                    <input type="hidden" name="plan_id" id="plan_id" value="">
                                     <div class="mb-3">
-                                        <label class="form-label">Name</label>
-                                        <input type="text" name="name" class="form-control" required>
+                                        <label class="form-label" id="plan-form-heading">Create Plan</label>
+                                        <input type="text" name="name" class="form-control" id="plan_name" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Units</label>
-                                        <input type="number" name="units" class="form-control" min="1" required>
+                                        <input type="number" name="units" class="form-control" id="plan_units" min="1" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Price (KES)</label>
-                                        <input type="number" step="0.01" name="price_kes" class="form-control" required>
+                                        <input type="number" step="0.01" name="price_kes" class="form-control" id="plan_price_kes" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Price (USD)</label>
-                                        <input type="number" step="0.01" name="price_usd" class="form-control" required>
+                                        <input type="number" step="0.01" name="price_usd" class="form-control" id="plan_price_usd" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Description</label>
-                                        <textarea name="description" class="form-control" rows="3" placeholder="Describe this plan for the pricing page"></textarea>
+                                        <textarea name="description" class="form-control" id="plan_description" rows="3" placeholder="Describe this plan for the pricing page"></textarea>
                                     </div>
                                     <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured">
-                                        <label class="form-check-label" for="is_featured">Featured</label>
+                                        <input class="form-check-input" type="checkbox" name="is_featured" id="plan_is_featured">
+                                        <label class="form-check-label" for="plan_is_featured">Featured</label>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Create Plan</button>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary" id="plan-form-submit">Create Plan</button>
+                                        <button type="button" class="btn btn-outline-secondary d-none" id="plan-form-cancel">Cancel Edit</button>
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -252,6 +256,7 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-end">
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2 edit-plan-btn" data-plan-id="{{ plan.id }}" data-plan-name="{{ plan.name }}" data-plan-units="{{ plan.units }}" data-plan-price-kes="{{ plan.price_kes }}" data-plan-price-usd="{{ plan.price_usd }}" data-plan-description="{{ plan.description|escapejs }}" data-plan-featured="{{ plan.is_featured|yesno:'true,false' }}">Edit</button>
                                                         <form method="post" class="d-inline-block me-2">
                                                             {% csrf_token %}
                                                             <input type="hidden" name="action" value="toggle_plan">
@@ -283,5 +288,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const planForm = document.getElementById('plan-form');
+            const actionInput = document.getElementById('plan-form-action');
+            const planIdInput = document.getElementById('plan_id');
+            const heading = document.getElementById('plan-form-heading');
+            const submitButton = document.getElementById('plan-form-submit');
+            const cancelButton = document.getElementById('plan-form-cancel');
+            const nameInput = document.getElementById('plan_name');
+            const unitsInput = document.getElementById('plan_units');
+            const priceKesInput = document.getElementById('plan_price_kes');
+            const priceUsdInput = document.getElementById('plan_price_usd');
+            const descriptionInput = document.getElementById('plan_description');
+            const featuredInput = document.getElementById('plan_is_featured');
+
+            function resetForm() {
+                actionInput.value = 'create_plan';
+                planIdInput.value = '';
+                heading.textContent = 'Create Plan';
+                submitButton.textContent = 'Create Plan';
+                cancelButton.classList.add('d-none');
+                planForm.reset();
+            }
+
+            document.querySelectorAll('.edit-plan-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    actionInput.value = 'update_plan';
+                    planIdInput.value = this.dataset.planId;
+                    heading.textContent = 'Edit Plan';
+                    submitButton.textContent = 'Update Plan';
+                    cancelButton.classList.remove('d-none');
+                    nameInput.value = this.dataset.planName || '';
+                    unitsInput.value = this.dataset.planUnits || '';
+                    priceKesInput.value = this.dataset.planPriceKes || '';
+                    priceUsdInput.value = this.dataset.planPriceUsd || '';
+                    descriptionInput.value = this.dataset.planDescription || '';
+                    featuredInput.checked = this.dataset.planFeatured === 'true';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+
+            cancelButton.addEventListener('click', resetForm);
+        });
+    </script>
 </body>
 </html>
