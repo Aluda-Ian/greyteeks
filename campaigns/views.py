@@ -1032,7 +1032,13 @@ def template_email_builder(request, template_id=None):
 
 
 
-    providers = EmailProvider.objects.filter(is_active=True)
+    if request.user.is_staff:
+        providers = EmailProvider.objects.filter(is_active=True)
+    else:
+        providers = EmailProvider.objects.filter(
+            models.Q(owner=request.user) | models.Q(owner__isnull=True),
+            is_active=True,
+        )
 
     email_templates = EmailTemplate.objects.filter(
 
@@ -1177,10 +1183,16 @@ def email_builder_save(request):
 
 
     provider = None
+    provider_queryset = EmailProvider.objects.filter(is_active=True)
+    if not request.user.is_staff:
+        provider_queryset = provider_queryset.filter(
+            models.Q(owner=request.user) | models.Q(owner__isnull=True)
+        )
 
     if provider_id:
-
-        provider = EmailProvider.objects.filter(id=provider_id).first()
+        provider = provider_queryset.filter(id=provider_id).first()
+        if not provider:
+            return JsonResponse({'error': 'Selected email provider is not available.'}, status=400)
 
 
 
@@ -1206,22 +1218,11 @@ def email_builder_save(request):
         tmpl.html_content = html_content
         tmpl.design_json = design_json
 
-        if provider:
-
-            tmpl.provider = provider
+        tmpl.provider = provider
 
         tmpl.save()
 
     else:
-
-        if not provider:
-
-            provider = EmailProvider.objects.filter(is_active=True).first()
-
-        if not provider:
-
-            return JsonResponse({'error': 'No active email provider found. Ask your admin to activate one.'}, status=400)
-
         tmpl = EmailTemplate.objects.create(
 
             name=name,
