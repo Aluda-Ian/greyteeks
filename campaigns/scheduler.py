@@ -40,33 +40,44 @@ def send_scheduled_campaigns():
                 else:
                     channel_success = False
 
+            failure_reason = ''
             if campaign.send_whatsapp:
                 if campaign.whatsapp_server and whatsapp_recipients:
                     outbound_text = campaign.whatsapp_template.body_text if campaign.whatsapp_template else campaign.message_body
                     for number in whatsapp_recipients:
-                        sent = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
+                        sent, detail = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
                         if not sent:
                             channel_success = False
+                            if not failure_reason:
+                                failure_reason = detail or 'WhatsApp send failed.'
                             break
                 else:
                     channel_success = False
+                    if not failure_reason:
+                        failure_reason = 'WhatsApp provider or recipients missing.'
 
             if campaign.send_email:
                 if campaign.email_server and email_recipients:
                     subject = campaign.email_template.subject if campaign.email_template else campaign.title
                     body = campaign.email_template.body_text if campaign.email_template else campaign.message_body
-                    sent = send_custom_email(
+                    sent, detail = send_custom_email(
                         campaign.email_server,
                         subject,
                         body,
                         email_recipients,
                         from_email=campaign.email_server.from_email
                     )
-                    channel_success = channel_success and sent
+                    if not sent:
+                        channel_success = False
+                        if not failure_reason:
+                            failure_reason = detail or 'Email send failed.'
                 else:
                     channel_success = False
+                    if not failure_reason:
+                        failure_reason = 'Email provider or recipients missing.'
 
             campaign.status = 'sent' if channel_success else 'failed'
+            campaign.failure_reason = '' if channel_success else failure_reason
             campaign.save()
 
             if channel_success:
@@ -88,6 +99,7 @@ def send_scheduled_campaigns():
         except Exception as e:
             logger.error(f"Error processing campaign {campaign.id}: {e}")
             campaign.status = 'failed'
+            campaign.failure_reason = str(e)
             campaign.save()
 
 

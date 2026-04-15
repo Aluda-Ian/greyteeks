@@ -50,6 +50,14 @@ OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
 AT_USERNAME = os.environ.get('AT_USERNAME', '')
 AT_API_KEY = os.environ.get('AT_API_KEY', '')
 
+EMAIL_SMTP_HOST = os.environ.get('EMAIL_SMTP_HOST', 'localhost')
+EMAIL_SMTP_PORT = int(os.environ.get('EMAIL_SMTP_PORT', 587))
+EMAIL_SMTP_USERNAME = os.environ.get('EMAIL_SMTP_USERNAME', '')
+EMAIL_SMTP_PASSWORD = os.environ.get('EMAIL_SMTP_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
+EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS', 'no-reply@greyteeks.com')
+
 ALLOWED_HOSTS = []
 
 

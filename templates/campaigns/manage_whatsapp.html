@@ -167,12 +167,16 @@
             <main class="col-md-10 p-0">
                 <div class="px-4">
                     {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
+                        <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+                            {% for message in messages %}
+                                <div class="toast align-items-center text-white bg-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'secondary' }}{% endif %} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="d-flex">
+                                        <div class="toast-body">{{ message }}</div>
+                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% endif %}
 
                     <div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom">
@@ -188,47 +192,48 @@
                     <div class="row g-4">
                         <div class="col-lg-6">
                             <div class="card border-0 shadow-sm p-4 rounded-4">
-                                <h5 class="fw-bold mb-3">Add WhatsApp Provider</h5>
+                                {% if edit_provider %}<h5 class="fw-bold mb-3">Edit WhatsApp Provider</h5>{% else %}<h5 class="fw-bold mb-3">Add WhatsApp Provider</h5>{% endif %}
                                 <form method="post">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="create_provider">
+                                    {% if edit_provider %}<input type="hidden" name="provider_id" value="{{ edit_provider.id }}"><input type="hidden" name="action" value="update_provider">{% else %}<input type="hidden" name="action" value="create_provider">{% endif %}
                                     <div class="mb-3">
                                         <label class="form-label">Provider Type</label>
                                         <select name="provider_type" class="form-select">
-                                            <option value="meta">Meta Cloud API</option>
-                                            <option value="infobip">Infobip WhatsApp</option>
+                                            <option value="meta" {% if edit_provider.provider_type == "meta" %}selected{% endif %}>Meta Cloud API</option>
+                                            <option value="infobip" {% if edit_provider.provider_type == "infobip" %}selected{% endif %}>Infobip WhatsApp</option>
                                         </select>
                                         <div class="form-text">Choose Meta for Meta Cloud API or Infobip for Infobip WhatsApp.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Provider Name</label>
-                                        <input type="text" name="name" class="form-control" placeholder="Meta Cloud API" value="Meta Cloud API">
+                                        <input type="text" name="name" class="form-control" placeholder="Meta Cloud API" value="{{ edit_provider.name|default:'Meta Cloud API' }}">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Access Token</label>
-                                        <input type="text" name="access_token" class="form-control" required>
+                                        <input type="text" name="access_token" class="form-control" value="{{ edit_provider.access_token|default:'' }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Phone Number ID</label>
-                                        <input type="text" name="phone_number_id" class="form-control">
+                                        <input type="text" name="phone_number_id" class="form-control" value="{{ edit_provider.phone_number_id|default:'' }}">
                                         <div class="form-text">Required when using Meta Cloud API.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">WhatsApp Business Account ID</label>
-                                        <input type="text" name="waba_id" class="form-control">
+                                        <input type="text" name="waba_id" class="form-control" value="{{ edit_provider.waba_id|default:'' }}">
                                         <div class="form-text">Required when using Meta Cloud API.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Infobip Base URL</label>
-                                        <input type="text" name="infobip_base_url" class="form-control" placeholder="xyz.api.infobip.com">
+                                        <input type="text" name="infobip_base_url" class="form-control" value="{{ edit_provider.infobip_base_url|default:'' }}" placeholder="xyz.api.infobip.com">
                                         <div class="form-text">Required when provider type is Infobip.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Infobip Sender</label>
-                                        <input type="text" name="infobip_sender" class="form-control" placeholder="WhatsApp Sender ID">
+                                        <input type="text" name="infobip_sender" class="form-control" value="{{ edit_provider.infobip_sender|default:'' }}" placeholder="WhatsApp Sender ID">
                                         <div class="form-text">Required when provider type is Infobip.</div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Add Provider</button>
+                                    <button type="submit" class="btn btn-primary w-100">{% if edit_provider %}Update{% else %}Add{% endif %} Provider</button>
+                                    {% if edit_provider %}<a href="{% url 'manage_whatsapp' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>{% endif %}
                                 </form>
                             </div>
                         </div>
@@ -297,6 +302,7 @@
                                                     {% endif %}
                                                 </td>
                                                 <td class="text-end">
+                                                    <a href="?edit_provider_id={{ provider.id }}" class="btn btn-sm btn-outline-primary rounded-3 me-2">Edit</a>
                                                     <form method="post" class="d-inline-block">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="provider_id" value="{{ provider.id }}">
@@ -304,6 +310,12 @@
                                                         <button type="submit" class="btn btn-sm btn-outline-{{ provider.is_active|yesno:'danger,success' }} rounded-3">
                                                             {% if provider.is_active %}Deactivate{% else %}Activate{% endif %}
                                                         </button>
+                                                    </form>
+                                                    <form method="post" class="d-inline-block ms-2">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="provider_id" value="{{ provider.id }}">
+                                                        <input type="hidden" name="action" value="test_provider">
+                                                        <button type="submit" class="btn btn-sm btn-outline-info rounded-3">Test Connection</button>
                                                     </form>
                                                     <form method="post" class="d-inline-block ms-2">
                                                         {% csrf_token %}
@@ -349,5 +361,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function (toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+    </script>
 </body>
 </html>

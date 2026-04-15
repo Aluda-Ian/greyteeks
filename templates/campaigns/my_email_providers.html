@@ -81,14 +81,14 @@
                                 <h5 class="fw-bold mb-3">Add SMTP Provider</h5>
                                 <form method="post">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="create_provider">
+                                    {% if edit_provider %}<input type="hidden" name="provider_id" value="{{ edit_provider.id }}"><input type="hidden" name="action" value="update_provider">{% else %}<input type="hidden" name="action" value="create_provider">{% endif %}
                                     <div class="mb-3">
                                         <label class="form-label">Provider Name</label>
-                                        <input type="text" name="name" class="form-control" required>
+                                        <input type="text" name="name" class="form-control" value="{{ edit_provider.name|default:'' }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">SMTP Host</label>
-                                        <input type="text" name="smtp_host" class="form-control" required>
+                                        <input type="text" name="smtp_host" class="form-control" value="{{ edit_provider.smtp_host|default:'' }}" required>
                                     </div>
                                     <div class="mb-3 row gx-2">
                                         <div class="col-6">
@@ -97,16 +97,16 @@
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label">From Email</label>
-                                            <input type="email" name="from_email" class="form-control" required>
+                                            <input type="email" name="from_email" class="form-control" value="{{ edit_provider.from_email|default:'' }}" required>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">SMTP Username</label>
-                                        <input type="text" name="smtp_username" class="form-control" required>
+                                        <input type="text" name="smtp_username" class="form-control" value="{{ edit_provider.smtp_username|default:'' }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">SMTP Password</label>
-                                        <input type="password" name="smtp_password" class="form-control" required>
+                                        <input type="password" name="smtp_password" class="form-control" value="{{ edit_provider.smtp_password|default:'' }}" required>
                                     </div>
                                     <div class="mb-3 form-check">
                                         <input type="checkbox" class="form-check-input" id="use_tls" name="use_tls">
@@ -116,7 +116,8 @@
                                         <input type="checkbox" class="form-check-input" id="use_ssl" name="use_ssl">
                                         <label class="form-check-label" for="use_ssl">Use SSL</label>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Add Provider</button>
+                                    <button type="submit" class="btn btn-primary w-100">{% if edit_provider %}Update{% else %}Add{% endif %} Provider</button>
+                                    {% if edit_provider %}<a href="{% url 'my_email_providers' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>{% endif %}
                                 </form>
                             </div>
                         </div>
@@ -146,6 +147,7 @@
                                                     {% endif %}
                                                 </td>
                                                 <td class="text-end">
+                                                    <a href="?edit_provider_id={{ provider.id }}" class="btn btn-sm btn-outline-primary rounded-3 me-2">Edit</a>
                                                     <form method="post" class="d-inline-block">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="provider_id" value="{{ provider.id }}">

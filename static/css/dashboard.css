@@ -9,37 +9,33 @@ body {
 
 .sidebar { 
     height: 100vh; 
-    background: #ffffff; /* Crisp White Sidebar */
-    color: #334155; 
+    background: #1a202c; 
+    color: white; 
     position: fixed;
     top: 0;
     left: 0;
     z-index: 100;
     width: 16.666667%;
-    border-right: 1px solid #e2e8f0; /* Subtle light separator */
-    box-shadow: 2px 0 10px rgba(0,0,0,0.02); /* Faint pop */
 }
 
 /* Base Nav Links */
 .sidebar .nav-link {
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    color: #475569 !important; /* Steel dark text */
-    font-weight: 500;
-    padding: 0.6rem 1rem;
+    transition: all 0.3s;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    color: white !important;
 }
 
 /* Hover State */
 .sidebar .nav-link:hover,
 .sidebar .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] {
-    background: #f1f5f9; /* Subtle gray/blue highlight */
-    color: #0f172a !important; /* Text darkens intensely */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
 }
 
 /* Sidebar chevron rotation */
 .sidebar .nav-link[data-bs-toggle="collapse"] .bi-chevron-down {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s ease;
 }
 .sidebar .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] .bi-chevron-down {
     transform: rotate(180deg);
@@ -48,18 +44,18 @@ body {
 /* Sub-nav items */
 .sidebar .collapse .nav-link {
     font-size: 0.875rem;
-    padding: 0.4rem 1rem 0.4rem 2.2rem; /* Indented padding */
+    padding: 0.35rem 0.75rem 0.35rem 2.2rem;
     margin-bottom: 2px;
 }
 .sidebar .collapse .nav-link:hover {
-    background: transparent;
-    color: #2563eb !important; /* Accent blue hover */
+    background: rgba(255, 255, 255, 0.08);
+    color: white !important;
 }
 
 /* Indicator strip for active parent items */
 .sidebar .collapse.show + li,
 .sidebar .collapse.show {
-    border-left: 2px solid #e2e8f0; /* Subdued indent strip */
+    border-left: 2px solid #475569;
     margin-left: 1rem;
     padding-left: 0;
 }
@@ -77,7 +73,7 @@ body {
 
 .sidebar-brand {
     min-height: 80px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Cards & Content Mechanics */

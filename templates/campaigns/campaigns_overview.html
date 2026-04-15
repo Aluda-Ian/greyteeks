@@ -67,6 +67,30 @@
                             {% else %}
                                 <span class="text-muted">—</span>
                             {% endif %}
+                        {% elif campaign.status == 'failed' and campaign.user == user %}
+                            <form method="post" action="{% url 'resend_campaign' campaign.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'campaigns_overview' %}">
+                                <button type="submit" class="btn btn-sm btn-outline-success mb-1">
+                                    Resend
+                                </button>
+                            </form>
+                        {% elif campaign.status == 'failed' and user.is_staff
+                            <form method="post" action="{% url 'resend_campaign' campaign.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'campaigns_overview' %}">
+                                <button type="submit" class="btn btn-sm btn-outline-success mb-1">
+                                    Resend
+                                </button>
+                            </form>
+                        {% elif campaign.status == 'failed' and user.is_staff %}
+                            <form method="post" action="{% url 'resend_campaign' campaign.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'campaigns_overview' %}">
+                                <button type="submit" class="btn btn-sm btn-outline-success mb-1">
+                                    Resend
+                                </button>
+                            </form>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}

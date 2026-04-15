@@ -24,6 +24,8 @@
                 <th>Group</th>
                 <th>Owner</th>
                 <th>Failure Date</th>
+                <th>Error</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -34,10 +36,24 @@
                     <td>{{ campaign.target_group.name|default:"General" }}</td>
                     <td>{{ campaign.user.username }}</td>
                     <td class="text-muted small">{{ campaign.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="text-truncate d-inline-block" style="max-width: 240px;" title="{{ campaign.failure_reason }}">
+                            {{ campaign.failure_reason|default:'No error details available'|truncatechars:80 }}
+                        </span>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'resend_campaign' campaign.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'campaign_logs' %}">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                Resend
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-5">
+                    <td colspan="7" class="text-center text-muted py-5">
                         <i class="bi bi-exclamation-triangle fs-2 d-block mb-2"></i>
                         No failed campaigns found.
                     </td>

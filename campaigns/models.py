@@ -35,6 +35,7 @@ class Campaign(models.Model):
     email_server = models.ForeignKey(EmailProvider, on_delete=models.SET_NULL, null=True, blank=True)
     whatsapp_template = models.ForeignKey(WhatsAppTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     email_template = models.ForeignKey(EmailTemplate, on_delete=models.SET_NULL, null=True, blank=True)
+    failure_reason = models.TextField(blank=True, default='', help_text='Stores the most recent delivery failure details.')
 
     created_at = models.DateTimeField(auto_now_add=True)
 

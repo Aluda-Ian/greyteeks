@@ -188,34 +188,35 @@
                     <div class="row g-4">
                         <div class="col-lg-6">
                             <div class="card border-0 shadow-sm p-4 rounded-4">
-                                <h5 class="fw-bold mb-3">Add SMS Provider</h5>
+                                {% if edit_provider %}<h5 class="fw-bold mb-3">Edit SMS Provider</h5>{% else %}<h5 class="fw-bold mb-3">Add SMS Provider</h5>{% endif %}
                                 <form method="post">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="create_provider">
+                                    {% if edit_provider %}<input type="hidden" name="provider_id" value="{{ edit_provider.id }}"><input type="hidden" name="action" value="update_provider">{% else %}<input type="hidden" name="action" value="create_provider">{% endif %}
                                     <div class="mb-3">
                                         <label class="form-label">Provider</label>
                                         <select name="name" class="form-select" required>
                                             <option value="">Select provider</option>
-                                            <option value="africas_talking">Africa's Talking</option>
-                                            <option value="twilio">Twilio</option>
-                                            <option value="infobip">Infobip</option>
+                                            <option value="africas_talking" {% if edit_provider.name == "africas_talking" %}selected{% endif %}>Africa's Talking</option>
+                                            <option value="twilio" {% if edit_provider.name == "twilio" %}selected{% endif %}>Twilio</option>
+                                            <option value="infobip" {% if edit_provider.name == "infobip" %}selected{% endif %}>Infobip</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">API Key</label>
-                                        <input type="text" name="api_key" class="form-control" required>
+                                        <input type="text" name="api_key" class="form-control" value="{{ edit_provider.api_key|default:'' }}" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Username / Base URL</label>
-                                        <input type="text" name="username" class="form-control" required>
+                                        <input type="text" name="username" class="form-control" value="{{ edit_provider.username|default:'' }}" required>
                                         <div class="form-text">For Africa's Talking this is your username; for Twilio it is your Account SID; for Infobip it should be your base URL.</div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Sender ID</label>
-                                        <input type="text" name="sender_id" class="form-control">
+                                        <input type="text" name="sender_id" class="form-control" value="{{ edit_provider.sender_id|default:'' }}">
                                         <div class="form-text">Optional sender ID or phone number used by the gateway.</div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Add Provider</button>
+                                    <button type="submit" class="btn btn-primary w-100">{% if edit_provider %}Update{% else %}Add{% endif %} Provider</button>
+                                    {% if edit_provider %}<a href="{% url 'manage_sms' %}" class="btn btn-outline-secondary w-100 mt-2">Cancel</a>{% endif %}
                                 </form>
                             </div>
                         </div>
@@ -245,6 +246,7 @@
                                                     {% endif %}
                                                 </td>
                                                 <td class="text-end">
+                                                    <a href="?edit_provider_id={{ provider.id }}" class="btn btn-sm btn-outline-primary rounded-3 me-2">Edit</a>
                                                     <form method="post" class="d-inline-block">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="provider_id" value="{{ provider.id }}">

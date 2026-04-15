@@ -97,11 +97,66 @@ def send_whatsapp_meta_message(provider_instance, destination_phone, message_tex
     }
     
     try:
-        response = requests.post(url, headers=headers, json=data)
-        return response.status_code == 200
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        if response.status_code == 200:
+            return True, 'Meta Cloud API message sent successfully.'
+        message = f'Meta Cloud API error {response.status_code}: {response.text}'
+        print(message)
+        return False, message
     except Exception as e:
-        print(f"WhatsApp Error: {e}")
-        return False
+        message = f'WhatsApp Error: {e}'
+        print(message)
+        return False, message
+
+
+def test_whatsapp_meta_connection(provider_instance):
+    """Test Meta Cloud API credentials and phone number ID."""
+    if not provider_instance.access_token:
+        return False, 'Access token is missing.'
+    if not provider_instance.phone_number_id:
+        return False, 'Phone Number ID is missing.'
+
+    url = f"https://graph.facebook.com/v17.0/{provider_instance.phone_number_id}"
+    headers = {
+        "Authorization": f"Bearer {provider_instance.access_token}",
+    }
+    params = {
+        "fields": "id,whatsapp_business_account",
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        if response.status_code == 200:
+            return True, 'Meta Cloud API connection verified.'
+        return False, f'{response.status_code}: {response.text}'
+    except Exception as e:
+        print(f"WhatsApp test connection error: {e}")
+        return False, str(e)
+
+
+def test_whatsapp_infobip_connection(provider_instance):
+    """Test Infobip WhatsApp credentials."""
+    if not provider_instance.access_token:
+        return False, 'Access token is missing.'
+    if not provider_instance.infobip_base_url:
+        return False, 'Infobip Base URL is missing.'
+
+    # Use templates endpoint to verify API key and base URL access.
+    url = f"https://{provider_instance.infobip_base_url}/whatsapp/1/templates"
+    headers = {
+        "Authorization": f"App {provider_instance.access_token}",
+        "Accept": "application/json",
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=30)
+        # 200 means success. Even if templates are empty, auth is correct.
+        if response.status_code == 200:
+            return True, 'Infobip WhatsApp connection verified.'
+        return False, f'{response.status_code}: {response.text}'
+    except Exception as e:
+        print(f"Infobip WhatsApp test connection error: {e}")
+        return False, str(e)
 
 
 def send_whatsapp_infobip_message(provider_instance, destination_phone, message_text):
@@ -121,11 +176,15 @@ def send_whatsapp_infobip_message(provider_instance, destination_phone, message_
     }
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=30)
-        print(f"Infobip WhatsApp Response: {response.status_code} — {response.text[:200]}")
-        return response.status_code in (200, 201)
+        message = f"Infobip WhatsApp Response: {response.status_code} — {response.text[:200]}"
+        print(message)
+        if response.status_code in (200, 201):
+            return True, 'Infobip WhatsApp message sent successfully.'
+        return False, message
     except Exception as e:
-        print(f"Infobip WhatsApp Error: {e}")
-        return False
+        message = f"Infobip WhatsApp Error: {e}"
+        print(message)
+        return False, message
 
 
 def route_sms(provider_instance, phone_numbers, message):
@@ -148,8 +207,9 @@ def route_sms(provider_instance, phone_numbers, message):
 def route_whatsapp(provider_instance, destination_phone, message_text):
     """Route WhatsApp sending to the correct provider service."""
     if not provider_instance:
-        print("WhatsApp Error: missing provider instance")
-        return False
+        message = "WhatsApp Error: missing provider instance"
+        print(message)
+        return False, message
     provider_type = getattr(provider_instance, 'provider_type', 'meta')
     if provider_type == 'infobip':
         return send_whatsapp_infobip_message(provider_instance, destination_phone, message_text)
@@ -159,8 +219,9 @@ def route_whatsapp(provider_instance, destination_phone, message_text):
 def send_custom_email(provider_instance, subject, message, recipient_list, from_email=None):
     """Sends email using the configured SMTP provider via Django EmailBackend."""
     if not recipient_list:
-        print("Email Error: no recipients provided")
-        return False
+        msg = "Email Error: no recipients provided"
+        print(msg)
+        return False, msg
 
     connection = get_connection(
         backend='django.core.mail.backends.smtp.EmailBackend',
@@ -184,12 +245,14 @@ def send_custom_email(provider_instance, subject, message, recipient_list, from_
     try:
         email.send(fail_silently=False)
         connection.close()
-        print(f"Email sent to {len(recipient_list)} recipients via {provider_instance.name}")
-        return True
+        msg = f"Email sent to {len(recipient_list)} recipients via {provider_instance.name}"
+        print(msg)
+        return True, msg
     except Exception as e:
-        print(f"Email Error: {e}")
+        msg = f"Email Error: {e}"
+        print(msg)
         connection.close()
-        return False
+        return False, msg
 
 
 def send_bulk_email(provider_instance, subject, body, recipients, from_email=None):
