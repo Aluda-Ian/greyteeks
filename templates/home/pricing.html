@@ -101,6 +101,9 @@
               <p>One-time top-up</p>
             </div>
             <div class="sofax-pricing-body">
+              {% if plan.description %}
+                <p class="mb-3">{{ plan.description }}</p>
+              {% endif %}
               <h5>What's included:</h5>
               <ul>
                 <li><img src="{% static 'assets/images/v1/icon8.png' %}" alt=""> {{ plan.units }} API Units</li>

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include, reverse_lazy
 # Add ai_suggest_view to this line
-from campaigns.views import about_view, activate_account, cancel_campaign, campaign_logs, campaigns_overview, contact_view, dashboard, create_campaign, delete_campaign, email_builder, email_builder_delete, email_builder_save, email_builder_test, home_view, manage_groups, register_view, reschedule_campaign, resend_campaign, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group, pricing_view, service_view, faq_view, api_documentation_view, unified_inbox, get_conversation_messages, send_inbox_reply
+from campaigns.views import about_view, activate_account, cancel_campaign, campaign_logs, campaigns_overview, contact_view, dashboard, create_campaign, delete_campaign, email_builder, email_builder_delete, email_builder_save, email_builder_test, home_view, manage_groups, register_view, reschedule_campaign, resend_campaign, save_email_design, scheduled_campaigns, ai_suggest_view, manage_users, manage_mailing, my_email_providers, manage_sms, manage_whatsapp, manage_templates, customer_create_group, pricing_view, service_view, faq_view, api_documentation_view, template_email_builder, track_email_open, unified_inbox, get_conversation_messages, send_inbox_reply
 
 from contacts_app.views import contact_list, delete_contact, edit_contact, upload_contacts
 
@@ -30,6 +30,9 @@ urlpatterns = [
     path('campaign/new/', create_campaign, name='create_campaign'),
     path('campaigns/<int:campaign_id>/edit/', create_campaign, name='edit_campaign'),
     path('campaigns/<int:campaign_id>/delete/', delete_campaign, name='delete_campaign'),
+    path('campaigns/<int:campaign_id>/email-builder/', email_builder, name='campaign_email_builder'),
+    path('campaigns/<int:campaign_id>/email-builder/save/', save_email_design, name='save_email_design'),
+    path('campaigns/<int:campaign_id>/track-open/<int:contact_id>/', track_email_open, name='track_email_open'),
     path('campaigns/', campaigns_overview, name='campaigns_overview'),
     path('campaigns/logs/', campaign_logs, name='campaign_logs'),
     path('campaigns/<int:campaign_id>/resend/', resend_campaign, name='resend_campaign'),
@@ -43,8 +46,8 @@ urlpatterns = [
     path('whatsapp/manage/', manage_whatsapp, name='manage_whatsapp'),
     path('my/groups/', customer_create_group, name='customer_create_group'),
     path('templates/manage/', manage_templates, name='manage_templates'),
-    path('templates/email/builder/', email_builder, name='email_builder'),
-    path('templates/email/builder/<int:template_id>/', email_builder, name='email_builder_edit'),
+    path('templates/email/builder/', template_email_builder, name='email_builder'),
+    path('templates/email/builder/<int:template_id>/', template_email_builder, name='email_builder_edit'),
     path('templates/email/builder/save/', email_builder_save, name='email_builder_save'),
     path('templates/email/builder/delete/', email_builder_delete, name='email_builder_delete'),
     path('templates/email/builder/test/', email_builder_test, name='email_builder_test'),

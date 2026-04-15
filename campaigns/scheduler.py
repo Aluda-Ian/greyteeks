@@ -1,106 +1,38 @@
 import logging
+
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.models import DjangoJobExecution
 from django.utils import timezone
 
+from .tasks import dispatch_campaign_task
+
 logger = logging.getLogger(__name__)
 
 
 def send_scheduled_campaigns():
-    """Job that runs every minute and sends due scheduled campaigns."""
+    """Queue due scheduled campaigns for background processing."""
     from campaigns.models import Campaign
-    from providers.services import route_sms, route_whatsapp, send_custom_email
-    from accounts.models import UserQuota
 
     now = timezone.now()
-
     due_campaigns = Campaign.objects.filter(
         status='scheduled',
-        scheduled_time__lte=now
-    ).select_related(
-        'target_group', 'sms_server', 'whatsapp_server', 'email_server', 'whatsapp_template', 'email_template'
-    )
+        scheduled_time__lte=now,
+    ).select_related('user')
 
     for campaign in due_campaigns:
-        logger.info(f"Processing scheduled campaign: {campaign.id} — {campaign.title}")
         try:
-            contacts = campaign.target_group.contacts.all() if campaign.target_group else []
-            sms_recipients = [c.phone_number for c in contacts if c.phone_number]
-            email_recipients = [c.email for c in contacts if c.email]
-            whatsapp_recipients = sms_recipients
-
-            channel_success = True
-
-            if campaign.send_sms:
-                if campaign.sms_server and sms_recipients:
-                    sent = route_sms(campaign.sms_server, sms_recipients, campaign.message_body)
-                    channel_success = channel_success and sent
-                else:
-                    channel_success = False
-
-            failure_reason = ''
-            if campaign.send_whatsapp:
-                if campaign.whatsapp_server and whatsapp_recipients:
-                    outbound_text = campaign.whatsapp_template.body_text if campaign.whatsapp_template else campaign.message_body
-                    for number in whatsapp_recipients:
-                        sent, detail = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
-                        if not sent:
-                            channel_success = False
-                            if not failure_reason:
-                                failure_reason = detail or 'WhatsApp send failed.'
-                            break
-                else:
-                    channel_success = False
-                    if not failure_reason:
-                        failure_reason = 'WhatsApp provider or recipients missing.'
-
-            if campaign.send_email:
-                if campaign.email_server and email_recipients:
-                    subject = campaign.email_template.subject if campaign.email_template else campaign.title
-                    body = campaign.email_template.body_text if campaign.email_template else campaign.message_body
-                    sent, detail = send_custom_email(
-                        campaign.email_server,
-                        subject,
-                        body,
-                        email_recipients,
-                        from_email=campaign.email_server.from_email
-                    )
-                    if not sent:
-                        channel_success = False
-                        if not failure_reason:
-                            failure_reason = detail or 'Email send failed.'
-                else:
-                    channel_success = False
-                    if not failure_reason:
-                        failure_reason = 'Email provider or recipients missing.'
-
-            campaign.status = 'sent' if channel_success else 'failed'
-            campaign.failure_reason = '' if channel_success else failure_reason
-            campaign.save()
-
-            if channel_success:
-                unit_count = 0
-                if campaign.send_sms:
-                    unit_count += len(sms_recipients)
-                if campaign.send_whatsapp:
-                    unit_count += len(whatsapp_recipients)
-                if campaign.send_email:
-                    unit_count += len(email_recipients)
-
-                if unit_count:
-                    quota, _ = UserQuota.objects.get_or_create(user=campaign.user)
-                    quota.units_used += unit_count
-                    quota.save()
-
-            logger.info(f"Campaign {campaign.id} completed with status: {campaign.status}")
-
-        except Exception as e:
-            logger.error(f"Error processing campaign {campaign.id}: {e}")
+            campaign.status = 'queued'
+            campaign.failure_reason = ''
+            campaign.save(update_fields=['status', 'failure_reason'])
+            dispatch_campaign_task.delay(campaign.id)
+            logger.info('Queued scheduled campaign %s for Celery processing.', campaign.id)
+        except Exception as exc:
+            logger.exception('Failed to queue scheduled campaign %s: %s', campaign.id, exc)
             campaign.status = 'failed'
-            campaign.failure_reason = str(e)
-            campaign.save()
+            campaign.failure_reason = str(exc)
+            campaign.save(update_fields=['status', 'failure_reason'])
 
 
 def delete_old_job_executions(max_age=604_800):

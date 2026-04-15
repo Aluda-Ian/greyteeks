@@ -1,16 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 
 import json
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 
 from django.contrib import messages
 
 from django.core.exceptions import PermissionDenied
 
-from django.db import IntegrityError, models
+from django.db import IntegrityError, models, transaction
 
-from django.db.models import Sum
+from django.db.models import F, Sum
 
 from django.conf import settings as django_settings
 
@@ -40,7 +40,7 @@ from accounts.models import UserQuota
 
 from billing.models import PaymentTransaction
 
-from .models import Campaign
+from .models import Campaign, CampaignOpenEvent
 
 from .forms import CampaignForm
 from .tasks import dispatch_campaign_task
@@ -79,6 +79,8 @@ def dashboard(request):
 
     """
 
+    delivered_statuses = ['sent', 'completed']
+
     if request.user.is_staff:
 
         # Admin View: Aggregated system data
@@ -95,11 +97,11 @@ def dashboard(request):
 
         recent_campaigns = Campaign.objects.order_by('-created_at')[:10]
 
-        total_sms_sent = Campaign.objects.filter(send_sms=True, status='sent').count()
+        total_sms_sent = Campaign.objects.filter(send_sms=True, status__in=delivered_statuses).count()
 
-        total_whatsapp_sent = Campaign.objects.filter(send_whatsapp=True, status='sent').count()
+        total_whatsapp_sent = Campaign.objects.filter(send_whatsapp=True, status__in=delivered_statuses).count()
 
-        total_email_sent = Campaign.objects.filter(send_email=True, status='sent').count()
+        total_email_sent = Campaign.objects.filter(send_email=True, status__in=delivered_statuses).count()
 
         transaction_qs = PaymentTransaction.objects.filter(status='success')
 
@@ -123,11 +125,11 @@ def dashboard(request):
 
         recent_campaigns = user_campaigns.order_by('-created_at')[:5]
 
-        total_sms_sent = user_campaigns.filter(send_sms=True, status='sent').count()
+        total_sms_sent = user_campaigns.filter(send_sms=True, status__in=delivered_statuses).count()
 
-        total_whatsapp_sent = user_campaigns.filter(send_whatsapp=True, status='sent').count()
+        total_whatsapp_sent = user_campaigns.filter(send_whatsapp=True, status__in=delivered_statuses).count()
 
-        total_email_sent = user_campaigns.filter(send_email=True, status='sent').count()
+        total_email_sent = user_campaigns.filter(send_email=True, status__in=delivered_statuses).count()
 
         transaction_qs = PaymentTransaction.objects.filter(user=request.user, status='success')
 
@@ -420,7 +422,13 @@ def _attempt_campaign_send(request, campaign):
 
     if campaign.send_email:
         outbound_subject = campaign.email_template.subject if campaign.email_template else campaign.title
-        outbound_body = campaign.email_template.body_text if campaign.email_template else campaign.message_body
+        outbound_body = (
+            campaign.email_template.html_content
+            if campaign.email_template and campaign.email_template.html_content
+            else campaign.email_template.body_text
+            if campaign.email_template
+            else campaign.html_content or campaign.message_body
+        )
         email_sent, email_detail = send_custom_email(
             campaign.email_server,
             outbound_subject,
@@ -994,7 +1002,7 @@ def manage_templates(request):
 
 @login_required
 
-def email_builder(request, template_id=None):
+def template_email_builder(request, template_id=None):
 
     """
 
@@ -1032,7 +1040,7 @@ def email_builder(request, template_id=None):
 
     ).order_by('-created_at')
 
-    return render(request, 'campaigns/email_builder.html', {
+    return render(request, 'campaigns/template_email_builder.html', {
 
         'existing': existing,
 
@@ -1041,6 +1049,42 @@ def email_builder(request, template_id=None):
         'email_templates': email_templates,
 
     })
+
+
+@login_required
+def email_builder(request, campaign_id):
+    campaign = get_object_or_404(Campaign, id=campaign_id, user=request.user)
+    return render(request, 'campaigns/email_builder.html', {
+        'campaign': campaign,
+        'save_url': reverse('save_email_design', kwargs={'campaign_id': campaign.id}),
+        'back_url': reverse('edit_campaign', kwargs={'campaign_id': campaign.id}),
+        'test_url': reverse('email_builder_test'),
+    })
+
+
+@login_required
+def save_email_design(request, campaign_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required.'}, status=405)
+
+    campaign = get_object_or_404(Campaign, id=campaign_id, user=request.user)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
+
+    html = (payload.get('html') or '').strip()
+    design = payload.get('design')
+
+    if not html:
+        return JsonResponse({'error': 'HTML content is required.'}, status=400)
+
+    campaign.html_content = html
+    campaign.design_json = design
+    campaign.save(update_fields=['html_content', 'design_json'])
+
+    return JsonResponse({'success': True, 'message': 'Email design saved successfully.'})
 
 
 
@@ -1118,6 +1162,8 @@ def email_builder_save(request):
 
     html_content = data.get('html_content', '').strip()
 
+    design_json = data.get('design_json')
+
     template_id = data.get('template_id')
 
     provider_id = data.get('provider_id')
@@ -1157,6 +1203,8 @@ def email_builder_save(request):
         tmpl.subject = subject
 
         tmpl.body_text = html_content
+        tmpl.html_content = html_content
+        tmpl.design_json = design_json
 
         if provider:
 
@@ -1181,6 +1229,8 @@ def email_builder_save(request):
             subject=subject,
 
             body_text=html_content,
+            html_content=html_content,
+            design_json=design_json,
 
             provider=provider,
 
@@ -1237,6 +1287,26 @@ def email_builder_test(request):
     if success:
         return JsonResponse({'success': True, 'message': message})
     return JsonResponse({'error': message}, status=500)
+
+
+def track_email_open(request, campaign_id, contact_id):
+    campaign = get_object_or_404(Campaign, id=campaign_id)
+    contact = get_object_or_404(Contact, id=contact_id)
+
+    pixel_data = (
+        b'GIF89a\x01\x00\x01\x00\x80\x00\x00'
+        b'\x00\x00\x00\xff\xff\xff!\xf9\x04\x01'
+        b'\x00\x00\x00\x00,\x00\x00\x00\x00\x01'
+        b'\x00\x01\x00\x00\x02\x02D\x01\x00;'
+    )
+
+    if campaign.target_group_id and contact.group_id != campaign.target_group_id:
+        return HttpResponse(pixel_data, content_type='image/gif')
+
+    Campaign.objects.filter(id=campaign.id).update(opens_count=F('opens_count') + 1)
+    CampaignOpenEvent.objects.create(campaign=campaign, contact=contact)
+
+    return HttpResponse(pixel_data, content_type='image/gif')
 
 @login_required
 def manage_sms(request):
@@ -2003,9 +2073,9 @@ def create_campaign(request, campaign_id=None):
 
                 return render(request, 'campaigns/create_campaign.html', context)
 
-            if campaign.send_email and not campaign.email_template:
+            if campaign.send_email and not (campaign.email_template or campaign.html_content):
 
-                messages.error(request, 'Select an email template before launching a campaign with email enabled.')
+                messages.error(request, 'Select an email template or save a custom email design before launching an email campaign.')
 
                 return render(request, 'campaigns/create_campaign.html', context)
 
@@ -2197,109 +2267,12 @@ def create_campaign(request, campaign_id=None):
 
 
 
-            campaign.status = 'scheduled'
+            campaign.status = 'queued'
             campaign.failure_reason = ''
             campaign.save()
 
-            quota.units_used += unit_count
-            quota.save()
-
-            dispatch_campaign_task.delay(campaign.id)
-            messages.success(request, 'Campaign queued for delivery.')
-            return redirect('dashboard')
-
-
-
-            channel_success = True
-
-
-
-            if campaign.send_sms:
-
-                if campaign.sms_server and sms_recipients and campaign.sms_template:
-
-                    sms_sent = route_sms(campaign.sms_server, sms_recipients, campaign.message_body)
-
-                    channel_success = channel_success and sms_sent
-
-                else:
-
-                    channel_success = False
-
-
-
-            if campaign.send_whatsapp:
-
-                if campaign.whatsapp_server and whatsapp_recipients:
-
-                    outbound_text = campaign.whatsapp_template.body_text if campaign.whatsapp_template else campaign.message_body
-
-                    for number in whatsapp_recipients:
-
-                        whatsapp_sent, whatsapp_detail = route_whatsapp(campaign.whatsapp_server, number, outbound_text)
-
-                        if not whatsapp_sent:
-
-                            channel_success = False
-
-                            break
-
-                else:
-
-                    channel_success = False
-
-
-
-            if campaign.send_email:
-
-                if campaign.email_server and email_recipients:
-
-                    outbound_subject = campaign.email_template.subject if campaign.email_template else campaign.title
-
-                    outbound_body = campaign.email_template.body_text if campaign.email_template else campaign.message_body
-
-                    email_sent, email_detail = send_custom_email(
-
-                        campaign.email_server,
-
-                        outbound_subject,
-
-                        outbound_body,
-
-                        email_recipients,
-
-                        from_email=campaign.email_server.from_email
-
-                    )
-
-                    channel_success = channel_success and email_sent
-
-                else:
-
-                    channel_success = False
-
-
-
-            campaign.status = 'sent' if channel_success else 'failed'
-
-            campaign.save()
-
-
-
-            if channel_success:
-
-                quota.units_used += unit_count
-
-                quota.save()
-
-                messages.success(request, 'Campaign launched successfully!')
-
-            else:
-
-                messages.error(request, 'One or more channels failed to send. Review your provider setup and try again.')
-
-
-
+            transaction.on_commit(lambda: dispatch_campaign_task.delay(campaign.id))
+            messages.success(request, 'Your campaign has been queued and is processing in the background.')
             return redirect('dashboard')
 
     else:

@@ -361,6 +361,7 @@ def admin_plans(request):
                 units=int(request.POST.get('units') or 0),
                 price_kes=request.POST.get('price_kes') or 0,
                 price_usd=request.POST.get('price_usd') or 0,
+                description=request.POST.get('description', '').strip(),
                 is_featured=request.POST.get('is_featured') == 'on',
             )
             messages.success(request, 'Pricing plan created.')

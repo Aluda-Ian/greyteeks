@@ -4,1495 +4,329 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Builder — Greyteeks</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>{{ campaign.title }} | Email Builder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Montserrat', sans-serif; background: #151515; color: #222; }
-        .builder-topbar {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 56px;
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.5rem;
-            z-index: 1000;
-            border-bottom: 1px solid #2d2d2d;
-            gap: 1rem;
+        :root {
+            --gt-charcoal: #1a202c;
+            --gt-blue: #3182ce;
+            --gt-blue-dark: #2563a6;
+            --gt-surface: #edf2f7;
+            --gt-border: #cbd5e0;
         }
-        .topbar-brand {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 800;
-            color: white;
-            font-size: 0.95rem;
-            white-space: nowrap;
+
+        html, body {
+            height: 100%;
         }
-        .topbar-brand span { color: #737373; font-weight: 400; margin-left: 0.5rem; font-size: 0.8rem; }
-        #templateName {
-            background: transparent;
-            border: none;
-            color: white;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            text-align: center;
-            outline: none;
-            min-width: 260px;
-            max-width: 420px;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
-            padding: 0.25rem 0.5rem;
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at top left, rgba(49, 130, 206, 0.16), transparent 30%),
+                linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+            color: var(--gt-charcoal);
+            overflow: hidden;
         }
-        #templateName:focus { border-bottom-color: #595959; }
-        .topbar-actions { display: flex; gap: 0.5rem; align-items: center; }
-        .btn-topbar {
-            background: #2d2d2d;
-            border: 1px solid #404040;
-            color: #d9d9d9;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 600;
-            padding: 0.4rem 0.875rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            white-space: nowrap;
-        }
-        .btn-topbar:hover { background: #404040; color: white; }
-        .btn-topbar-primary {
-            background: white;
-            color: #1a1a1a;
-            border-color: white;
-        }
-        .btn-topbar-primary:hover { background: #f0f0f0; color: #1a1a1a; }
-        .btn-topbar-exit { color: #737373; font-size: 0.8rem; text-decoration: none; }
-        .btn-topbar-exit:hover { color: #d9d9d9; }
+
         .builder-shell {
-            margin-top: 56px;
-            height: calc(100vh - 56px);
-            display: flex;
-            overflow: hidden;
-        }
-        .block-palette {
-            width: 240px;
-            background: #f8f8f8;
-            border-right: 1px solid #e0e0e0;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-        .palette-title { font-size: 0.85rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #5c5c5c; margin-bottom: 1rem; }
-        .template-list {
-            display: grid;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-        }
-        .template-card {
-            background: #ffffff;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            padding: 0.85rem;
-            display: grid;
-            gap: 0.65rem;
-        }
-        .template-name {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #212121;
-            line-height: 1.3;
-            min-height: 2.2rem;
-        }
-        .template-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.45rem;
-        }
-        .template-actions a,
-        .template-actions button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-        }
-        .block-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0,1fr));
-            gap: 0.75rem;
-        }
-        .block-tile {
-            background: white;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 0.75rem 0.5rem;
-            cursor: grab;
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #595959;
-            transition: all 0.15s;
-            user-select: none;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.35rem;
         }
-        .block-tile:hover { border-color: #1a1a1a; color: #1a1a1a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .block-tile i { font-size: 1.25rem; }
-        .block-tile:active { cursor: grabbing; }
-        .builder-canvas-wrap {
-            flex: 1;
-            background: #e8e8e8;
-            overflow-y: auto;
-            padding: 2rem;
-            position: relative;
-        }
-        .email-canvas {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            min-height: 600px;
-            border-radius: 4px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
-            position: relative;
-            padding: 1rem 0;
-        }
-        .canvas-empty-state {
-            padding: 4rem 2rem;
-            text-align: center;
-            color: #a6a6a6;
-            pointer-events: none;
-        }
-        .canvas-empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; }
-        .email-block {
-            position: relative;
-            border: 2px solid transparent;
-            transition: border-color 0.15s;
-            cursor: pointer;
-            margin: 0 1rem 1rem;
-        }
-        .email-block:hover { border-color: #8c8c8c; }
-        .email-block.selected { border-color: #1a1a1a; }
-        .email-block .block-controls {
-            position: absolute;
-            top: -1px;
-            right: -1px;
-            display: none;
-            background: #1a1a1a;
-            border-radius: 0 0 0 6px;
-            overflow: hidden;
-            z-index: 10;
-            flex-wrap: nowrap;
-        }
-        .email-block.selected .block-controls,
-        .email-block:hover .block-controls { display: flex; }
-        .block-ctrl-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 0.4rem 0.45rem;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.15s;
-        }
-        .block-ctrl-btn:hover { background: #404040; }
-        .drag-handle { cursor: grab; }
-        .block-content { overflow: hidden; }
-        .settings-panel {
-            width: 280px;
-            background: white;
-            border-left: 1px solid #e0e0e0;
-            overflow-y: auto;
-            padding-bottom: 2rem;
-        }
-        .settings-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #595959;
-            background: #f8f8f8;
-        }
-        .settings-group {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .settings-group-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #a6a6a6;
-            margin-bottom: 0.75rem;
-        }
-        .settings-field { margin-bottom: 0.75rem; }
-        .settings-field label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #595959;
-            display: block;
-            margin-bottom: 0.3rem;
-        }
-        .settings-input,
-        .settings-select {
-            width: 100%;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 0.4rem 0.6rem;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            color: #2d2d2d;
-            background: white;
-            transition: border-color 0.15s;
-        }
-        .settings-input:focus,
-        .settings-select:focus { outline: none; border-color: #1a1a1a; }
-        .btn-settings-action {
-            background: #1a1a1a;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 0.55rem 1rem;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.15s;
-        }
-        .btn-settings-action:hover { background: #404040; }
-        .align-btns { display: flex; gap: 4px; }
-        .align-btn {
-            flex: 1;
-            background: #f0f0f0;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 0.35rem;
-            cursor: pointer;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #595959;
-            transition: all 0.15s;
-        }
-        .align-btn.active, .align-btn:hover { background: #1a1a1a; color: white; border-color: #1a1a1a; }
-        .modal-backdrop {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 1.5rem;
-        }
-        .modal-panel {
-            background: white;
-            border-radius: 18px;
-            max-width: 780px;
-            width: 100%;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            max-height: 90vh;
-        }
-        .modal-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #e5e5e5;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-        .modal-title { font-size: 1rem; font-weight: 700; }
-        .modal-body { padding: 1rem 1.25rem; overflow-y: auto; }
-        .modal-footer { padding: 1rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid #e5e5e5; }
-        .modal-close { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; color: #6b6b6b; }
-        .preview-toolbar { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; }
-        #previewFrame { background: white; border: none; height: calc(100vh - 220px); width: 600px; transition: width 0.3s ease; border-radius: 8px; box-shadow: 0 32px 80px rgba(0,0,0,0.5); }
-        .preview-tab { background: #f0f0f0; border: 1px solid #e0e0e0; border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer; font-size: 0.85rem; color: #444; }
-        .preview-tab.active { background: #1a1a1a; color: white; }
-        .hidden { display: none !important; }
-        .insertion-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #1565c0;
-            border-radius: 999px;
-            pointer-events: none;
+
+        .builder-navbar {
+            background: var(--gt-charcoal);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 45px rgba(26, 32, 44, 0.28);
             z-index: 20;
         }
-        .settings-note { font-size: 0.78rem; color: #717171; margin-top: 0.25rem; }
+
+        .builder-brand {
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .builder-brand span {
+            color: #90cdf4;
+        }
+
+        .builder-stage {
+            flex: 1;
+            min-height: 0;
+            padding: 0;
+        }
+
+        #gjs {
+            height: calc(100vh - 72px);
+            width: 100%;
+            border-top: 1px solid rgba(49, 130, 206, 0.12);
+        }
+
+        .btn-venda {
+            background: var(--gt-blue);
+            border-color: var(--gt-blue);
+            color: #fff;
+        }
+
+        .btn-venda:hover,
+        .btn-venda:focus {
+            background: var(--gt-blue-dark);
+            border-color: var(--gt-blue-dark);
+            color: #fff;
+        }
+
+        .gjs-one-bg {
+            background-color: var(--gt-charcoal);
+        }
+
+        .gjs-two-color {
+            color: #e2e8f0;
+        }
+
+        .gjs-three-bg {
+            background-color: var(--gt-blue);
+            color: #fff;
+        }
+
+        .gjs-four-color,
+        .gjs-four-color-h:hover {
+            color: #90cdf4;
+        }
+
+        .gjs-pn-panel,
+        .gjs-cv-canvas {
+            background-color: transparent;
+        }
+
+        .gjs-blocks-cs,
+        .gjs-sm-sector,
+        .gjs-trt-traits,
+        .gjs-mdl-dialog,
+        .gjs-layer {
+            border-color: var(--gt-border);
+        }
+
+        .status-pill {
+            border: 1px solid rgba(144, 205, 244, 0.35);
+            color: #bee3f8;
+            background: rgba(49, 130, 206, 0.16);
+            border-radius: 999px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 991.98px) {
+            .builder-navbar .container-fluid {
+                gap: 0.75rem;
+            }
+
+            .builder-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .builder-actions .btn,
+            .builder-actions .status-pill {
+                flex: 1;
+                justify-content: center;
+            }
+
+            #gjs {
+                height: calc(100vh - 134px);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="builder-topbar">
-        <div class="topbar-brand">Greyteeks <span>Email Builder</span></div>
-        <input id="templateName" type="text" placeholder="Untitled Template" value="{{ existing.name|default_if_none:'' }}">
-        <div class="topbar-actions">
-            <button type="button" class="btn-topbar" onclick="openPreview()"><i class="bi bi-eye"></i> Preview</button>
-            <button type="button" class="btn-topbar" onclick="openTestModal()"><i class="bi bi-send"></i> Send Test</button>
-            <button type="button" class="btn-topbar btn-topbar-primary" onclick="openSaveModal()"><i class="bi bi-floppy"></i> Save Template</button>
-            <a href="{% url 'manage_templates' %}" class="btn-topbar btn-topbar-exit"><i class="bi bi-box-arrow-left"></i> Exit</a>
-        </div>
-    </div>
-
     <div class="builder-shell">
-        <aside class="block-palette">
-            <div class="palette-title">Blocks</div>
-            <div class="block-grid" id="blockTiles"></div>
-
-            <div class="palette-title">My Templates</div>
-            <div class="template-list" id="templateList">
-                {% for tmpl in email_templates %}
-                    <div class="template-card" id="templateCard{{ tmpl.id }}">
-                        <div class="template-name">{{ tmpl.name }}</div>
-                        <div class="template-actions">
-                            <a href="{% url 'email_builder_edit' tmpl.id %}" class="btn-topbar btn-topbar-primary" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;">Edit</a>
-                            <button type="button" class="btn-topbar" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;" data-template-id="{{ tmpl.id }}" onclick="deleteBuilderTemplate(this.dataset.templateId, this)">Discard</button>
-                        </div>
+        <nav class="navbar navbar-dark builder-navbar px-3 py-3">
+            <div class="container-fluid px-0 d-flex flex-wrap align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{{ back_url }}" class="btn btn-outline-light btn-sm">Back to Campaign</a>
+                    <div>
+                        <div class="builder-brand">Greyteeks <span>Advanced Newsletter Suite</span></div>
+                        <div class="text-light-emphasis small">{{ campaign.title }}</div>
                     </div>
-                {% empty %}
-                    <div class="text-muted small">No saved templates yet.</div>
-                {% endfor %}
-            </div>
-        </aside>
-
-        <section class="builder-canvas-wrap">
-            <div class="email-canvas" id="emailCanvas" ondragover="handleCanvasDragOver(event)" ondrop="handleCanvasDrop(event)">
-                <div class="canvas-empty-state" id="canvasEmpty">
-                    <i class="bi bi-pencil-square"></i>
-                    <div>Drag blocks here to build your email.</div>
+                </div>
+                <div class="builder-actions d-flex align-items-center gap-2 flex-wrap">
+                    <div id="save-status" class="status-pill">Ready to design</div>
+                    <button id="send-test-email" type="button" class="btn btn-outline-light btn-sm">Send Test Email</button>
+                    <button id="save-design" type="button" class="btn btn-venda btn-sm px-3">Save Design</button>
                 </div>
             </div>
-        </section>
+        </nav>
 
-        <aside class="settings-panel" id="settingsPanel">
-            <div class="settings-header">Settings</div>
-            <div class="settings-group" id="settingsContent"></div>
-        </aside>
+        <main class="builder-stage">
+            <div id="gjs"></div>
+        </main>
     </div>
 
-    <div class="modal-backdrop hidden" id="previewModal">
-        <div class="modal-panel">
-            <div class="modal-header">
-                <div>
-                    <div class="modal-title">Preview Email</div>
-                    <div class="settings-note">Toggle between desktop and mobile preview.</div>
-                </div>
-                <button class="modal-close" onclick="closePreview()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="preview-toolbar">
-                    <button class="preview-tab active" id="desktopTab" onclick="setPreviewSize('desktop')">Desktop</button>
-                    <button class="preview-tab" id="mobileTab" onclick="setPreviewSize('mobile')">Mobile</button>
-                </div>
-                <div style="display:flex; justify-content:center; width:100%;">
-                    <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-backdrop hidden" id="saveModal">
-        <div class="modal-panel">
-            <div class="modal-header">
-                <div class="modal-title">Save Template</div>
-                <button class="modal-close" onclick="closeSaveModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="settings-group">
-                    <div class="settings-field">
-                        <label for="saveName">Template Name</label>
-                        <input id="saveName" class="settings-input" type="text" placeholder="Template name">
-                    </div>
-                    <div class="settings-field">
-                        <label for="saveSubject">Subject</label>
-                        <input id="saveSubject" class="settings-input" type="text" placeholder="Email subject" value="{{ existing.subject|default_if_none:'' }}">
-                    </div>
-                    <div class="settings-field">
-                        <label for="saveProvider">Email Provider</label>
-                        <select id="saveProvider" class="settings-select">
-                            <option value="">Use default provider</option>
-                            {% for provider in providers %}
-                                <option value="{{ provider.id }}" {% if existing.provider and existing.provider.id == provider.id %}selected{% endif %}>{{ provider.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-settings-action" onclick="closeSaveModal()" style="background:#f0f0f0;color:#1a1a1a;">Cancel</button>
-                <button class="btn-settings-action" onclick="saveTemplate()">Save Template</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-backdrop hidden" id="testModal">
-        <div class="modal-panel">
-            <div class="modal-header">
-                <div class="modal-title">Send Test Email</div>
-                <button class="modal-close" onclick="closeTestModal()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="settings-group">
-                    <div class="settings-field">
-                        <label for="testEmail">Recipient Email</label>
-                        <input id="testEmail" class="settings-input" type="email" placeholder="you@example.com">
-                    </div>
-                    <div class="settings-note">This is a preview mode. Your email client will show the generated HTML when you send the campaign.</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-settings-action" onclick="closeTestModal()" style="background:#f0f0f0;color:#1a1a1a;">Close</button>
-                <button class="btn-settings-action" onclick="sendTestEmail()">Send Test</button>
-            </div>
-        </div>
-    </div>
-
-    <textarea id="initialHtml" class="hidden">{{ existing.body_text|default_if_none:'' }}</textarea>
-    <div id="toastContainer"></div>
-    <input type="hidden" id="builderRoot" data-template-id="{% if existing %}{{ existing.id }}{% endif %}">
+    {{ campaign.design_json|json_script:"initial-design-data" }}
+    <textarea id="initial-html" class="d-none">{{ campaign.html_content|default_if_none:'' }}</textarea>
+    <input id="csrf-token" type="hidden" value="{{ csrf_token }}">
+    <script src="https://unpkg.com/grapesjs"></script>
+    <script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
     <script>
-        const CSRF_TOKEN = '{{ csrf_token }}';
-        const globalSettings = {
-            bgColor: '#e8e8e8',
-            contentWidth: 600,
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '16px',
-            linkColor: '#1a1a1a',
-        };
+        const initialDesign = JSON.parse(document.getElementById('initial-design-data').textContent || 'null');
+        const initialHtml = document.getElementById('initial-html').value;
+        const csrfToken = document.getElementById('csrf-token').value;
+        const saveButton = document.getElementById('save-design');
+        const sendTestButton = document.getElementById('send-test-email');
+        const statusPill = document.getElementById('save-status');
 
-        const BLOCKS = {
-            header: {
-                icon: 'bi-layout-text-window',
-                label: 'Header',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a1a;">
-          <tr>
-            <td style="padding:24px 32px; text-align:center;">
-              <span style="font-family:Arial,sans-serif; font-size:22px; font-weight:800; color:#ffffff; letter-spacing:-0.02em;">Greyteeks</span>
-            </td>
-          </tr>
-        </table>`
+        const editor = grapesjs.init({
+            container: '#gjs',
+            height: '100%',
+            width: 'auto',
+            fromElement: false,
+            storageManager: false,
+            noticeOnUnload: false,
+            plugins: ['grapesjs-preset-newsletter'],
+            pluginsOpts: {
+                'grapesjs-preset-newsletter': {
+                    modalLabelImport: 'Paste your newsletter HTML here',
+                    modalLabelExport: 'Copy the rendered newsletter HTML',
+                    importPlaceholder: '<table><tr><td>Stylish Nerd newsletter</td></tr></table>',
+                }
             },
-            hero: {
-                icon: 'bi-image',
-                label: 'Hero',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#2d2d2d;">
-          <tr>
-            <td style="padding:48px 32px; text-align:center;">
-              <h1 style="font-family:Arial,sans-serif; font-size:32px; font-weight:800; color:#ffffff; margin:0 0 12px; line-height:1.2;">Your Campaign Headline</h1>
-              <p style="font-family:Arial,sans-serif; font-size:16px; color:#a6a6a6; margin:0 0 28px; line-height:1.6;">Supporting text that explains your message clearly and compellingly.</p>
-              <a href="#" style="display:inline-block; background:#ffffff; color:#1a1a1a; font-family:Arial,sans-serif; font-size:15px; font-weight:700; padding:14px 32px; border-radius:6px; text-decoration:none;">Get Started</a>
-            </td>
-          </tr>
-        </table>`
-            },
-            text: {
-                icon: 'bi-type',
-                label: 'Text',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:24px 32px;">
-              <p style="font-family:Arial,sans-serif; font-size:15px; color:#404040; line-height:1.7; margin:0;">This is a text block. Click to select it, then use the settings panel on the right to change font, size, color, and alignment. Double-click the text to edit it directly.</p>
-            </td>
-          </tr>
-        </table>`
-            },
-            image: {
-                icon: 'bi-card-image',
-                label: 'Image',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:16px 32px; text-align:center;">
-              <img src="https://placehold.co/540x240/e8e8e8/a6a6a6?text=Click+to+change+image" alt="Image" width="100%" style="display:block; max-width:100%; border-radius:8px;">
-            </td>
-          </tr>
-        </table>`
-            },
-            button: {
-                icon: 'bi-hand-index',
-                label: 'Button',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:16px 32px; text-align:center;">
-              <a href="#" style="display:inline-block; background:#1a1a1a; color:#ffffff; font-family:Arial,sans-serif; font-size:15px; font-weight:700; padding:14px 32px; border-radius:6px; text-decoration:none; letter-spacing:0.02em;">Click Here</a>
-            </td>
-          </tr>
-        </table>`
-            },
-            divider: {
-                icon: 'bi-dash-lg',
-                label: 'Divider',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:8px 32px;">
-              <hr style="border:none; border-top:1px solid #e0e0e0; margin:0;">
-            </td>
-          </tr>
-        </table>`
-            },
-            quote: {
-                icon: 'bi-chat-quote',
-                label: 'Quote',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:24px 32px;">
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #1a1a1a; background:#f8f8f8; border-radius:0 8px 8px 0;">
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <p style="font-family:Georgia,serif; font-size:17px; color:#2d2d2d; line-height:1.7; margin:0 0 12px; font-style:italic;">"Great marketing is about connecting with people at the right moment with the right message."</p>
-                    <span style="font-family:Arial,sans-serif; font-size:12px; font-weight:700; color:#737373; text-transform:uppercase; letter-spacing:0.1em;">— Author Name</span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>`
-            },
-            two_col: {
-                icon: 'bi-layout-split',
-                label: '2 Columns',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:24px 32px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td width="48%" style="vertical-align:top; padding-right:12px;">
-                    <img src="https://placehold.co/240x160/e8e8e8/a6a6a6?text=Image" alt="" width="100%" style="display:block; border-radius:6px; margin-bottom:12px;">
-                    <p style="font-family:Arial,sans-serif; font-size:13px; color:#595959; line-height:1.6; margin:0;">Column one content here. Click to edit.</p>
-                  </td>
-                  <td width="4%"></td>
-                  <td width="48%" style="vertical-align:top; padding-left:12px;">
-                    <img src="https://placehold.co/240x160/e8e8e8/a6a6a6?text=Image" alt="" width="100%" style="display:block; border-radius:6px; margin-bottom:12px;">
-                    <p style="font-family:Arial,sans-serif; font-size:13px; color:#595959; line-height:1.6; margin:0;">Column two content here. Click to edit.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>`
-            },
-            img_text: {
-                icon: 'bi-layout-text-sidebar',
-                label: 'Image + Text',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:24px 32px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td width="40%" style="vertical-align:middle; padding-right:20px;">
-                    <img src="https://placehold.co/200x180/e8e8e8/a6a6a6?text=Image" alt="" width="100%" style="display:block; border-radius:8px;">
-                  </td>
-                  <td width="60%" style="vertical-align:middle;">
-                    <h3 style="font-family:Arial,sans-serif; font-size:18px; font-weight:800; color:#1a1a1a; margin:0 0 8px; line-height:1.3;">Section Heading</h3>
-                    <p style="font-family:Arial,sans-serif; font-size:14px; color:#595959; line-height:1.7; margin:0 0 16px;">Describe your product, offer, or message here. Keep it concise and action-oriented.</p>
-                    <a href="#" style="display:inline-block; background:#1a1a1a; color:#fff; font-family:Arial,sans-serif; font-size:13px; font-weight:700; padding:10px 20px; border-radius:6px; text-decoration:none;">Learn More</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>`
-            },
-            stats: {
-                icon: 'bi-bar-chart',
-                label: '3 Stats',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;">
-          <tr>
-            <td style="padding:32px;">
-              <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td width="33%" style="text-align:center; padding:0 8px;">
-                    <div style="font-family:Arial,sans-serif; font-size:32px; font-weight:900; color:#1a1a1a; line-height:1;">98%</div>
-                    <div style="font-family:Arial,sans-serif; font-size:12px; color:#737373; margin-top:6px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">Delivery Rate</div>
-                  </td>
-                  <td width="33%" style="text-align:center; padding:0 8px; border-left:1px solid #e0e0e0; border-right:1px solid #e0e0e0;">
-                    <div style="font-family:Arial,sans-serif; font-size:32px; font-weight:900; color:#1a1a1a; line-height:1;">10K+</div>
-                    <div style="font-family:Arial,sans-serif; font-size:12px; color:#737373; margin-top:6px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">Messages Sent</div>
-                  </td>
-                  <td width="33%" style="text-align:center; padding:0 8px;">
-                    <div style="font-family:Arial,sans-serif; font-size:32px; font-weight:900; color:#1a1a1a; line-height:1;">3</div>
-                    <div style="font-family:Arial,sans-serif; font-size:12px; color:#737373; margin-top:6px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">Channels</div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>`
-            },
-            social: {
-                icon: 'bi-share',
-                label: 'Social Links',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;">
-          <tr>
-            <td style="padding:20px 32px; text-align:center;">
-              <p style="font-family:Arial,sans-serif; font-size:12px; color:#a6a6a6; margin:0 0 12px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600;">Follow Us</p>
-              <a href="#" style="display:inline-block; margin:0 6px; background:#1a1a1a; color:white; font-family:Arial,sans-serif; font-size:12px; font-weight:700; padding:8px 16px; border-radius:4px; text-decoration:none;">Twitter</a>
-              <a href="#" style="display:inline-block; margin:0 6px; background:#1a1a1a; color:white; font-family:Arial,sans-serif; font-size:12px; font-weight:700; padding:8px 16px; border-radius:4px; text-decoration:none;">LinkedIn</a>
-              <a href="#" style="display:inline-block; margin:0 6px; background:#1a1a1a; color:white; font-family:Arial,sans-serif; font-size:12px; font-weight:700; padding:8px 16px; border-radius:4px; text-decoration:none;">Instagram</a>
-            </td>
-          </tr>
-        </table>`
-            },
-            footer: {
-                icon: 'bi-layout-text-window-reverse',
-                label: 'Footer',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a1a1a;">
-          <tr>
-            <td style="padding:24px 32px; text-align:center;">
-              <p style="font-family:Arial,sans-serif; font-size:13px; color:#737373; margin:0 0 8px; line-height:1.6;">© 2026 Greyteeks. All rights reserved.</p>
-              <p style="font-family:Arial,sans-serif; font-size:12px; color:#595959; margin:0;">
-                <a href="#" style="color:#595959; text-decoration:underline;">Unsubscribe</a> · 
-                <a href="#" style="color:#595959; text-decoration:underline;">Privacy Policy</a> · 
-                Nairobi, Kenya
-              </p>
-            </td>
-          </tr>
-        </table>`
-            },
-            unsubscribe: {
-                icon: 'bi-envelope-slash',
-                label: 'Unsubscribe',
-                defaultHTML: `
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr>
-            <td style="padding:16px 32px; text-align:center;">
-              <p style="font-family:Arial,sans-serif; font-size:11px; color:#a6a6a6; margin:0; line-height:1.6;">
-                You received this email because you opted in. 
-                <a href="#" style="color:#595959;">Unsubscribe</a> at any time.
-              </p>
-            </td>
-          </tr>
-        </table>`
+            canvas: {
+                styles: [
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css'
+                ]
             }
-        };
+        });
 
-        let selectedBlock = null;
-        let dragBlockType = null;
-        let dragExistingBlock = null;
-        let dropPosition = null;
-        const emailCanvas = document.getElementById('emailCanvas');
-        const canvasEmpty = document.getElementById('canvasEmpty');
-        const insertionLine = document.createElement('div');
-        insertionLine.className = 'insertion-line';
+        const defaultContent = `
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7fafc;padding:40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="640" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 18px 50px rgba(26,32,44,0.10);">
+                            <tr>
+                                <td style="background:#1a202c;padding:28px 40px;text-align:left;">
+                                    <div style="font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:#90cdf4;font-weight:700;">Greyteeks Digest</div>
+                                    <h1 style="margin:14px 0 0;font-size:34px;line-height:1.15;color:#ffffff;font-weight:800;">Build a bold newsletter that feels engineered, not generic.</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:36px 40px 18px;color:#2d3748;font-size:16px;line-height:1.75;">
+                                    Start with the newsletter blocks on the left, remix the layout, and shape a polished campaign in the Stylish Nerd palette.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0 40px 40px;">
+                                    <a href="https://greyteeks.com" style="display:inline-block;background:#3182ce;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:700;">Launch Something Smart</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        `;
 
-        function renderBlockTiles() {
-            const palette = document.getElementById('blockTiles');
-            Object.entries(BLOCKS).forEach(([type, block]) => {
-                const tile = document.createElement('button');
-                tile.type = 'button';
-                tile.className = 'block-tile';
-                tile.draggable = true;
-                tile.dataset.blockType = type;
-                tile.innerHTML = `<i class="bi ${block.icon}"></i><span>${block.label}</span>`;
-                tile.addEventListener('dragstart', (event) => {
-                    dragBlockType = type;
-                    dragExistingBlock = null;
-                    event.dataTransfer.effectAllowed = 'copy';
+        if (initialDesign) {
+            editor.loadProjectData(initialDesign);
+        } else if (initialHtml.trim()) {
+            editor.setComponents(initialHtml);
+        } else {
+            editor.setComponents(defaultContent);
+        }
+
+        function setStatus(message, tone = 'info') {
+            statusPill.textContent = message;
+            if (tone === 'success') {
+                statusPill.style.background = 'rgba(56, 161, 105, 0.18)';
+                statusPill.style.borderColor = 'rgba(56, 161, 105, 0.4)';
+                statusPill.style.color = '#c6f6d5';
+                return;
+            }
+            if (tone === 'error') {
+                statusPill.style.background = 'rgba(229, 62, 62, 0.18)';
+                statusPill.style.borderColor = 'rgba(229, 62, 62, 0.4)';
+                statusPill.style.color = '#fed7d7';
+                return;
+            }
+            statusPill.style.background = 'rgba(49, 130, 206, 0.16)';
+            statusPill.style.borderColor = 'rgba(144, 205, 244, 0.35)';
+            statusPill.style.color = '#bee3f8';
+        }
+
+        function buildEmailHtml() {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            return css ? `<style>${css}</style>${html}` : html;
+        }
+
+        editor.on('update', () => setStatus('Unsaved changes'));
+
+        saveButton.addEventListener('click', async () => {
+            const html = buildEmailHtml();
+            const design = editor.getProjectData();
+
+            setStatus('Saving...');
+            saveButton.disabled = true;
+
+            try {
+                const response = await fetch('{{ save_url }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ html, design }),
                 });
-                palette.appendChild(tile);
-            });
-        }
+                const data = await response.json();
 
-        function createBlock(type) {
-            const blockDef = BLOCKS[type];
-            if (!blockDef) return null;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'email-block';
-            wrapper.dataset.blockType = type;
-            wrapper.draggable = true;
-            wrapper.innerHTML = `
-                <div class="block-controls">
-                    <button class="block-ctrl-btn drag-handle" title="Drag"><i class="bi bi-grip-vertical"></i></button>
-                    <button class="block-ctrl-btn" onclick="moveBlock(this,'up');event.stopPropagation();" title="Move Up"><i class="bi bi-arrow-up"></i></button>
-                    <button class="block-ctrl-btn" onclick="moveBlock(this,'down');event.stopPropagation();" title="Move Down"><i class="bi bi-arrow-down"></i></button>
-                    <button class="block-ctrl-btn" onclick="duplicateBlock(this);event.stopPropagation();" title="Duplicate"><i class="bi bi-copy"></i></button>
-                    <button class="block-ctrl-btn" onclick="deleteBlock(this);event.stopPropagation();" title="Delete" style="color:#f87171;"><i class="bi bi-trash"></i></button>
-                </div>
-                <div class="block-content">${blockDef.defaultHTML}</div>`;
-            attachBlockListeners(wrapper);
-            return wrapper;
-        }
-
-        function createBlockFromHtml(html) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'email-block';
-            wrapper.dataset.blockType = 'existing';
-            wrapper.draggable = true;
-            wrapper.innerHTML = `
-                <div class="block-controls">
-                    <button class="block-ctrl-btn drag-handle" title="Drag"><i class="bi bi-grip-vertical"></i></button>
-                    <button class="block-ctrl-btn" onclick="moveBlock(this,'up');event.stopPropagation();" title="Move Up"><i class="bi bi-arrow-up"></i></button>
-                    <button class="block-ctrl-btn" onclick="moveBlock(this,'down');event.stopPropagation();" title="Move Down"><i class="bi bi-arrow-down"></i></button>
-                    <button class="block-ctrl-btn" onclick="duplicateBlock(this);event.stopPropagation();" title="Duplicate"><i class="bi bi-copy"></i></button>
-                    <button class="block-ctrl-btn" onclick="deleteBlock(this);event.stopPropagation();" title="Delete" style="color:#f87171;"><i class="bi bi-trash"></i></button>
-                </div>
-                <div class="block-content">${html}</div>`;
-            attachBlockListeners(wrapper);
-            return wrapper;
-        }
-
-        function attachBlockListeners(block) {
-            block.addEventListener('click', (event) => {
-                event.stopPropagation();
-                selectBlock(block);
-            });
-            block.addEventListener('dblclick', (event) => {
-                event.stopPropagation();
-                makeEditable(block);
-            });
-            block.addEventListener('dragstart', (event) => {
-                dragExistingBlock = block;
-                dragBlockType = null;
-                event.dataTransfer.effectAllowed = 'move';
-            });
-            block.addEventListener('dragover', (event) => {
-                event.preventDefault();
-                const rect = block.getBoundingClientRect();
-                const isAfter = event.clientY > rect.top + rect.height / 2;
-                showInsertionAtBlock(block, isAfter ? 'after' : 'before');
-                dropPosition = { target: block, mode: isAfter ? 'after' : 'before' };
-            });
-            block.addEventListener('drop', (event) => {
-                event.preventDefault();
-                if (dropPosition) {
-                    insertDraggedBlock(dropPosition);
+                if (!response.ok) {
+                    throw new Error(data.error || 'Unable to save this design.');
                 }
-                resetDragState();
-            });
-        }
 
-        function selectBlock(block) {
-            if (selectedBlock) selectedBlock.classList.remove('selected');
-            selectedBlock = block;
-            selectedBlock.classList.add('selected');
-            renderSettingsPanel(block.dataset.blockType, block);
-        }
+                setStatus(data.message || 'Design saved', 'success');
+            } catch (error) {
+                setStatus(error.message, 'error');
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
 
-        function clearSelection() {
-            if (selectedBlock) selectedBlock.classList.remove('selected');
-            selectedBlock = null;
-            renderSettingsPanel(null, null);
-        }
-
-        function renderSettingsPanel(type, block) {
-            const panel = document.getElementById('settingsContent');
-            if (!block) {
-                panel.innerHTML = `
-                    <div class="settings-group-label">Global Email Settings</div>
-                    <div class="settings-field">
-                        <label>Background Color</label>
-                        <input type="color" id="globalBg" class="settings-input" value="${globalSettings.bgColor}" onchange="updateGlobalSetting('bgColor', this.value)">
-                    </div>
-                    <div class="settings-field">
-                        <label>Content Width</label>
-                        <input type="range" id="globalWidth" class="settings-input" min="400" max="700" value="${globalSettings.contentWidth}" onchange="updateGlobalSetting('contentWidth', this.value)">
-                        <div class="settings-note">${globalSettings.contentWidth}px</div>
-                    </div>
-                    <div class="settings-field">
-                        <label>Body Font</label>
-                        <select id="globalFont" class="settings-select" onchange="updateGlobalSetting('fontFamily', this.value)">
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="Georgia, serif">Georgia</option>
-                            <option value="Verdana, sans-serif">Verdana</option>
-                            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
-                        </select>
-                    </div>
-                    <div class="settings-field">
-                        <label>Body Font Size</label>
-                        <select id="globalFontSize" class="settings-select" onchange="updateGlobalSetting('fontSize', this.value)">
-                            <option value="14px">14px</option>
-                            <option value="16px" selected>16px</option>
-                            <option value="18px">18px</option>
-                        </select>
-                    </div>
-                    <div class="settings-field">
-                        <label>Link Color</label>
-                        <input type="color" id="globalLinkColor" class="settings-input" value="${globalSettings.linkColor}" onchange="updateGlobalSetting('linkColor', this.value)">
-                    </div>`;
-                document.getElementById('globalFont').value = globalSettings.fontFamily;
-                document.getElementById('globalFontSize').value = globalSettings.fontSize;
+        sendTestButton.addEventListener('click', async () => {
+            const recipient = window.prompt('Send a test email to which address?');
+            if (!recipient) {
                 return;
             }
 
-            const content = block.querySelector('.block-content');
-            if (type === 'text' || type === 'existing') {
-                const textElement = content.querySelector('p, h1, h2, h3, h4, span, div');
-                const currentColor = textElement ? window.getComputedStyle(textElement).color : '#404040';
-                const currentBg = textElement ? window.getComputedStyle(textElement).backgroundColor : '#ffffff';
-                panel.innerHTML = `
-                    <div class="settings-group-label">Text Block</div>
-                    <div class="settings-field">
-                        <label>Font Family</label>
-                        <select id="textFont" class="settings-select" onchange="applyTextSetting('fontFamily', this.value)">
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="Georgia, serif">Georgia</option>
-                            <option value="Verdana, sans-serif">Verdana</option>
-                            <option value="Trebuchet MS, sans-serif">Trebuchet MS</option>
-                        </select>
-                    </div>
-                    <div class="settings-field">
-                        <label>Font Size (px)</label>
-                        <input id="textSize" type="number" min="12" max="32" class="settings-input" value="16" onchange="applyTextSetting('fontSize', this.value + 'px')">
-                    </div>
-                    <div class="settings-field">
-                        <label>Font Weight</label>
-                        <select id="textWeight" class="settings-select" onchange="applyTextSetting('fontWeight', this.value)">
-                            <option value="normal">Normal</option>
-                            <option value="700">Bold</option>
-                        </select>
-                    </div>
-                    <div class="settings-field">
-                        <label>Text Alignment</label>
-                        <div class="align-btns">
-                            <button type="button" class="align-btn" onclick="applyTextSetting('textAlign','left')">Left</button>
-                            <button type="button" class="align-btn" onclick="applyTextSetting('textAlign','center')">Center</button>
-                            <button type="button" class="align-btn" onclick="applyTextSetting('textAlign','right')">Right</button>
-                        </div>
-                    </div>
-                    <div class="settings-field">
-                        <label>Text Color</label>
-                        <input id="textColor" type="color" class="settings-input" value="${rgbToHex(currentColor)}" onchange="applyTextSetting('color', this.value)">
-                    </div>
-                    <div class="settings-field">
-                        <label>Background Color</label>
-                        <input id="textBg" type="color" class="settings-input" value="${rgbToHex(currentBg)}" onchange="applyTextSetting('backgroundColor', this.value)">
-                    </div>
-                    <div class="settings-field">
-                        <button class="btn-settings-action" onclick="makeEditable(selectedBlock)">Edit Content</button>
-                    </div>`;
-                return;
-            }
+            sendTestButton.disabled = true;
+            setStatus('Sending test email...');
 
-            if (type === 'image') {
-                const img = content.querySelector('img');
-                panel.innerHTML = `
-                    <div class="settings-group-label">Image Block</div>
-                    <div class="settings-field">
-                        <label>Image URL</label>
-                        <input id="imageUrl" class="settings-input" type="text" value="${img ? img.src : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Alt Text</label>
-                        <input id="imageAlt" class="settings-input" type="text" value="${img ? img.alt : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Width (%)</label>
-                        <input id="imageWidth" type="range" min="40" max="100" class="settings-input" value="${img ? parseInt(img.getAttribute('width') || '100', 10) : 100}" onchange="applyImageSettings()">
-                        <div class="settings-note" id="imageWidthNote">${img ? parseInt(img.getAttribute('width') || '100', 10) : 100}%</div>
-                    </div>
-                    <div class="settings-field">
-                        <label>Alignment</label>
-                        <div class="align-btns">
-                            <button type="button" class="align-btn" onclick="applyImageSetting('textAlign','left')">Left</button>
-                            <button type="button" class="align-btn" onclick="applyImageSetting('textAlign','center')">Center</button>
-                            <button type="button" class="align-btn" onclick="applyImageSetting('textAlign','right')">Right</button>
-                        </div>
-                    </div>
-                    <div class="settings-field">
-                        <label>Link URL</label>
-                        <input id="imageLink" class="settings-input" type="text" value="${img && img.parentElement.tagName === 'A' ? img.parentElement.href : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Border Radius</label>
-                        <input id="imageRadius" type="number" min="0" max="50" class="settings-input" value="${img ? parseInt(img.style.borderRadius || '8', 10) : 8}" onchange="applyImageSettings()">
-                    </div>
-                    <div class="settings-field">
-                        <button class="btn-settings-action" onclick="applyImageSettings()">Apply Image Settings</button>
-                    </div>`;
-                return;
-            }
-
-            if (type === 'button') {
-                const anchor = content.querySelector('a');
-                panel.innerHTML = `
-                    <div class="settings-group-label">Button Block</div>
-                    <div class="settings-field">
-                        <label>Button Text</label>
-                        <input id="buttonText" class="settings-input" type="text" value="${anchor ? anchor.textContent.trim() : 'Click Here'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Button URL</label>
-                        <input id="buttonUrl" class="settings-input" type="text" value="${anchor ? anchor.href : '#'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Background Color</label>
-                        <input id="buttonBg" type="color" class="settings-input" value="${anchor ? rgbToHex(window.getComputedStyle(anchor).backgroundColor) : '#1a1a1a'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Text Color</label>
-                        <input id="buttonTextColor" type="color" class="settings-input" value="${anchor ? rgbToHex(window.getComputedStyle(anchor).color) : '#ffffff'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Border Radius</label>
-                        <input id="buttonRadius" type="number" min="0" max="40" class="settings-input" value="${anchor ? parseInt(anchor.style.borderRadius || '6', 10) : 6}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Alignment</label>
-                        <div class="align-btns">
-                            <button type="button" class="align-btn" onclick="applyButtonSetting('textAlign','left')">Left</button>
-                            <button type="button" class="align-btn" onclick="applyButtonSetting('textAlign','center')">Center</button>
-                            <button type="button" class="align-btn" onclick="applyButtonSetting('textAlign','right')">Right</button>
-                        </div>
-                    </div>
-                    <div class="settings-field">
-                        <label><input type="checkbox" id="buttonFullWidth" onchange="toggleButtonFullWidth()"> Full width</label>
-                    </div>
-                    <div class="settings-field">
-                        <button class="btn-settings-action" onclick="applyButtonSettings()">Apply Button Settings</button>
-                    </div>`;
-                return;
-            }
-
-            if (type === 'hero') {
-                const heading = content.querySelector('h1');
-                const paragraph = content.querySelector('p');
-                const anchor = content.querySelector('a');
-                panel.innerHTML = `
-                    <div class="settings-group-label">Hero Block</div>
-                    <div class="settings-field">
-                        <label>Background Color</label>
-                        <input id="heroBg" type="color" class="settings-input" value="${content.style.backgroundColor || '#2d2d2d'}" onchange="applyHeroSettings()">
-                    </div>
-                    <div class="settings-field">
-                        <label>Background Image URL</label>
-                        <input id="heroImage" class="settings-input" type="text" value="${content.dataset.bgImage || ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Heading Text</label>
-                        <input id="heroHeading" class="settings-input" type="text" value="${heading ? heading.textContent.trim() : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Subtext</label>
-                        <input id="heroSubtext" class="settings-input" type="text" value="${paragraph ? paragraph.textContent.trim() : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Button Text</label>
-                        <input id="heroButtonText" class="settings-input" type="text" value="${anchor ? anchor.textContent.trim() : ''}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Button URL</label>
-                        <input id="heroButtonUrl" class="settings-input" type="text" value="${anchor ? anchor.href : '#'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Text Color</label>
-                        <input id="heroTextColor" type="color" class="settings-input" value="${heading ? rgbToHex(window.getComputedStyle(heading).color) : '#ffffff'}">
-                    </div>
-                    <div class="settings-field">
-                        <label>Padding</label>
-                        <input id="heroPadding" type="number" min="16" max="120" class="settings-input" value="48" onchange="applyHeroSettings()">
-                    </div>
-                    <div class="settings-field">
-                        <button class="btn-settings-action" onclick="applyHeroSettings()">Apply Hero Settings</button>
-                    </div>`;
-                return;
-            }
-
-            panel.innerHTML = `
-                <div class="settings-group-label">Block Settings</div>
-                <div class="settings-field">
-                    <p class="settings-note">This block type has limited editable settings in the current builder.</p>
-                </div>`;
-        }
-
-        function updateGlobalSetting(key, value) {
-            globalSettings[key] = value;
-            if (key === 'contentWidth') {
-                document.querySelectorAll('.email-canvas table[width]').forEach(tbl => {
-                    if (tbl.parentElement === emailCanvas) return;
+            try {
+                const response = await fetch('{{ test_url }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        recipient,
+                        subject: '{{ campaign.title|escapejs }}',
+                        html_content: buildEmailHtml(),
+                        provider_id: '{{ campaign.email_server_id|default_if_none:"" }}',
+                    }),
                 });
-            }
-        }
+                const data = await response.json();
 
-        function applyTextSetting(property, value) {
-            if (!selectedBlock) return;
-            const el = selectedBlock.querySelector('.block-content').querySelector('p, h1, h2, h3, h4, span, div');
-            if (!el) return;
-            el.style[property] = value;
-        }
-
-        function applyImageSetting(property, value) {
-            if (!selectedBlock) return;
-            const row = selectedBlock.querySelector('.block-content td');
-            if (row) row.style[property] = value;
-        }
-
-        function applyImageSettings() {
-            if (!selectedBlock) return;
-            const img = selectedBlock.querySelector('.block-content img');
-            if (!img) return;
-            const src = document.getElementById('imageUrl').value.trim();
-            const alt = document.getElementById('imageAlt').value.trim();
-            const width = document.getElementById('imageWidth').value;
-            const radius = document.getElementById('imageRadius').value;
-            const link = document.getElementById('imageLink').value.trim();
-            if (src) img.src = src;
-            img.alt = alt || img.alt;
-            img.width = parseInt(width, 10);
-            img.style.borderRadius = `${radius}px`;
-            document.getElementById('imageWidthNote').textContent = `${width}%`;
-            if (link) {
-                if (img.parentElement.tagName !== 'A') {
-                    const anchor = document.createElement('a');
-                    anchor.href = link;
-                    anchor.style.textDecoration = 'none';
-                    img.parentElement.replaceChild(anchor, img);
-                    anchor.appendChild(img);
-                } else {
-                    img.parentElement.href = link;
+                if (!response.ok) {
+                    throw new Error(data.error || 'Unable to send the test email.');
                 }
-            } else if (img.parentElement.tagName === 'A') {
-                const parent = img.parentElement.parentElement;
-                parent.replaceChild(img, img.parentElement);
+
+                setStatus(data.message || 'Test email sent', 'success');
+            } catch (error) {
+                setStatus(error.message, 'error');
+            } finally {
+                sendTestButton.disabled = false;
             }
-        }
-
-        function applyButtonSettings() {
-            if (!selectedBlock) return;
-            const anchor = selectedBlock.querySelector('.block-content a');
-            if (!anchor) return;
-            anchor.textContent = document.getElementById('buttonText').value || 'Click Here';
-            anchor.href = document.getElementById('buttonUrl').value || '#';
-            anchor.style.background = document.getElementById('buttonBg').value;
-            anchor.style.color = document.getElementById('buttonTextColor').value;
-            anchor.style.borderRadius = document.getElementById('buttonRadius').value + 'px';
-            if (document.getElementById('buttonFullWidth').checked) {
-                anchor.style.display = 'block';
-                anchor.style.width = '100%';
-            } else {
-                anchor.style.display = 'inline-block';
-                anchor.style.width = 'auto';
-            }
-        }
-
-        function applyButtonSetting(property, value) {
-            if (!selectedBlock) return;
-            const anchor = selectedBlock.querySelector('.block-content a');
-            if (!anchor) return;
-            anchor.style[property] = value;
-        }
-
-        function toggleButtonFullWidth() {
-            if (!selectedBlock) return;
-            const anchor = selectedBlock.querySelector('.block-content a');
-            if (!anchor) return;
-            if (document.getElementById('buttonFullWidth').checked) {
-                anchor.style.display = 'block';
-                anchor.style.width = '100%';
-            } else {
-                anchor.style.display = 'inline-block';
-                anchor.style.width = 'auto';
-            }
-        }
-
-        function applyHeroSettings() {
-            if (!selectedBlock) return;
-            const content = selectedBlock.querySelector('.block-content');
-            const heading = content.querySelector('h1');
-            const paragraph = content.querySelector('p');
-            const anchor = content.querySelector('a');
-            const bg = document.getElementById('heroBg').value;
-            const image = document.getElementById('heroImage').value.trim();
-            const textColor = document.getElementById('heroTextColor').value;
-            const padding = document.getElementById('heroPadding').value;
-            const headingText = document.getElementById('heroHeading').value;
-            const subtext = document.getElementById('heroSubtext').value;
-            const buttonText = document.getElementById('heroButtonText').value;
-            const buttonUrl = document.getElementById('heroButtonUrl').value;
-            const row = content.querySelector('td');
-            if (row) row.style.background = bg;
-            if (heading) heading.textContent = headingText;
-            if (paragraph) paragraph.textContent = subtext;
-            if (anchor) {
-                anchor.textContent = buttonText;
-                anchor.href = buttonUrl || '#';
-                anchor.style.color = textColor;
-            }
-            if (heading) heading.style.color = textColor;
-            if (paragraph) paragraph.style.color = textColor;
-            content.dataset.bgImage = image;
-            if (image) row.style.backgroundImage = `url('${image}')`;
-        }
-
-        function makeEditable(block) {
-            const editables = block.querySelectorAll('p, h1, h2, h3, h4, span, a, div[style*="font"]');
-            editables.forEach(el => {
-                el.contentEditable = 'true';
-                el.style.outline = '2px dashed #8c8c8c';
-                el.addEventListener('blur', () => {
-                    el.contentEditable = 'false';
-                    el.style.outline = 'none';
-                }, { once: true });
-            });
-            if (editables[0]) editables[0].focus();
-        }
-
-        function moveBlock(button, direction) {
-            const block = button.closest('.email-block');
-            if (!block) return;
-            if (direction === 'up' && block.previousElementSibling) {
-                emailCanvas.insertBefore(block, block.previousElementSibling);
-            } else if (direction === 'down' && block.nextElementSibling) {
-                emailCanvas.insertBefore(block.nextElementSibling, block);
-            }
-            updateEmptyState();
-        }
-
-        function duplicateBlock(button) {
-            const block = button.closest('.email-block');
-            if (!block) return;
-            const clone = block.cloneNode(true);
-            attachBlockListeners(clone);
-            emailCanvas.insertBefore(clone, block.nextElementSibling);
-            updateEmptyState();
-        }
-
-        function deleteBlock(button) {
-            const block = button.closest('.email-block');
-            if (!block) return;
-            if (selectedBlock === block) selectedBlock = null;
-            block.remove();
-            updateEmptyState();
-            renderSettingsPanel(null, null);
-        }
-
-        function updateEmptyState() {
-            canvasEmpty.style.display = emailCanvas.querySelectorAll('.email-block').length ? 'none' : 'block';
-        }
-
-        function handleCanvasDragOver(event) {
-            event.preventDefault();
-            const blocks = Array.from(emailCanvas.querySelectorAll('.email-block'));
-            if (!blocks.length) {
-                showInsertionAtCanvasEnd();
-                dropPosition = { target: null, mode: 'end' };
-            }
-        }
-
-        function handleCanvasDrop(event) {
-            event.preventDefault();
-            if (dropPosition) {
-                insertDraggedBlock(dropPosition);
-            }
-            resetDragState();
-        }
-
-        function showInsertionAtBlock(block, mode) {
-            if (!emailCanvas.contains(block)) return;
-            insertionLine.remove();
-            const rect = block.getBoundingClientRect();
-            const canvasRect = emailCanvas.getBoundingClientRect();
-            emailCanvas.appendChild(insertionLine);
-            insertionLine.style.width = (rect.width - 32) + 'px';
-            insertionLine.style.left = (rect.left - canvasRect.left + 16) + 'px';
-            insertionLine.style.top = (mode === 'after' ? rect.bottom - canvasRect.top + 4 : rect.top - canvasRect.top - 4) + 'px';
-        }
-
-        function showInsertionAtCanvasEnd() {
-            const blocks = Array.from(emailCanvas.querySelectorAll('.email-block'));
-            insertionLine.remove();
-            emailCanvas.appendChild(insertionLine);
-            if (!blocks.length) {
-                insertionLine.style.left = '16px';
-                insertionLine.style.right = '16px';
-                insertionLine.style.top = '20px';
-            } else {
-                const last = blocks[blocks.length - 1];
-                const rect = last.getBoundingClientRect();
-                const canvasRect = emailCanvas.getBoundingClientRect();
-                insertionLine.style.width = (rect.width - 32) + 'px';
-                insertionLine.style.left = (rect.left - canvasRect.left + 16) + 'px';
-                insertionLine.style.top = (rect.bottom - canvasRect.top + 6) + 'px';
-            }
-        }
-
-        function insertDraggedBlock(position) {
-            let newBlock;
-            if (dragBlockType) {
-                newBlock = createBlock(dragBlockType);
-            } else if (dragExistingBlock) {
-                newBlock = dragExistingBlock;
-            }
-            if (!newBlock) return;
-            if (dragExistingBlock) {
-                dragExistingBlock = null;
-            }
-            if (position.target) {
-                if (position.mode === 'before') {
-                    emailCanvas.insertBefore(newBlock, position.target);
-                } else {
-                    emailCanvas.insertBefore(newBlock, position.target.nextElementSibling);
-                }
-            } else {
-                emailCanvas.appendChild(newBlock);
-            }
-            updateEmptyState();
-        }
-
-        function resetDragState() {
-            dragBlockType = null;
-            dragExistingBlock = null;
-            dropPosition = null;
-            insertionLine.remove();
-        }
-
-        function generateEmailHTML() {
-            const blocks = Array.from(emailCanvas.querySelectorAll('.email-block .block-content'));
-            let bodyContent = '';
-            blocks.forEach(b => { bodyContent += b.innerHTML; });
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email</title>
-</head>
-<body style="margin:0; padding:0; background:${globalSettings.bgColor}; font-family:${globalSettings.fontFamily}; font-size:${globalSettings.fontSize};">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:${globalSettings.bgColor};">
-        <tr>
-            <td align="center" style="padding:20px 0;">
-                <table width="${globalSettings.contentWidth}" cellpadding="0" cellspacing="0" style="background:#ffffff; max-width:${globalSettings.contentWidth}px;">
-                    <tr>
-                        <td style="padding:0;">
-                            ${bodyContent}
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`;
-        }
-
-        function openPreview() {
-            const html = generateEmailHTML();
-            document.getElementById('previewFrame').srcdoc = html;
-            document.getElementById('previewModal').classList.remove('hidden');
-            setPreviewSize('desktop');
-        }
-
-        function closePreview() {
-            document.getElementById('previewModal').classList.add('hidden');
-        }
-
-        function setPreviewSize(size) {
-            const frame = document.getElementById('previewFrame');
-            document.getElementById('desktopTab').classList.toggle('active', size === 'desktop');
-            document.getElementById('mobileTab').classList.toggle('active', size === 'mobile');
-            frame.style.width = size === 'mobile' ? '375px' : '600px';
-        }
-
-        function openSaveModal() {
-            document.getElementById('saveName').value = document.getElementById('templateName').value.trim() || 'Untitled Template';
-            document.getElementById('saveModal').classList.remove('hidden');
-        }
-
-        function closeSaveModal() {
-            document.getElementById('saveModal').classList.add('hidden');
-        }
-
-        function openTestModal() {
-            document.getElementById('testEmail').value = '';
-            document.getElementById('testModal').classList.remove('hidden');
-        }
-
-        function closeTestModal() {
-            document.getElementById('testModal').classList.add('hidden');
-        }
-
-        async function sendTestEmail() {
-            const email = document.getElementById('testEmail').value.trim();
-            if (!email) {
-                showToast('Enter a recipient email to send a test.', 'error');
-                return;
-            }
-            const subject = document.getElementById('saveSubject').value.trim();
-            if (!subject) {
-                showToast('Enter a subject before sending a test email.', 'error');
-                return;
-            }
-            const providerId = document.getElementById('saveProvider').value || null;
-            const htmlContent = generateEmailHTML();
-            closeTestModal();
-            const res = await fetch('{% url "email_builder_test" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': CSRF_TOKEN,
-                },
-                body: JSON.stringify({ recipient: email, subject, html_content: htmlContent, provider_id: providerId }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                showToast(data.message || `Test email sent to ${email}.`, 'success');
-            } else {
-                showToast(data.error || 'Unable to send test email.', 'error');
-            }
-        }
-
-        async function saveTemplate() {
-            const name = document.getElementById('saveName').value.trim();
-            const subject = document.getElementById('saveSubject').value.trim();
-            const providerId = document.getElementById('saveProvider').value;
-            const htmlContent = generateEmailHTML();
-            const templateId = document.getElementById('builderRoot').dataset.templateId || null;
-            if (!name || !subject) {
-                showToast('Please enter a template name and subject.', 'error');
-                return;
-            }
-            const res = await fetch('{% url "email_builder_save" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': CSRF_TOKEN,
-                },
-                body: JSON.stringify({ name, subject, html_content: htmlContent, provider_id: providerId, template_id: templateId }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                const root = document.getElementById('builderRoot');
-                root.dataset.templateId = data.template_id;
-                document.getElementById('templateName').value = name;
-                showToast(data.message, 'success');
-                closeSaveModal();
-                updateTemplateList(data.template_id, name);
-            } else {
-                showToast(data.error || 'Save failed.', 'error');
-            }
-        }
-
-        function updateTemplateList(templateId, name) {
-            const list = document.getElementById('templateList');
-            const existingCard = document.getElementById(`templateCard${templateId}`);
-            if (existingCard) {
-                const titleEl = existingCard.querySelector('.template-name');
-                if (titleEl) titleEl.textContent = name;
-                return;
-            }
-            const templateCard = document.createElement('div');
-            templateCard.className = 'template-card';
-            templateCard.id = `templateCard${templateId}`;
-            templateCard.innerHTML = `
-                <div class="template-name">${name}</div>
-                <div class="template-actions">
-                    <a href="${window.location.origin}{% url 'email_builder_edit' 0 %}" class="btn-topbar btn-topbar-primary" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;">Edit</a>
-                    <button type="button" class="btn-topbar" style="padding:0.45rem 0.55rem; font-size:0.75rem; width:100%; justify-content:center;" onclick="deleteBuilderTemplate(${templateId}, this)">Discard</button>
-                </div>
-            `;
-            const editLink = templateCard.querySelector('a');
-            if (editLink) {
-                editLink.href = editLink.href.replace('/0/', `/${templateId}/`);
-            }
-            if (list.querySelector('.text-muted.small')) {
-                list.innerHTML = '';
-            }
-            list.prepend(templateCard);
-        }
-
-        async function deleteBuilderTemplate(templateId, button) {
-            if (!confirm('Discard this template? This cannot be undone.')) return;
-            const response = await fetch('{% url "email_builder_delete" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': CSRF_TOKEN,
-                },
-                body: `template_id=${encodeURIComponent(templateId)}`,
-            });
-            const data = await response.json();
-            if (data.success) {
-                const card = button.closest('.template-card');
-                if (card) card.remove();
-                if (!document.querySelectorAll('.template-card').length) {
-                    document.getElementById('templateList').innerHTML = '<div class="text-muted small">No saved templates yet.</div>';
-                }
-                showToast('Template discarded.', 'success');
-            } else {
-                showToast(data.error || 'Unable to discard template.', 'error');
-            }
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.style.cssText = `position:fixed; bottom:24px; right:24px; z-index:9999; background:${type === 'success' ? '#1a1a1a' : '#dc2626'}; color:white; padding:12px 20px; border-radius:8px; font-family:'Montserrat',sans-serif; font-size:0.85rem; font-weight:600; box-shadow:0 8px 32px rgba(0,0,0,0.2); animation: slideInRight 0.3s ease; max-width:320px; line-height:1.4;`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.remove();
-            }, 4000);
-        }
-
-        function rgbToHex(rgb) {
-            const match = rgb.match(/\d+/g);
-            if (!match) return '#000000';
-            return `#${match.slice(0, 3).map(n => parseInt(n, 10).toString(16).padStart(2, '0')).join('')}`;
-        }
-
-        function initBuilder() {
-            renderBlockTiles();
-            renderSettingsPanel(null, null);
-            if (document.getElementById('builderRoot').dataset.templateId) {
-                const existingHtml = document.getElementById('initialHtml').value.trim();
-                if (existingHtml) {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(existingHtml, 'text/html');
-                    const inner = doc.body.innerHTML;
-                    const temp = document.createElement('div');
-                    temp.innerHTML = inner;
-                    const children = Array.from(temp.children);
-                    children.forEach(child => {
-                        const html = child.outerHTML;
-                        const block = createBlockFromHtml(html);
-                        emailCanvas.appendChild(block);
-                    });
-                }
-            }
-            updateEmptyState();
-            document.body.addEventListener('click', (event) => {
-                if (!event.target.closest('.email-block') && !event.target.closest('#settingsPanel') && !event.target.closest('.btn-topbar') && !event.target.closest('.modal-panel')) {
-                    clearSelection();
-                }
-            });
-        }
-
-        window.handleCanvasDragOver = handleCanvasDragOver;
-        window.handleCanvasDrop = handleCanvasDrop;
-        window.moveBlock = moveBlock;
-        window.duplicateBlock = duplicateBlock;
-        window.deleteBlock = deleteBlock;
-        window.makeEditable = makeEditable;
-        window.applyTextSetting = applyTextSetting;
-        window.applyImageSetting = applyImageSetting;
-        window.applyImageSettings = applyImageSettings;
-        window.applyButtonSettings = applyButtonSettings;
-        window.applyButtonSetting = applyButtonSetting;
-        window.toggleButtonFullWidth = toggleButtonFullWidth;
-        window.applyHeroSettings = applyHeroSettings;
-        window.openPreview = openPreview;
-        window.closePreview = closePreview;
-        window.openSaveModal = openSaveModal;
-        window.closeSaveModal = closeSaveModal;
-        window.openTestModal = openTestModal;
-        window.closeTestModal = closeTestModal;
-        window.saveTemplate = saveTemplate;
-        window.sendTestEmail = sendTestEmail;
-        window.updateTemplateList = updateTemplateList;
-        window.deleteBuilderTemplate = deleteBuilderTemplate;
-
-        initBuilder();
+        });
     </script>
 </body>
 </html>

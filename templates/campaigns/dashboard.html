@@ -459,8 +459,15 @@
                                             <td>{{ campaign.active_channel_labels }}</td>
                                             <td>{{ campaign.target_group.name|default:"General" }}</td>
                                             <td>
-                                                {% if campaign.status == 'sent' %}
-                                                    <span class="badge rounded-pill bg-success-subtle text-success">Sent</span>
+                                                {% if campaign.status == 'queued' %}
+                                                    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle">Queued</span>
+                                                {% elif campaign.status == 'processing' %}
+                                                    <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle d-inline-flex align-items-center gap-1">
+                                                        <span class="spinner-border spinner-border-sm" aria-hidden="true" style="width: .75rem; height: .75rem;"></span>
+                                                        Processing
+                                                    </span>
+                                                {% elif campaign.status == 'completed' or campaign.status == 'sent' %}
+                                                    <span class="badge rounded-pill bg-success-subtle text-success">Completed</span>
                                                 {% elif campaign.status == 'failed' %}
                                                     <span class="badge rounded-pill bg-danger-subtle text-danger">Failed</span>
                                                 {% else %}

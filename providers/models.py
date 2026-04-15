@@ -81,6 +81,8 @@ class EmailTemplate(models.Model):
     name = models.CharField(max_length=100, help_text="Internal template name")
     subject = models.CharField(max_length=200)
     body_text = models.TextField(help_text="Email body text or HTML")
+    html_content = models.TextField(blank=True, default='')
+    design_json = models.JSONField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

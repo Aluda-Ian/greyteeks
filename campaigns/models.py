@@ -2,13 +2,15 @@ from django.db import models
 from config import settings
 
 from providers.models import EmailProvider, SMSProvider, WhatsAppProvider, EmailTemplate, WhatsAppTemplate, MessageTemplate
-from contacts_app.models import Group
+from contacts_app.models import Contact, Group
 
 class Campaign(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaigns')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default='')
     message_body = models.TextField(blank=True, default='')
+    html_content = models.TextField(blank=True, null=True)
+    design_json = models.JSONField(blank=True, null=True)
     sms_template = models.ForeignKey(MessageTemplate, on_delete=models.SET_NULL, null=True, blank=True)
 
     send_sms = models.BooleanField(default=False, verbose_name='SMS')
@@ -21,7 +23,10 @@ class Campaign(models.Model):
         max_length=20,
         choices=[
             ('draft', 'Draft'),
+            ('queued', 'Queued'),
+            ('processing', 'Processing'),
             ('scheduled', 'Scheduled'),
+            ('completed', 'Completed'),
             ('sent', 'Sent'),
             ('failed', 'Failed'),
             ('cancelled', 'Cancelled'),
@@ -35,6 +40,8 @@ class Campaign(models.Model):
     email_server = models.ForeignKey(EmailProvider, on_delete=models.SET_NULL, null=True, blank=True)
     whatsapp_template = models.ForeignKey(WhatsAppTemplate, on_delete=models.SET_NULL, null=True, blank=True)
     email_template = models.ForeignKey(EmailTemplate, on_delete=models.SET_NULL, null=True, blank=True)
+    opens_count = models.IntegerField(default=0)
+    clicks_count = models.IntegerField(default=0)
     failure_reason = models.TextField(blank=True, default='', help_text='Stores the most recent delivery failure details.')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,3 +65,15 @@ class Campaign(models.Model):
     @property
     def active_channel_labels(self):
         return ', '.join(self.enabled_channels) if self.enabled_channels else 'None'
+
+
+class CampaignOpenEvent(models.Model):
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='open_events')
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, related_name='campaign_open_events')
+    opened_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-opened_at']
+
+    def __str__(self):
+        return f"Open for {self.campaign_id} by {self.contact_id}"

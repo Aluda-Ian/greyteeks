@@ -10,7 +10,7 @@ class PaymentGatewayConfigAdmin(admin.ModelAdmin):
 
 @admin.register(PricingPlan)
 class PricingPlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'units', 'price_kes', 'price_usd', 'is_active', 'is_featured')
+    list_display = ('name', 'units', 'price_kes', 'price_usd', 'description', 'is_active', 'is_featured')
 
 
 @admin.register(PaymentTransaction)

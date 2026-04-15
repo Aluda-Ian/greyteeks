@@ -40,6 +40,7 @@ class PricingPlan(models.Model):
     units = models.PositiveIntegerField(help_text="Number of message units this plan adds")
     price_kes = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in KES for M-Pesa")
     price_usd = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in USD for PayPal/Paystack")
+    description = models.TextField(blank=True, default='', help_text="Short description shown on the pricing page")
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
