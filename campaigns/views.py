@@ -1120,24 +1120,22 @@ def template_email_builder(request, template_id=None):
 
     ).order_by('-created_at')
 
-    return render(request, 'campaigns/template_email_builder.html', {
-
+    return render(request, 'campaigns/quill_email_builder.html', {
         'existing': existing,
-
         'providers': providers,
-
         'email_templates': email_templates,
-
+        'save_url': reverse('email_builder_save'),
+        'test_url': reverse('email_builder_test'),
     })
 
 
 @login_required
 def email_builder(request, campaign_id):
     campaign = get_object_or_404(Campaign, id=campaign_id, user=request.user)
-    return render(request, 'campaigns/email_builder.html', {
+    return render(request, 'campaigns/quill_email_builder.html', {
         'campaign': campaign,
         'save_url': reverse('save_email_design', kwargs={'campaign_id': campaign.id}),
-        'back_url': reverse('edit_campaign', kwargs={'campaign_id': campaign.id}),
+        'back_url': reverse('create_campaign', kwargs={'campaign_id': campaign.id}),
         'test_url': reverse('email_builder_test'),
     })
 
@@ -1154,8 +1152,8 @@ def save_email_design(request, campaign_id):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON payload.'}, status=400)
 
-    html = (payload.get('html') or '').strip()
-    design = payload.get('design')
+    html = (payload.get('html') or payload.get('html_content') or '').strip()
+    design = payload.get('design') or payload.get('design_json')
 
     if not html:
         return JsonResponse({'error': 'HTML content is required.'}, status=400)
@@ -1240,9 +1238,8 @@ def email_builder_save(request):
 
     subject = data.get('subject', '').strip()
 
-    html_content = data.get('html_content', '').strip()
-
-    design_json = data.get('design_json')
+    html_content = (data.get('html_content') or data.get('html') or '').strip()
+    design_json = data.get('design_json') or data.get('design')
 
     template_id = data.get('template_id')
 

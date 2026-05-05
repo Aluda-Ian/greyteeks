@@ -1,5 +1,9 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "&": true
+        "&": true,
+        "print('idx',": true,
+        "print(repr(t[idx:idx+1200]))": true,
+        "repr(t[idx:idx+1200])": true,
+        "t[idx:idx+1200]": true
     }
 }

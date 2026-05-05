@@ -17,6 +17,16 @@
                 <input type="hidden" name="next" value="{% url 'dashboard' %}">
                 <button type="submit" class="btn btn-primary w-100 py-2">Sign In</button>
             </form>
+            {% if admin_users %}
+            <div class="alert alert-info mt-3">
+                <strong>Admin Logins:</strong>
+                <ul class="mb-0">
+                {% for user in admin_users %}
+                    <li>{{ user.username }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             <div class="text-center mt-3">
                 <p class="mb-1">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
                 <p class="mb-0"><a href="{% url 'password_reset' %}">Forgot password?</a></p>

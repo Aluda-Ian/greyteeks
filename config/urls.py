@@ -12,6 +12,7 @@ admin.site.index_title = 'Greyteeks Administration'
 
 urlpatterns = [
     path('', home_view, name='home'),
+    path('accounts/', include('accounts.urls')),
     path('sign-in/', auth_views.LoginView.as_view(template_name='home/sign-in.html'), name='sign_in'),
     path('sign-up/', register_view, name='sign_up'),
     path('reset-password/', auth_views.PasswordResetView.as_view(

@@ -1,0 +1,524 @@
+{% extends 'campaigns/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Email Builder{% endblock %}
+
+{% block extra_head %}
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    :root {
+        --builder-sidebar-width: 280px;
+    }
+
+    .builder-container {
+        display: flex;
+        height: calc(100vh - 120px);
+        background: #f8fafc;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        margin-top: 20px;
+    }
+
+    /* Blocks Sidebar */
+    .builder-sidebar {
+        width: var(--builder-sidebar-width);
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .sidebar-header h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .blocks-list {
+        padding: 1.25rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .block-item {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: grab;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        user-select: none;
+    }
+
+    .block-item:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+
+    .block-item i {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+
+    .block-item:hover i {
+        color: #3b82f6;
+    }
+
+    .block-item span {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #334155;
+    }
+
+    /* Editor Area */
+    .editor-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        position: relative;
+    }
+
+    .editor-toolbar-custom {
+        padding: 0.75rem 1.25rem;
+        background: #ffffff;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .quill-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #editor-container {
+        flex: 1;
+        border: none !important;
+    }
+
+    #html-editor {
+        flex: 1;
+        border: none;
+        padding: 1.5rem;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9rem;
+        resize: none;
+        outline: none;
+        background: #1e293b;
+        color: #e2e8f0;
+        display: none;
+    }
+
+    .ql-toolbar.ql-snow {
+        border: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Actions Bar */
+    .builder-footer {
+        padding: 1rem 1.5rem;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn-builder {
+        padding: 0.6rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .mode-toggle {
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 8px;
+        display: flex;
+    }
+
+    .mode-btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+        background: white;
+        color: #3b82f6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .toast-container {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 9999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-2 mb-3 border-bottom mt-2">
+    <div>
+        <h2 class="fw-bold m-0">Email Builder</h2>
+        <p class="text-muted mb-0 small">Create beautiful emails with Quill and drag-and-drop blocks.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="d-flex flex-column">
+            <input type="text" id="templateName" class="form-control form-control-sm mb-1" placeholder="Template Name" style="width: 250px;" value="{% if existing %}{{ existing.name }}{% elif campaign %}{{ campaign.title }}{% endif %}">
+            <input type="text" id="emailSubject" class="form-control form-control-sm" placeholder="Email Subject" style="width: 250px;" value="{% if existing %}{{ existing.subject }}{% elif campaign %}{{ campaign.title }}{% endif %}">
+        </div>
+        <button class="btn btn-sm btn-outline-dark align-self-start" onclick="openTestModal()">
+            <i class="bi bi-send me-1"></i> Test
+        </button>
+        <button class="btn btn-sm btn-primary px-3 align-self-start" onclick="saveDesign()">
+            <i class="bi bi-floppy me-1"></i> Save Design
+        </button>
+    </div>
+</div>
+
+<div class="builder-container">
+    <!-- Sidebar Blocks -->
+    <aside class="builder-sidebar">
+        <div class="sidebar-header">
+            <h6>Content Blocks</h6>
+        </div>
+        <div class="blocks-list">
+            <div class="block-item" draggable="true" data-type="header">
+                <i class="bi bi-layout-text-window"></i>
+                <span>Header</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="hero">
+                <i class="bi bi-image"></i>
+                <span>Hero Section</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="text">
+                <i class="bi bi-type"></i>
+                <span>Text Block</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="image">
+                <i class="bi bi-card-image"></i>
+                <span>Image</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="button">
+                <i class="bi bi-hand-index"></i>
+                <span>Button</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="divider">
+                <i class="bi bi-dash-lg"></i>
+                <span>Divider</span>
+            </div>
+            <div class="block-item" draggable="true" data-type="footer">
+                <i class="bi bi-layout-text-window-reverse"></i>
+                <span>Footer</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Editor -->
+    <main class="editor-main">
+        <div class="editor-toolbar-custom">
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="visual-mode-btn" onclick="switchMode('visual')">Visual Editor</button>
+                <button class="mode-btn" id="html-mode-btn" onclick="switchMode('html')">HTML Code</button>
+            </div>
+            <div class="text-muted small">
+                <i class="bi bi-info-circle me-1"></i> Drag blocks into the editor
+            </div>
+        </div>
+
+        <div class="quill-wrapper">
+            <div id="editor-container"></div>
+            <textarea id="html-editor"></textarea>
+        </div>
+    </main>
+</div>
+
+<!-- Test Modal -->
+<div class="modal fade" id="testModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Send Test Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Recipient Email</label>
+                    <input type="email" id="testRecipient" class="form-control rounded-3" placeholder="you@example.com">
+                </div>
+                <div class="alert alert-light border-0 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i> This will send a live preview of your current design.
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-3 px-4" onclick="sendTest()">Send Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+    const BLOCKS_HTML = {
+        header: `
+            <div style="background:#1a202c; padding:30px; text-align:center; color:white; border-radius:8px; margin-bottom:20px;">
+                <h1 style="margin:0; font-family:sans-serif;">GREYTEEKS</h1>
+                <p style="margin:5px 0 0; opacity:0.7; font-size:0.9rem;">The Future of Messaging</p>
+            </div><br>`,
+        hero: `
+            <div style="background:#f1f5f9; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+                <img src="https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80" style="width:100%; height:240px; object-fit:cover;">
+                <div style="padding:30px; text-align:center;">
+                    <h2 style="font-family:sans-serif; color:#1e293b;">Ignite Your Growth</h2>
+                    <p style="color:#64748b; line-height:1.6;">Scale your communication with our advanced newsletter and automation suite. Engineering your success, one message at a time.</p>
+                    <a href="#" style="display:inline-block; background:#3b82f6; color:white; padding:12px 28px; border-radius:8px; text-decoration:none; font-weight:bold; margin-top:15px;">Get Started Now</a>
+                </div>
+            </div><br>`,
+        text: `
+            <div style="padding:20px 0; margin-bottom:20px;">
+                <p style="color:#334155; line-height:1.75; font-size:1.05rem;">Start typing your message here. You can use the toolbar above to format your text, add links, or change styles. This block is perfect for your main content body.</p>
+            </div><br>`,
+        image: `
+            <div style="margin-bottom:20px; text-align:center;">
+                <img src="https://placehold.co/600x300/e2e8f0/64748b?text=Place+Your+Image+Here" style="max-width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+            </div><br>`,
+        button: `
+            <div style="text-align:center; padding:20px 0; margin-bottom:20px;">
+                <a href="#" style="display:inline-block; background:#1e293b; color:white; padding:14px 32px; border-radius:10px; text-decoration:none; font-weight:700; letter-spacing:0.02em;">Take Action</a>
+            </div><br>`,
+        divider: `
+            <div style="padding:20px 0;">
+                <hr style="border:none; border-top:1px solid #e2e8f0;">
+            </div><br>`,
+        footer: `
+            <div style="border-top:1px solid #e2e8f0; padding-top:30px; margin-top:40px; text-align:center; color:#94a3b8; font-size:0.85rem;">
+                <p style="margin-bottom:10px;">© 2026 Greyteeks. All rights reserved.</p>
+                <p>Nairobi, Kenya • <a href="#" style="color:#64748b;">Unsubscribe</a></p>
+                <div style="margin-top:15px;">
+                    <a href="#" style="margin:0 10px; color:#64748b; font-size:1.2rem;"><i class="bi bi-twitter"></i></a>
+                    <a href="#" style="margin:0 10px; color:#64748b; font-size:1.2rem;"><i class="bi bi-facebook"></i></a>
+                    <a href="#" style="margin:0 10px; color:#64748b; font-size:1.2rem;"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div><br>`
+    };
+
+    let quill;
+    let currentMode = 'visual';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Quill
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Set initial content
+        const initialHtml = `{% if existing and existing.body_text %}{{ existing.body_text|safe }}{% elif campaign and campaign.html_content %}{{ campaign.html_content|safe }}{% else %}{% endif %}`;
+        if (initialHtml) {
+            quill.root.innerHTML = initialHtml;
+        }
+
+        // Setup Drag and Drop
+        const blockItems = document.querySelectorAll('.block-item');
+        blockItems.forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                e.dataTransfer.setData('text/plain', this.dataset.type);
+            });
+        });
+
+        const editorContainer = document.querySelector('#editor-container');
+        editorContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        editorContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('text/plain');
+            if (BLOCKS_HTML[type]) {
+                insertHtmlAtCursor(BLOCKS_HTML[type]);
+            }
+        });
+    });
+
+    function insertHtmlAtCursor(html) {
+        const range = quill.getSelection(true);
+        if (range) {
+            // We use clipboard.dangerouslyPasteHTML to insert complex HTML
+            quill.clipboard.dangerouslyPasteHTML(range.index, html);
+        } else {
+            quill.clipboard.dangerouslyPasteHTML(quill.getLength(), html);
+        }
+    }
+
+    function switchMode(mode) {
+        if (mode === currentMode) return;
+        
+        const visualBtn = document.getElementById('visual-mode-btn');
+        const htmlBtn = document.getElementById('html-mode-btn');
+        const editor = document.getElementById('editor-container');
+        const toolbar = document.querySelector('.ql-toolbar');
+        const htmlTextarea = document.getElementById('html-editor');
+
+        if (mode === 'html') {
+            htmlTextarea.value = quill.root.innerHTML;
+            editor.style.display = 'none';
+            toolbar.style.display = 'none';
+            htmlTextarea.style.display = 'block';
+            visualBtn.classList.remove('active');
+            htmlBtn.classList.add('active');
+        } else {
+            quill.root.innerHTML = htmlTextarea.value;
+            htmlTextarea.style.display = 'none';
+            editor.style.display = 'block';
+            toolbar.style.display = 'block';
+            htmlBtn.classList.remove('active');
+            visualBtn.classList.add('active');
+        }
+        currentMode = mode;
+    }
+
+    async function saveDesign() {
+        const name = document.getElementById('templateName').value;
+        const subject = document.getElementById('emailSubject').value;
+        const html = currentMode === 'html' ? document.getElementById('html-editor').value : quill.root.innerHTML;
+        
+        if (!name || !subject) {
+            showToast('Please enter both name and subject', 'warning');
+            return;
+        }
+
+        const data = {
+            name: name,
+            subject: subject,
+            html_content: html,
+            design_json: {}, // Quill doesn't use JSON design like GrapesJS
+              template_id: '{% if existing %}{{ existing.id }}{% elif campaign %}{{ campaign.id }}{% else %}{% endif %}',
+              provider_id: '{% if campaign and campaign.email_server_id %}{{ campaign.email_server_id }}{% else %}{% endif %}'
+        };
+
+        try {
+            const response = await fetch('{{ save_url }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (response.ok) {
+                showToast('Design saved successfully!', 'success');
+                if (result.redirect_url) {
+                    window.location.href = result.redirect_url;
+                }
+            } else {
+                showToast(result.error || 'Failed to save', 'danger');
+            }
+        } catch (e) {
+            showToast('Error connecting to server', 'danger');
+        }
+    }
+
+    function openTestModal() {
+        const myModal = new bootstrap.Modal(document.getElementById('testModal'));
+        myModal.show();
+    }
+
+    async function sendTest() {
+        const recipient = document.getElementById('testRecipient').value;
+        const html = currentMode === 'html' ? document.getElementById('html-editor').value : quill.root.innerHTML;
+
+        if (!recipient) {
+            showToast('Please enter a recipient email', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ test_url|default:"/templates/email/builder/test/" }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    recipient: recipient,
+                    subject: 'Test: ' + (document.getElementById('templateName').value || 'New Email'),
+                    html_content: html,
+                    provider_id: '{% if campaign and campaign.email_server_id %}{{ campaign.email_server_id }}{% else %}{% endif %}'
+                })
+            });
+            if (response.ok) {
+                showToast('Test email sent!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('testModal')).hide();
+            } else {
+                showToast('Failed to send test', 'danger');
+            }
+        } catch (e) {
+            showToast('Error sending test', 'danger');
+        }
+    }
+
+    function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = \`alert alert-\${type} shadow-lg border-0 mb-2\`;
+        toast.style.minWidth = '250px';
+        toast.innerHTML = \`<i class="bi bi-info-circle me-2"></i> \${message}\`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100px)';
+            toast.style.transition = 'all 0.5s';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+</script>
+{% endblock %}
